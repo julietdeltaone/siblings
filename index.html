@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://accounts.google.com/gsi/client"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHels-KRWdW74J9cj0n8aQjUiDaHsYKTM&libraries=places" async defer></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -544,7 +543,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('editModalSave').addEventListener('click', saveEdit);
 
   updatePlaceholder();
-  showScreen('lockScreen');
+  // Check if returning from Google OAuth redirect (must run before showScreen)
+  checkGcalRedirect();
+  if (!sessionStorage.getItem('gcal_token') || !sessionStorage.getItem('siblings_user')) {
+    showScreen('lockScreen');
+  }
 });
 
 // ── PIN ──
@@ -982,20 +985,65 @@ function toast(msg,type='') { const el=document.getElementById('toast'); el.text
 
 // ══════════════════════════════════════════════
 // GOOGLE CALENDAR SYNC (JD only)
+// Uses redirect-based OAuth — no popups, no blocking
 // ══════════════════════════════════════════════
 
-let gcalTokenClient = null;
 let gcalAccessToken = null;
 let selectedCalendarIds = [];
-
 let gcalButtonsInitialized = false;
 
+// On page load, check if we're returning from Google OAuth redirect
+function checkGcalRedirect() {
+  const hash = window.location.hash;
+  if (!hash) return;
+  const params = new URLSearchParams(hash.substring(1));
+  const token = params.get('access_token');
+  const error = params.get('error');
+  if (error) {
+    console.error('GCal OAuth error:', error);
+    // Clean up URL
+    history.replaceState(null, '', window.location.pathname);
+    return;
+  }
+  if (token) {
+    gcalAccessToken = token;
+    sessionStorage.setItem('gcal_token', token);
+    // Clean hash from URL so refresh doesn't re-process
+    history.replaceState(null, '', window.location.pathname);
+    // Restore saved user session so they don't have to re-login
+    const savedUser = sessionStorage.getItem('siblings_user');
+    if (savedUser) {
+      // Auto-login and open gcal modal
+      currentUser = savedUser;
+      document.getElementById('currentUserLabel').textContent = savedUser;
+      document.getElementById('addingAsLabel').textContent = 'Adding as ' + savedUser;
+      showScreen('appScreen');
+      initCalendar();
+      // Switch to Schedule tab and open gcal modal
+      const schedBtn = document.querySelector('[data-tab="calendar"]');
+      if (schedBtn) switchTab('calendar', schedBtn);
+      initGcalButton();
+      setTimeout(() => openGcalModal(), 300);
+    }
+  }
+}
+
+function startGcalAuth() {
+  // Save current user so we can restore after redirect
+  sessionStorage.setItem('siblings_user', currentUser);
+  
+  const clientId = CONFIG.GOOGLE_CLIENT_ID;
+  const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+  const scope = encodeURIComponent(CONFIG.GOOGLE_SCOPES);
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}&include_granted_scopes=true`;
+  
+  window.location.href = url;
+}
+
 function initGcalButton() {
-  // Only show for JD
   if (currentUser !== 'JD') return;
   document.getElementById('gcalSyncRow').style.display = 'block';
 
-  // Check if we have a stored token
   const stored = sessionStorage.getItem('gcal_token');
   if (stored) {
     gcalAccessToken = stored;
@@ -1004,7 +1052,6 @@ function initGcalButton() {
     if (lastSync) document.getElementById('gcalLastSync').textContent = 'Last synced: ' + lastSync;
   }
 
-  // Only attach listeners once to avoid stacking
   if (gcalButtonsInitialized) return;
   gcalButtonsInitialized = true;
 
@@ -1023,33 +1070,6 @@ function initGcalButton() {
   document.getElementById('gcalSyncBtn').addEventListener('click', importSelectedCalendars);
 }
 
-function startGcalAuth() {
-  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
-    toast('Google auth loading, try again in a moment', 'error');
-    return;
-  }
-  // requestAccessToken requires user gesture — it triggers a popup
-  // initTokenClient must be called first, then requestAccessToken in the same call stack
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: CONFIG.GOOGLE_CLIENT_ID,
-    scope: CONFIG.GOOGLE_SCOPES,
-    callback: (response) => {
-      if (response.error) {
-        console.error('GCal auth error:', response);
-        toast('Google auth failed: ' + (response.error_description || response.error), 'error');
-        return;
-      }
-      gcalAccessToken = response.access_token;
-      sessionStorage.setItem('gcal_token', gcalAccessToken);
-      document.getElementById('gcalConnectBtn').textContent = 'Sync Google Calendar';
-      toast('Connected!', 'success');
-      openGcalModal();
-    },
-  });
-  gcalTokenClient = client;
-  client.requestAccessToken({ prompt: '' });
-}
-
 async function openGcalModal() {
   document.getElementById('gcalModal').classList.add('open');
   document.getElementById('gcalList').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading calendars...</div>';
@@ -1063,23 +1083,20 @@ async function openGcalModal() {
 
     if (data.error || res.status === 401 || res.status === 403) {
       console.error('GCal API error:', data.error || res.status);
-      // Token expired or invalid, clear and re-auth
       gcalAccessToken = null;
       sessionStorage.removeItem('gcal_token');
       document.getElementById('gcalModal').classList.remove('open');
-      toast('Session expired — re-connecting...', 'error');
-      setTimeout(() => startGcalAuth(), 500);
+      toast('Session expired — reconnecting...', 'error');
+      setTimeout(() => startGcalAuth(), 800);
       return;
     }
 
-    // Filter to useful calendars (exclude birthdays, holidays)
     const cals = (data.items || []).filter(c =>
       !c.id.includes('holiday') &&
       !c.id.includes('birthday') &&
       c.accessRole !== 'freeBusyReader'
     );
 
-    // Pre-select previously chosen calendars
     const prevSelected = JSON.parse(localStorage.getItem('gcal_selected') || '[]');
 
     document.getElementById('gcalList').innerHTML = cals.map(cal => {
@@ -1109,18 +1126,15 @@ async function importSelectedCalendars() {
 
   if (!selectedCalendarIds.length) { toast('Select at least one calendar', 'error'); return; }
 
-  // Save selection for next time
   localStorage.setItem('gcal_selected', JSON.stringify(selectedCalendarIds));
 
   const btn = document.getElementById('gcalSyncBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Importing...';
 
-  // Fetch events for next 90 days
   const now = new Date();
   const end = new Date();
   end.setDate(end.getDate() + 90);
-
   const timeMin = now.toISOString();
   const timeMax = end.toISOString();
 
@@ -1137,28 +1151,21 @@ async function importSelectedCalendars() {
     }
   }
 
-  // Convert events to availability rows
-  // Group by day — if there's an event on a day, mark that day/range as busy
   const busyDays = {};
   allEvents.forEach(event => {
-    // Skip all-day events marked as free/transparent
     if (event.transparency === 'transparent') return;
-    // Skip declined events
     const selfAttendee = (event.attendees || []).find(a => a.self);
     if (selfAttendee && selfAttendee.responseStatus === 'declined') return;
 
     let startDate, endDate, timeNote = null;
 
     if (event.start.date) {
-      // All-day event
       startDate = event.start.date;
       endDate = event.end.date;
-      // end date in Google is exclusive, so subtract one day
       const ed = new Date(endDate + 'T12:00:00');
       ed.setDate(ed.getDate() - 1);
       endDate = ed.toISOString().split('T')[0];
     } else {
-      // Timed event
       startDate = event.start.dateTime.split('T')[0];
       endDate = event.end.dateTime.split('T')[0];
       const startTime = event.start.dateTime.substring(11, 16);
@@ -1173,10 +1180,8 @@ async function importSelectedCalendars() {
     if (timeNote) busyDays[key].notes.push(timeNote);
   });
 
-  // Delete existing Google Calendar imports for JD (to avoid duplicates)
   await db.from('availability').delete().eq('person', 'JD').eq('source', 'gcal');
 
-  // Insert new rows
   const rows = Object.values(busyDays).map(b => ({
     person: 'JD',
     start_date: b.startDate,
@@ -1200,7 +1205,7 @@ async function importSelectedCalendars() {
   btn.textContent = 'Import Selected Calendars';
   document.getElementById('gcalModal').classList.remove('open');
 
-  toast(`Imported ${rows.length} busy blocks from Google Calendar`, 'success');
+  toast('Imported ' + rows.length + ' busy blocks from Google Calendar', 'success');
   loadCalendarData();
 }
 
@@ -1210,7 +1215,6 @@ function fmt12h(time24) {
   const h12 = h % 12 || 12;
   return h12 + (m ? ':' + String(m).padStart(2,'0') : '') + ampm;
 }
-
 </script>
 </body>
 </html>
