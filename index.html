@@ -163,7 +163,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .cal-month{font-family:var(--font-head);font-size:20px;color:var(--text)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
 .cal-dow{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;padding:5px 0}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:12px;font-family:var(--font-mono);color:var(--muted);position:relative}
+.cal-day{aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;border-radius:6px;font-size:11px;font-family:var(--font-mono);color:var(--muted);position:relative;overflow:hidden}
 .cal-day.in-month{color:var(--text)}
 .cal-day.today{border:1px solid var(--border2);color:var(--accent2)}
 .cal-day.o2{background:rgba(240,200,96,0.15);color:var(--overlap)}
@@ -259,9 +259,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .step.done + .step-line{background:var(--accent)}
 
 /* BUSY CALENDAR BARS */
-.cal-day{position:relative}
-.busy-bar{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 4px 4px;background:rgba(240,96,96,0.35)}
-.busy-bar.long{background:rgba(240,96,96,0.55)}
+.cal-day{position:relative;overflow:hidden}
+.busy-bar{position:absolute;left:1px;right:1px;border-radius:2px;background:rgba(240,96,96,0.4);pointer-events:none;min-height:3px}
 
 /* PROFILE QUADRANTS */
 .profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;min-height:calc(100vh - 118px)}
@@ -1577,16 +1576,66 @@ function buildFreeMap(data, monthStart, monthEnd) {
   });
   return m;
 }
+function parseTimeRange(note) {
+  // Extract start/end hours from note like "(2p-12a)" or "(6:45pm)" or "(2pm-12am)"
+  if (!note) return null;
+  const m = note.match(/\((\d{1,2})(?::(\d{2}))?\s*(am|pm)\s*[-to]+\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)\)/i);
+  if (!m) {
+    // Single time "(6:45pm)"
+    const s = note.match(/\((\d{1,2})(?::(\d{2}))?\s*(am|pm)\)/i);
+    if (!s) return null;
+    let h = parseInt(s[1]);
+    if (s[3].toLowerCase()==='pm' && h<12) h+=12;
+    if (s[3].toLowerCase()==='am' && h===12) h=0;
+    return {startHour:h, endHour:h+1, overnight:false};
+  }
+  let sh = parseInt(m[1]);
+  if (m[3].toLowerCase()==='pm' && sh<12) sh+=12;
+  if (m[3].toLowerCase()==='am' && sh===12) sh=0;
+  let eh = parseInt(m[4]);
+  if (m[6].toLowerCase()==='pm' && eh<12) eh+=12;
+  if (m[6].toLowerCase()==='am' && eh===12) eh=0;
+  const overnight = eh <= sh; // e.g. 2pm(14) to 12am(0)
+  return {startHour:sh, endHour:eh, overnight};
+}
+
 function buildBusyMap(data, monthStart, monthEnd) {
   const m = {};
   data.forEach(row => {
     const totalDays = dateDiff(row.start_date, row.end_date) + 1;
+    const timeInfo = parseTimeRange(row.note);
     let cur = new Date(Math.max(new Date(row.start_date+'T12:00:00'), new Date(monthStart+'T12:00:00')));
     const end = new Date(Math.min(new Date(row.end_date+'T12:00:00'), new Date(monthEnd+'T12:00:00')));
+    const startDs = row.start_date;
+    const endDs = row.end_date;
     while (cur <= end) {
       const k = cur.toISOString().split('T')[0];
       if (!m[k]) m[k] = [];
-      m[k].push({person:row.person, note:row.note, duration:totalDays});
+      // Determine bar position for this specific day
+      let barTop = 0, barH = 1; // fraction of 24h (0-1)
+      if (timeInfo) {
+        const isFirst = k === startDs;
+        const isLast  = k === endDs;
+        const isMid   = !isFirst && !isLast;
+        if (totalDays === 1) {
+          // Single day event
+          barTop = timeInfo.startHour / 24;
+          barH   = Math.max((timeInfo.endHour - timeInfo.startHour) / 24, 1/24);
+          if (timeInfo.overnight) barH = (24 - timeInfo.startHour) / 24;
+        } else if (isFirst) {
+          barTop = timeInfo.startHour / 24;
+          barH   = (24 - timeInfo.startHour) / 24;
+        } else if (isLast) {
+          barTop = 0;
+          barH   = timeInfo.overnight ? timeInfo.endHour / 24 : 1;
+        } else {
+          barTop = 0; barH = 1; // full day for middle days
+        }
+      } else {
+        // No time info: all-day — show thin bar across full cell
+        barTop = 0; barH = 1;
+      }
+      m[k].push({person:row.person, note:row.note, duration:totalDays, barTop, barH});
       cur.setDate(cur.getDate()+1);
     }
   });
@@ -1620,18 +1669,33 @@ function renderCalendar(freeMap, busyMap) {
       if (n >= 2) el.title = people.join(', ') + ' free';
     }
 
-    // Busy bar — subtle red bar at bottom, height scaled by duration
+    // Busy bars — proportional to 24h, positioned by start time
     const busyEntries = busyMap ? busyMap[ds] : null;
     if (busyEntries && busyEntries.length) {
-      const maxDur = Math.max(...busyEntries.map(e => e.duration || 1));
-      const barH = Math.min(6, 2 + Math.floor(maxDur / 2)); // 2-6px
-      const isLong = maxDur > 3;
-      const bar = document.createElement('div');
-      bar.className = 'busy-bar' + (isLong ? ' long' : '');
-      bar.style.height = barH + 'px';
-      const people = [...new Set(busyEntries.map(e => e.person))];
-      bar.title = people.join(', ') + ' busy';
-      el.appendChild(bar);
+      // Group by person to avoid stacking same person multiple times
+      const byPerson = {};
+      busyEntries.forEach(e => {
+        const key = e.person;
+        if (!byPerson[key] || e.barH > byPerson[key].barH) byPerson[key] = e;
+      });
+      const entries = Object.values(byPerson);
+      const colW = entries.length > 1 ? Math.floor(90 / entries.length) : 90;
+      entries.forEach((e, i) => {
+        const bar = document.createElement('div');
+        bar.className = 'busy-bar';
+        const topPct = (e.barTop || 0) * 100;
+        const hPct   = Math.max((e.barH || 0.04) * 100, 8); // min 8% height = visible dot
+        bar.style.top    = topPct + '%';
+        bar.style.height = hPct + '%';
+        bar.style.left   = (5 + i * (colW + 2)) + '%';
+        bar.style.right  = 'auto';
+        bar.style.width  = colW + '%';
+        // Brighter for longer events
+        const alpha = Math.min(0.35 + (e.barH || 0) * 0.4, 0.75);
+        bar.style.background = 'rgba(240,96,96,' + alpha.toFixed(2) + ')';
+        bar.title = e.person + (e.note ? ': ' + e.note : '') + ' (busy)';
+        el.appendChild(bar);
+      });
     }
 
     // Store date data and make tappable
