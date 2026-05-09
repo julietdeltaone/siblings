@@ -19,8 +19,9 @@
   --font-head:'DM Serif Display',serif;--font-mono:'DM Mono',monospace;--font-body:'DM Sans',sans-serif;
   --r:14px;--r-sm:8px;
 }
-html{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.6;height:100%;overflow:hidden;position:fixed;width:100%}
+html{height:100%;overflow:hidden;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.6;height:100%;overflow:hidden;position:fixed;width:100%;-webkit-font-smoothing:antialiased}
+@supports(height:100dvh){html,body{height:100dvh}}
 
 /* LOCK */
 #lockScreen{display:none;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:32px;position:fixed;inset:0;overflow:hidden}
@@ -291,6 +292,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 /* MAP PINS */
 .map-entry-marker{display:none}
 .map-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+
+/* DAY POPUP */
+.day-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:800;display:none;align-items:flex-end;justify-content:center;transition:background 0.2s}
+.day-popup-overlay.open{display:flex;background:rgba(0,0,0,0.6)}
+.day-popup{background:var(--surface);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:540px;max-height:72vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)}
+.day-popup-overlay.open .day-popup{transform:translateY(0)}
+.day-popup-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:12px auto 0}
+.day-popup-header{padding:12px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.day-popup-date{font-family:var(--font-head);font-size:22px;color:var(--text)}
+.day-popup-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;line-height:1}
+.day-popup-body{padding:14px 18px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.day-popup-empty{text-align:center;padding:24px 0;color:var(--muted);font-size:12px;font-family:var(--font-mono)}
+.day-event{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.day-event:last-child{border-bottom:none}
+.day-event-badge{padding:2px 8px;border-radius:999px;font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;flex-shrink:0;margin-top:2px}
+.day-event-badge.free{background:rgba(200,240,96,0.12);color:var(--accent);border:1px solid rgba(200,240,96,0.2)}
+.day-event-badge.busy{background:rgba(240,96,96,0.1);color:var(--danger);border:1px solid rgba(240,96,96,0.2)}
+.day-event-info{flex:1}
+.day-event-who{font-size:13px;font-weight:600;color:var(--text)}
+.day-event-note{font-size:11px;color:var(--accent2);font-family:var(--font-mono);margin-top:1px}
 .map-leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);font-family:var(--font-mono)}
 .map-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
@@ -625,6 +646,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Guide
       </button>
     </div>
+  </div>
+</div>
+
+<!-- DAY POPUP -->
+<div class="day-popup-overlay" id="dayPopup">
+  <div class="day-popup">
+    <div class="day-popup-handle"></div>
+    <div class="day-popup-header">
+      <div class="day-popup-date" id="dayPopupDate"></div>
+      <button class="day-popup-close" onclick="closeDayPopup()">&times;</button>
+    </div>
+    <div class="day-popup-body" id="dayPopupBody"></div>
   </div>
 </div>
 
@@ -1174,46 +1207,72 @@ async function handleIcsFile(file) {
 }
 // Parse ICS locally in the browser — extract event data before sending to Claude
 function parseIcsLocally(icsText) {
+  // Unfold lines (ICS folds long lines with CRLF + whitespace)
+  const unfolded = icsText
+    .replace(/\r\n/g, '\n')
+    .replace(/\n[ \t]/g, '');
+
   const events = [];
-  // Split into VEVENT blocks
-  const blocks = icsText.split('BEGIN:VEVENT');
+  const blocks = unfolded.split('BEGIN:VEVENT');
+
   for (let i = 1; i < blocks.length; i++) {
     const block = blocks[i].split('END:VEVENT')[0];
-    const get = (key) => {
-      const regex = new RegExp('(?:^|\r?\n)' + key + '(?:;[^:]*)?:([^\r\n]*)','i');
-      const m = block.match(regex);
-      return m ? m[1].trim().replace(/\n/g,'').replace(/\,/g,',') : null;
+
+    // Generic getter handles DTSTART;TZID=...: and plain DTSTART:
+    const get = (keyPrefix) => {
+      const re = new RegExp('(?:^|\n)' + keyPrefix + '(?:;[^:\n]*)?:([^\n]*)', 'im');
+      const m = block.match(re);
+      return m ? m[1].trim() : null;
     };
-    const dtstart = get('DTSTART') || get('DTSTART;VALUE=DATE') || get('DTSTART;TZID=[^:]+');
-    const dtend   = get('DTEND')   || get('DTEND;VALUE=DATE')   || get('DTEND;TZID=[^:]+');
-    const summary = get('SUMMARY') || '';
+
+    const dtstart = get('DTSTART');
+    const dtend   = get('DTEND');
+    const summary = (get('SUMMARY') || '(No title)').replace(/\\n/g,' ').replace(/\\,/g,',').trim();
     const transp  = get('TRANSP');
     const status  = get('STATUS');
-    // Skip free/transparent/cancelled events
+
     if (transp === 'TRANSPARENT') continue;
     if (status === 'CANCELLED') continue;
     if (!dtstart) continue;
-    // Convert YYYYMMDD or YYYYMMDDTHHmmssZ to YYYY-MM-DD
+
     const toDate = (s) => {
       if (!s) return null;
-      const d = s.replace(/T.*/, '').replace(/Z$/, '');
-      if (d.length === 8) return d.substring(0,4) + '-' + d.substring(4,6) + '-' + d.substring(6,8);
+      const clean = s.replace(/Z$/,'').replace(/[+-]\d{4}$/,'').replace(/[+-]\d{2}:\d{2}$/,'');
+      const dateOnly = clean.replace(/T.*/,'');
+      if (dateOnly.length === 8) return dateOnly.slice(0,4)+'-'+dateOnly.slice(4,6)+'-'+dateOnly.slice(6,8);
       return null;
     };
+
     const start = toDate(dtstart);
     let end = toDate(dtend);
     if (!start) continue;
-    // For all-day events, Google's end date is exclusive — subtract one day
+    if (!end || end < start) end = start;
+
+    // All-day: Google DTEND is exclusive
     if (end && !dtstart.includes('T') && end > start) {
       const ed = new Date(end + 'T12:00:00');
       ed.setDate(ed.getDate() - 1);
       end = ed.toISOString().split('T')[0];
     }
-    if (!end) end = start;
-    events.push({ start, end, summary: summary.substring(0, 60) });
+
+    // Extract time for timed events
+    let timeNote = null;
+    if (dtstart.includes('T')) {
+      const tPart = dtstart.replace(/Z$/,'').replace(/[+-]\d{4}$/,'');
+      const hh = parseInt(tPart.slice(9,11));
+      const mm = parseInt(tPart.slice(11,13));
+      if (!isNaN(hh)) {
+        const ampm = hh >= 12 ? 'pm' : 'am';
+        const h12 = hh % 12 || 12;
+        timeNote = h12 + (mm ? ':' + String(mm).padStart(2,'0') : '') + ampm;
+      }
+    }
+
+    events.push({ start, end, summary: summary.substring(0,80), timeNote });
   }
   return events;
 }
+
 
 async function parseIcsContent(icsText) {
   setIcsStep(2);
@@ -1231,7 +1290,7 @@ async function parseIcsContent(icsText) {
 
     // Cap at 150 events to avoid token limits
     const capped = future.slice(0, 150);
-    const eventText = capped.map(e => e.start + ' to ' + e.end + ': ' + (e.summary||'Event')).join('\n');
+    const eventText = capped.map(e => e.start + ' to ' + e.end + ': ' + (e.summary||'Event') + (e.timeNote ? ' (' + e.timeNote + ')' : '')).join('\n');
     const prompt = 'Here is a list of calendar events (start date, end date, title). Convert them into a JSON array where each item has: start_date (YYYY-MM-DD), end_date (YYYY-MM-DD), status ("busy"), note (event title, optional). Skip personal events like birthdays/holidays if you can tell. Return ONLY the JSON array.\n\n' + eventText;
 
     const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
@@ -1246,7 +1305,8 @@ async function parseIcsContent(icsText) {
     if (!icsParsedEvents || !icsParsedEvents.length) {
       // Fall back: use local parse directly without Claude
       icsParsedEvents = future.slice(0, 200).map(e => ({
-        start_date: e.start, end_date: e.end, status: 'busy', note: e.summary || null
+        start_date: e.start, end_date: e.end, status: 'busy',
+        note: e.summary ? (e.timeNote ? e.summary + ' (' + e.timeNote + ')' : e.summary) : null
       }));
     }
 
@@ -1256,7 +1316,9 @@ async function parseIcsContent(icsText) {
     ).join('\n');
     document.getElementById('icsParsed').style.display = 'block';
     setIcsStep(3);
-    toast(icsParsedEvents.length + ' events ready','success');
+    const pastCount = localEvents.length - future.length;
+    const msg = icsParsedEvents.length + ' events ready' + (pastCount > 0 ? ' (' + pastCount + ' past events skipped)' : '');
+    toast(msg, 'success');
   } catch(err) {
     // Last resort: use purely local parse
     const localEvents = parseIcsLocally(icsText);
@@ -1290,8 +1352,15 @@ async function saveIcsEvents() {
   if (!icsParsedEvents || !icsParsedEvents.length) return;
   const btn = document.getElementById('saveIcsBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving...';
-  await db.from('availability').delete().eq('person', currentUser).eq('source', 'ics');
-  const rows = icsParsedEvents.map(p => ({person:currentUser, start_date:p.start_date, end_date:p.end_date, status:p.status||'busy', note:p.note||null, source:'ics'}));
+  // Accumulate calendars: fetch existing to skip duplicates
+  const { data: existing } = await db.from('availability').select('start_date,end_date,note').eq('person',currentUser).eq('source','ics');
+  const existKeys = new Set((existing||[]).map(r => r.start_date+'|'+r.end_date+'|'+(r.note||'')));
+  const allRows = icsParsedEvents.map(p => ({person:currentUser,start_date:p.start_date,end_date:p.end_date,status:p.status||'busy',note:p.note||null,source:'ics'}));
+  const rows = allRows.filter(r => !existKeys.has(r.start_date+'|'+r.end_date+'|'+(r.note||'')));
+  if (!rows.length) {
+    toast('Already imported -- nothing new','info');
+    clearIcsParsed(); btn.disabled=false; btn.textContent='Save to Schedule'; return;
+  }
   const { data, error } = await db.from('availability').insert(rows).select();
   if (error) { toast('Error saving','error'); console.error(error); btn.disabled=false; btn.textContent='Save to Schedule'; return; }
   if (data) pushHistory({action:'insert', rows:data});
@@ -1364,6 +1433,7 @@ async function loadCalendarData() {
   ]);
   const freeMap = buildFreeMap(freeResp.data||[], monthStart, monthEnd);
   const busyMap = buildBusyMap(busyResp.data||[], monthStart, monthEnd);
+  storeDayData(freeMap, busyMap, monthStart, monthEnd);
   renderCalendar(freeMap, busyMap);
   renderOverlapList(freeMap, monthStart, monthEnd);
   renderMySchedule(monthStart, monthEnd);
@@ -1439,9 +1509,76 @@ function renderCalendar(freeMap, busyMap) {
       el.appendChild(bar);
     }
 
+    // Store date data and make tappable
+    el.dataset.date = ds;
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => openDayPopup(ds));
     grid.appendChild(el);
   }
 }
+
+// Day popup data store
+let calDayData = {}; // {date: [{person, status, note}]}
+
+function storeDayData(freeMap, busyMap, monthStart, monthEnd) {
+  calDayData = {};
+  const addEntries = (map, status) => {
+    Object.entries(map||{}).forEach(([date, entries]) => {
+      if (!calDayData[date]) calDayData[date] = [];
+      entries.forEach(e => calDayData[date].push({...e, status}));
+    });
+  };
+  addEntries(freeMap, 'free');
+  addEntries(busyMap, 'busy');
+}
+
+function openDayPopup(ds) {
+  const popup = document.getElementById('dayPopup');
+  const dateEl = document.getElementById('dayPopupDate');
+  const bodyEl = document.getElementById('dayPopupBody');
+
+  const [y,m,d] = ds.split('-');
+  const dateObj = new Date(+y,+m-1,+d);
+  dateEl.textContent = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  const events = calDayData[ds] || [];
+  if (!events.length) {
+    bodyEl.innerHTML = '<div class="day-popup-empty">No availability logged for this day.</div>';
+  } else {
+    // Sort: free first, then busy; group by person
+    const sorted = [...events].sort((a,b) => {
+      if (a.status !== b.status) return a.status === 'free' ? -1 : 1;
+      return a.person.localeCompare(b.person);
+    });
+    // Deduplicate by person+status
+    const seen = new Set();
+    const deduped = sorted.filter(e => {
+      const key = e.person + e.status;
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    });
+    bodyEl.innerHTML = deduped.map(e => {
+      const note = e.note ? shortenNote(e.note) : '';
+      return '<div class="day-event">' +
+        '<span class="day-event-badge ' + e.status + '">' + e.status + '</span>' +
+        '<div class="day-event-info">' +
+          '<div class="day-event-who">' + esc(e.person) + '</div>' +
+          (note ? '<div class="day-event-note">' + esc(note) + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+  }
+
+  popup.classList.add('open');
+  // Close on overlay tap (not popup itself)
+  popup.addEventListener('click', function onOverlayClick(e) {
+    if (e.target === popup) { closeDayPopup(); popup.removeEventListener('click', onOverlayClick); }
+  });
+}
+
+function closeDayPopup() {
+  document.getElementById('dayPopup').classList.remove('open');
+}
+
 async function renderMySchedule(monthStart, monthEnd) {
   const { data } = await db.from('availability').select('*').eq('person',currentUser).lte('start_date',monthEnd).gte('end_date',monthStart).order('start_date',{ascending:true});
   const container = document.getElementById('myScheduleList');
