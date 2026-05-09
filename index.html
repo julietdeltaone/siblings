@@ -691,7 +691,7 @@ async function parseAvailability() {
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
     parsedAvailability = data.parsed;
-    document.getElementById('nlpParsedContent').textContent = parsedAvailability.map(p => p.status.toUpperCase()+': '+p.start_date+' to '+p.end_date+(p.note?' ('+p.note+')'':'')).join('\n');
+    document.getElementById('nlpParsedContent').textContent = parsedAvailability.map(p => p.status.toUpperCase()+': '+p.start_date+' to '+p.end_date+(p.note ? ' ('+p.note+')' : '')).join('\n');
     document.getElementById('nlpParsed').style.display = 'block';
     document.getElementById('saveAvailBtn').style.display = 'block';
   } catch(err) { toast('Parse failed','error'); }
