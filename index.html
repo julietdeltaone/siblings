@@ -67,7 +67,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .nav-btn.active{color:var(--accent)}
 .nav-btn.active::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--accent);border-radius:0 0 2px 2px}
-.app-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.app-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
 
 /* TABS */
 .tab-pane{display:none;padding:18px 18px 100px;max-width:540px;margin:0 auto}
@@ -263,7 +263,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .busy-bar.long{background:rgba(240,96,96,0.55)}
 
 /* PROFILE QUADRANTS */
-.profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;height:calc(100vh - 120px)}
+.profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;min-height:calc(100vh - 118px)}
 .q-card{background:var(--surface);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .q-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.15s}
 .q-card:nth-child(1)::before{background:radial-gradient(ellipse at top left,rgba(200,240,96,0.08),transparent 70%)}
@@ -661,7 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-btn').forEach(btn =>
     btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn))
   );
-  document.querySelectorAll('.profile-card').forEach(card =>
+  document.querySelectorAll('.q-card').forEach(card =>
     card.addEventListener('click', () => viewProfile(card.dataset.person))
   );
   document.getElementById('backBtn').addEventListener('click', backToProfiles);
@@ -738,6 +738,9 @@ function loginAs(name) {
   document.getElementById('addingAsLabel').textContent = 'Adding as ' + name;
   document.getElementById('headerAvatar').textContent = name === 'James' ? 'Jm' : name[0];
   showScreen('appScreen');
+  // Profiles tab is default - hide overflow for grid
+  const ac = document.querySelector('.app-content');
+  if (ac) ac.style.overflowY = 'hidden';
   initCalendar();
   loadProfilePreviews();
   initPlacesAutocomplete();
@@ -751,20 +754,39 @@ function initPlacesAutocomplete() {
   }
   const input = document.getElementById('addressInput');
   if (!input) return;
-  placesAutocomplete = new google.maps.places.Autocomplete(input, {
-    types: ['establishment','geocode'],
-    componentRestrictions: {country:'us'},
-  });
-  placesAutocomplete.addListener('place_changed', () => {
-    const place = placesAutocomplete.getPlace();
-    const addr = place.formatted_address || place.name || '';
-    const display = document.getElementById('addressDisplay');
-    if (display) {
-      display.textContent = addr;
-      display.dataset.address = addr;
-      display.style.display = addr ? 'block' : 'none';
+  // Use PlaceAutocompleteElement (new API) or fall back to Autocomplete
+  try {
+    if (google.maps.places.PlaceAutocompleteElement) {
+      // New API - just use a session token approach with manual geocoding
+      input.addEventListener('change', () => {
+        const display = document.getElementById('addressDisplay');
+        if (display && input.value.trim()) {
+          display.textContent = input.value.trim();
+          display.dataset.address = input.value.trim();
+          display.style.display = 'block';
+        }
+      });
+      placesAutocomplete = true;
+    } else {
+      throw new Error('use legacy');
     }
-  });
+  } catch(e) {
+    // Legacy Autocomplete
+    placesAutocomplete = new google.maps.places.Autocomplete(input, {
+      types: ['establishment','geocode'],
+      componentRestrictions: {country:'us'},
+    });
+    placesAutocomplete.addListener('place_changed', () => {
+      const place = placesAutocomplete.getPlace();
+      const addr = place.formatted_address || place.name || '';
+      const display = document.getElementById('addressDisplay');
+      if (display) {
+        display.textContent = addr;
+        display.dataset.address = addr;
+        display.style.display = addr ? 'block' : 'none';
+      }
+    });
+  }
 }
 function lockApp() { currentUser = null; pinBuffer = ''; updatePinDisplay(); document.getElementById('lockError').textContent = ''; showScreen('lockScreen'); }
 
@@ -774,6 +796,9 @@ function switchTab(name, btn) {
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
+  // On profiles, hide overflow so grid fills screen perfectly
+  const appContent = document.querySelector('.app-content');
+  if (appContent) appContent.style.overflowY = name === 'profiles' ? 'hidden' : 'auto';
   if (name === 'schedule') loadCalendarData();
   if (name === 'map') initMap();
   if (name === 'profiles') { backToProfiles(); loadProfilePreviews(); }
@@ -882,7 +907,7 @@ async function delAvail(id) {
   document.getElementById('avail-' + id)?.remove();
   toast('Deleted','success');
 }
-function backToProfiles() { document.getElementById('profileGrid').style.display = 'grid'; document.getElementById('profileDetail').style.display = 'none'; }
+function backToProfiles() { document.getElementById('profileGrid').style.display = 'grid'; document.getElementById('profileGrid').style.height = ''; document.getElementById('profileDetail').style.display = 'none'; }
 
 // ── ADD DATA ──
 function onTypeChange() {
