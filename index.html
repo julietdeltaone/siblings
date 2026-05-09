@@ -297,6 +297,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 /* PROFILE STAT EDIT */
 .stat-edit-row{display:flex;gap:8px;margin-bottom:8px}
 .stat-edit-row .input{flex:1;padding:9px 12px;font-size:13px}
+
+/* PROFILE STATS EDITOR */
+.profile-stats-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:18px}
+.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.stat-row:last-child{margin-bottom:0}
+.stat-key{font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;min-width:80px}
+.stat-val{font-size:13px;color:var(--text);flex:1}
+.stat-val-input{flex:1;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:13px}
+.stat-val-input:focus{outline:none;border-color:var(--accent)}
+.profile-edit-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:var(--r-sm);font-size:10px;font-family:var(--font-mono);cursor:pointer;text-transform:uppercase;letter-spacing:1px}
+.profile-edit-btn:active{border-color:var(--accent);color:var(--accent)}
+
+/* LINK BADGES */
+.entry-link{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:999px;font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;text-decoration:none;margin-left:6px;transition:opacity 0.1s}
+.entry-link:active{opacity:0.7}
+.link-google{background:rgba(96,200,240,0.1);border:1px solid rgba(96,200,240,0.2);color:var(--accent2)}
+.link-spotify{background:rgba(29,185,84,0.1);border:1px solid rgba(29,185,84,0.3);color:#1db954}
+.link-yt{background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.2);color:#ff4444}
+
+/* AVAIL COLLAPSE */
+.avail-collapse-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0;user-select:none}
+.avail-collapse-hdr .avail-chevron{transition:transform 0.2s;color:var(--muted)}
+.avail-collapse-hdr .avail-chevron svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.avail-collapse-hdr.open .avail-chevron{transform:rotate(180deg)}
+.avail-collapse-body{display:none}
+.avail-collapse-body.open{display:block}
 </style>
 </head>
 <body>
@@ -822,9 +848,14 @@ async function loadProfilePreviews() {
 }
 
 // ── PROFILES ──
+const PROFILE_STAT_KEYS = ['Occupation','Location','Vibe','Currently into','Ask me about','Favorite place'];
+
 async function viewProfile(name) {
   document.getElementById('profileGrid').style.display = 'none';
   document.getElementById('profileDetail').style.display = 'block';
+  const ac = document.querySelector('.app-content');
+  if (ac) { ac.style.overflowY = 'auto'; ac.scrollTop = 0; }
+
   const initials = name === 'James' ? 'Jm' : name[0];
   document.getElementById('detailAvatar').textContent = initials;
   document.getElementById('detailName').innerHTML = name[0] + '<em>' + name.slice(1) + '</em>';
@@ -832,14 +863,41 @@ async function viewProfile(name) {
   const age = Math.floor((new Date() - new Date(s.dob)) / 31557600000);
   document.getElementById('detailInfo').textContent = s.lastName + ' · ' + age + ' yrs · ' + (s.address.split(',')[1] || '').trim();
   document.getElementById('detailContent').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading</div>';
+
   try {
     const [entries, schedule] = await Promise.all([
       db.from('entries').select('*').eq('person',name).order('created_at',{ascending:false}).limit(60),
-      db.from('availability').select('*').eq('person',name).gte('end_date',todayStr()).order('start_date',{ascending:true}).limit(20),
+      db.from('availability').select('*').eq('person',name).gte('end_date',todayStr()).order('start_date',{ascending:true}).limit(30),
     ]);
     const canEdit = currentUser === name;
-    const byType = {};
-    (entries.data||[]).forEach(r => { if (!byType[r.type]) byType[r.type]=[]; byType[r.type].push(r); });
+
+    // PROFILE STATS
+    const savedStats = JSON.parse(localStorage.getItem('profileStats-' + name) || '{}');
+    let statsHtml = '';
+    if (canEdit) {
+      statsHtml = '<div class="profile-stats-panel" id="statsPanel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:2px;color:var(--muted)">Your Profile</span><button class="profile-edit-btn" onclick="toggleStatsEdit()">Edit</button></div>';
+      statsHtml += '<div id="statsView">';
+      const hasVals = PROFILE_STAT_KEYS.some(k => savedStats[k]);
+      if (hasVals) {
+        PROFILE_STAT_KEYS.forEach(k => { if (savedStats[k]) statsHtml += '<div class="stat-row"><div class="stat-key">' + k + '</div><div class="stat-val">' + esc(savedStats[k]) + '</div></div>'; });
+      } else {
+        statsHtml += '<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">Tap Edit to add your profile stats.</div>';
+      }
+      statsHtml += '</div><div id="statsEdit" style="display:none">';
+      PROFILE_STAT_KEYS.forEach(k => {
+        statsHtml += '<div class="stat-row"><div class="stat-key">' + k + '</div><input class="stat-val-input" data-key="' + esc(k) + '" value="' + esc(savedStats[k]||'') + '" placeholder="..."/></div>';
+      });
+      statsHtml += '<button class="btn" style="margin-top:10px" onclick="saveStats(&#39;' + name + '&#39;)">Save Profile</button></div></div>';
+    } else {
+      const hasVals = PROFILE_STAT_KEYS.some(k => savedStats[k]);
+      if (hasVals) {
+        statsHtml = '<div class="profile-stats-panel">';
+        PROFILE_STAT_KEYS.forEach(k => { if (savedStats[k]) statsHtml += '<div class="stat-row"><div class="stat-key">' + k + '</div><div class="stat-val">' + esc(savedStats[k]) + '</div></div>'; });
+        statsHtml += '</div>';
+      }
+    }
+
+    // ENTRIES BY TYPE
     const typeLabels = {movie:'Movies & Shows',music:'Music',place:'Places',note:'Thoughts',book:'Books',activity:'Activities & Ideas'};
     const typeIcons = {
       movie:'<svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>',
@@ -849,39 +907,111 @@ async function viewProfile(name) {
       book:'<svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
       activity:'<svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
     };
-    let html = '';
+    const byType = {};
+    (entries.data||[]).forEach(r => { if (!byType[r.type]) byType[r.type]=[]; byType[r.type].push(r); });
+    let entriesHtml = '';
     for (const [type, rows] of Object.entries(byType)) {
-      html += '<div class="sec-head">' + (typeIcons[type]||'') + (typeLabels[type]||type) + '</div><div style="margin-bottom:18px">';
-      rows.forEach(r => { html += entryRow(r, canEdit); });
-      html += '</div>';
+      entriesHtml += '<div class="sec-head">' + (typeIcons[type]||'') + (typeLabels[type]||type) + '</div><div style="margin-bottom:18px">';
+      rows.forEach(r => { entriesHtml += entryRow(r, canEdit, type); });
+      entriesHtml += '</div>';
     }
+
+    // AVAILABILITY - sorted free first, collapsed
+    let availHtml = '';
     if (schedule.data && schedule.data.length) {
-      html += '<div class="sec-head"><svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Upcoming Availability</div><div style="margin-bottom:18px">';
-      schedule.data.forEach(r => {
+      const freeItems = schedule.data.filter(r => r.status === 'free');
+      const busyItems = schedule.data.filter(r => r.status === 'busy');
+      const sorted = [...freeItems, ...busyItems];
+      const calSvg = '<svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+      availHtml += '<div class="avail-collapse-hdr" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">';
+      availHtml += '<div class="sec-head" style="border:none;margin:0;flex:1">' + calSvg + 'Upcoming Availability <span style="color:var(--muted);font-weight:400">(' + sorted.length + ')</span></div>';
+      availHtml += '<div class="avail-chevron"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg></div></div>';
+      availHtml += '<div class="avail-collapse-body" style="margin-bottom:18px">';
+      sorted.forEach(r => {
         const dStr2 = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
-        {
-          let aout = '<div class="avail-item" id="avail-' + r.id + '">';
-          aout += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
-          aout += '<div class="avail-info"><div class="avail-dates">' + dStr2 + '</div>';
-          if (r.note) aout += '<div class="avail-note">' + esc(shortenNote(r.note)) + '</div>';
-          if (r.source) aout += '<div class="avail-src">via ' + r.source + '</div>';
-          aout += '</div>';
-          if (canEdit) aout += '<button class="avail-del" onclick="delAvail(&#39;' + r.id + '&#39;)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>';
-          aout += '</div>';
-          html += aout;
+        let aout = '<div class="avail-item" id="avail-' + r.id + '">';
+        aout += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
+        aout += '<div class="avail-info"><div class="avail-dates">' + dStr2 + '</div>';
+        if (r.note) aout += '<div class="avail-note">' + esc(shortenNote(r.note)) + '</div>';
+        if (r.source) aout += '<div class="avail-src">via ' + r.source + '</div>';
+        aout += '</div>';
+        if (canEdit) {
+          aout += '<button class="avail-del" onclick="delAvail(&#39;' + r.id + '&#39;)">';
+          aout += '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>';
         }
+        aout += '</div>';
+        availHtml += aout;
       });
-      html += '</div>';
+      availHtml += '</div>';
     }
-    document.getElementById('detailContent').innerHTML = html || '<div class="empty-state">Nothing added yet. Go to the Add tab!</div>';
-  } catch(err) { document.getElementById('detailContent').innerHTML = '<div class="empty-state">Error loading.</div>'; }
+
+    document.getElementById('detailContent').innerHTML = statsHtml + entriesHtml + availHtml ||
+      '<div class="empty-state">Nothing added yet. Go to the Add tab!</div>';
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById('detailContent').innerHTML = '<div class="empty-state">Error loading.</div>';
+  }
 }
 
-function entryRow(r, canEdit) {
-  const ratingMap = {'1':' [nope]','2':' [meh]','3':' [good]','4':' [fire]'};
-  const rating = r.rating ? ' <span style="font-size:13px">' + (ratingMap[r.rating]||'') + '</span>' : '';
-  return '<div class="entry-item" id="entry-' + r.id + '"><span class="entry-date">' + fmt(r.created_at) + '</span><span class="entry-text">' + esc(r.content) + rating + '</span>' + (canEdit ? '<div class="entry-actions"><button class="entry-btn" onclick="openEdit(\'' + r.id + '\',\'' + escAttr(r.content) + '\')"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="entry-btn del" onclick="delEntry(\'' + r.id + '\')"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div>' : '') + '</div>';
+function toggleStatsEdit() {
+  const view = document.getElementById('statsView');
+  const edit = document.getElementById('statsEdit');
+  if (!view || !edit) return;
+  const isEditing = edit.style.display !== 'none';
+  view.style.display = isEditing ? 'block' : 'none';
+  edit.style.display = isEditing ? 'none' : 'block';
+  document.querySelector('.profile-edit-btn').textContent = isEditing ? 'Edit' : 'Cancel';
 }
+
+function saveStats(name) {
+  const inputs = document.querySelectorAll('.stat-val-input');
+  const stats = {};
+  inputs.forEach(inp => { if (inp.value.trim()) stats[inp.dataset.key] = inp.value.trim(); });
+  localStorage.setItem('profileStats-' + name, JSON.stringify(stats));
+  const statEl = document.getElementById('stat-' + name);
+  const firstVal = Object.values(stats)[0] || '';
+  if (statEl) statEl.textContent = firstVal;
+  toggleStatsEdit();
+  toast('Profile updated', 'success');
+}
+
+
+function entryRow(r, canEdit, type) {
+  const ratingMap = {'1':' [nope]','2':' [meh]','3':' [good]','4':' [fire]'};
+  const rating = r.rating ? ' <span style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">' + (ratingMap[r.rating]||'') + '</span>' : '';
+  const q = encodeURIComponent((r.content || '').split(' -- ')[0].substring(0,80));
+  let links = '';
+  if (type === 'music') {
+    links += '<a class="entry-link link-spotify" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener">Spotify</a>';
+    links += '<a class="entry-link link-yt" href="https://www.youtube.com/results?search_query=' + q + '" target="_blank" rel="noopener">YT</a>';
+  } else if (type === 'movie') {
+    links += '<a class="entry-link link-google" href="https://www.google.com/search?q=' + q + '+movie" target="_blank" rel="noopener">Search</a>';
+    links += '<a class="entry-link link-yt" href="https://www.youtube.com/results?search_query=' + q + '+trailer" target="_blank" rel="noopener">Trailer</a>';
+  } else if (type === 'book') {
+    links += '<a class="entry-link link-google" href="https://www.google.com/search?q=' + q + '+book" target="_blank" rel="noopener">Search</a>';
+  } else if (type === 'place') {
+    links += '<a class="entry-link link-google" href="https://www.google.com/maps/search/' + q + '" target="_blank" rel="noopener">Maps</a>';
+  } else if (type === 'activity') {
+    links += '<a class="entry-link link-google" href="https://www.google.com/search?q=' + q + '" target="_blank" rel="noopener">Search</a>';
+  }
+  let out = '<div class="entry-item" id="entry-' + r.id + '">';
+  out += '<span class="entry-date">' + fmt(r.created_at) + '</span>';
+  out += '<div style="flex:1;min-width:0">';
+  out += '<div class="entry-text">' + esc(r.content) + rating + '</div>';
+  if (links) out += '<div style="margin-top:5px">' + links + '</div>';
+  out += '</div>';
+  if (canEdit) {
+    out += '<div class="entry-actions" style="flex-shrink:0">';
+    out += '<button class="entry-btn" onclick="openEdit(&#39;' + r.id + '&#39;,&#39;' + escAttr(r.content) + '&#39;)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>';
+    out += '<button class="entry-btn del" onclick="delEntry(&#39;' + r.id + '&#39;)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>';
+    out += '</div>';
+  }
+  out += '</div>';
+  return out;
+}
+
+
 function openEdit(id, content) { editingEntryId = id; document.getElementById('editModalInput').value = content; document.getElementById('editModal').classList.add('open'); }
 async function saveEdit() {
   const content = document.getElementById('editModalInput').value.trim();
@@ -907,7 +1037,12 @@ async function delAvail(id) {
   document.getElementById('avail-' + id)?.remove();
   toast('Deleted','success');
 }
-function backToProfiles() { document.getElementById('profileGrid').style.display = 'grid'; document.getElementById('profileGrid').style.height = ''; document.getElementById('profileDetail').style.display = 'none'; }
+function backToProfiles() {
+  document.getElementById('profileGrid').style.display = 'grid';
+  document.getElementById('profileDetail').style.display = 'none';
+  const ac = document.querySelector('.app-content');
+  if (ac) ac.style.overflowY = 'hidden';
+}
 
 // ── ADD DATA ──
 function onTypeChange() {
