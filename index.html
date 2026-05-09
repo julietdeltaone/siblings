@@ -834,7 +834,17 @@ async function viewProfile(name) {
       html += '<div class="sec-head"><svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Upcoming Availability</div><div style="margin-bottom:18px">';
       schedule.data.forEach(r => {
         const dStr2 = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
-        html += '<div class="avail-item" id="avail-' + r.id + '"><span class="avail-badge ' + r.status + '">' + r.status + '</span><div class="avail-info"><div class="avail-dates">' + dStr2 + '</div>' + (r.note ? '<div class="avail-note">' + esc(shortenNote(r.note)) + '</div>' : '') + (r.source ? '<div class="avail-src">via ' + r.source + '</div>' : '') + '</div>' + (canEdit ? '<button class="avail-del" onclick="delAvail(\'' + r.id + '\')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>' : '') + '</div>';
+        {
+          let aout = '<div class="avail-item" id="avail-' + r.id + '">';
+          aout += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
+          aout += '<div class="avail-info"><div class="avail-dates">' + dStr2 + '</div>';
+          if (r.note) aout += '<div class="avail-note">' + esc(shortenNote(r.note)) + '</div>';
+          if (r.source) aout += '<div class="avail-src">via ' + r.source + '</div>';
+          aout += '</div>';
+          if (canEdit) aout += '<button class="avail-del" onclick="delAvail(&#39;' + r.id + '&#39;)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>';
+          aout += '</div>';
+          html += aout;
+        }
       });
       html += '</div>';
     }
@@ -1274,8 +1284,18 @@ async function renderMySchedule(monthStart, monthEnd) {
   container.innerHTML = data.map(r => {
     const dateStr = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
     const noteStr = r.note ? shortenNote(r.note) : '';
-    return '<div class="avail-item" id="myschedule-'+r.id+'"><span class="avail-badge '+r.status+'">'+r.status+'</span><div class="avail-info"><div class="avail-dates">'+dateStr+'</div>'+(noteStr?'<div class="avail-note">'+esc(noteStr)+'</div>':'')+(r.source?'<div class="avail-src">via '+r.source+'</div>':'')+'</div><button class="avail-del" onclick="delMyAvail(''+r.id+'')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div>';
+    let out = '<div class="avail-item" id="myschedule-' + r.id + '">';
+    out += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
+    out += '<div class="avail-info"><div class="avail-dates">' + dateStr + '</div>';
+    if (noteStr) out += '<div class="avail-note">' + esc(noteStr) + '</div>';
+    if (r.source) out += '<div class="avail-src">via ' + r.source + '</div>';
+    out += '</div>';
+    out += '<button class="avail-del" onclick="delMyAvail(&#39;' + r.id + '&#39;)">';
+    out += '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+    out += '</button></div>';
+    return out;
   }).join('');
+
 }
 async function delMyAvail(id) {
   const { data } = await db.from('availability').select('*').eq('id', id);
