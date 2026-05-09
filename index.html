@@ -163,7 +163,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .cal-month{font-family:var(--font-head);font-size:20px;color:var(--text)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
 .cal-dow{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;padding:5px 0}
-.cal-day{aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;border-radius:6px;font-size:11px;font-family:var(--font-mono);color:var(--muted);position:relative;overflow:hidden}
+.cal-day{aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;border-radius:6px;font-size:11px;font-family:var(--font-mono);color:var(--muted);position:relative;overflow:hidden}
 .cal-day.in-month{color:var(--text)}
 .cal-day.today{border:1px solid var(--border2);color:var(--accent2)}
 .cal-day.o2{background:rgba(240,200,96,0.15);color:var(--overlap)}
@@ -260,7 +260,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 
 /* BUSY CALENDAR BARS */
 .cal-day{position:relative;overflow:hidden}
-.busy-bar{position:absolute;left:1px;right:1px;border-radius:2px;background:rgba(240,96,96,0.4);pointer-events:none;min-height:3px}
+.busy-bar{position:absolute;border-radius:99px;pointer-events:none;width:3px;min-height:3px}
 
 /* PROFILE QUADRANTS */
 .profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;min-height:calc(100vh - 118px)}
@@ -1647,8 +1647,8 @@ function buildBusyMap(data, monthStart, monthEnd) {
           barTop = 0; barH = 1; // full day for middle days
         }
       } else {
-        // No time info: all-day — show thin bar across full cell
-        barTop = 0; barH = 1;
+        // No time info: show a tiny dot at bottom of cell
+        barTop = 0.85; barH = 0.06;
       }
       m[k].push({person:row.person, note:row.note, duration:totalDays, barTop, barH});
       cur.setDate(cur.getDate()+1);
@@ -1684,30 +1684,30 @@ function renderCalendar(freeMap, busyMap) {
       if (n >= 2) el.title = people.join(', ') + ' free';
     }
 
-    // Busy bars — proportional to 24h, positioned by start time
+    // Busy indicators — vertical lines proportional to 24h clock
     const busyEntries = busyMap ? busyMap[ds] : null;
     if (busyEntries && busyEntries.length) {
-      // Group by person to avoid stacking same person multiple times
+      // One bar per distinct person (keep longest duration per person)
       const byPerson = {};
       busyEntries.forEach(e => {
-        const key = e.person;
-        if (!byPerson[key] || e.barH > byPerson[key].barH) byPerson[key] = e;
+        if (!byPerson[e.person] || (e.barH||0) > (byPerson[e.person].barH||0)) byPerson[e.person] = e;
       });
       const entries = Object.values(byPerson);
-      const colW = entries.length > 1 ? Math.floor(90 / entries.length) : 90;
+      const totalW = entries.length;
       entries.forEach((e, i) => {
         const bar = document.createElement('div');
         bar.className = 'busy-bar';
-        const topPct = (e.barTop || 0) * 100;
-        const hPct   = Math.max((e.barH || 0.04) * 100, 8); // min 8% height = visible dot
+        const topPct = Math.round((e.barTop || 0.85) * 100);
+        const hPct   = Math.max(Math.round((e.barH || 0.06) * 100), 5);
         bar.style.top    = topPct + '%';
         bar.style.height = hPct + '%';
-        bar.style.left   = (5 + i * (colW + 2)) + '%';
-        bar.style.right  = 'auto';
-        bar.style.width  = colW + '%';
-        // Brighter for longer events
-        const alpha = Math.min(0.35 + (e.barH || 0) * 0.4, 0.75);
-        bar.style.background = 'rgba(240,96,96,' + alpha.toFixed(2) + ')';
+        // Space bars evenly across the cell: 4px wide, spaced
+        const cellPct = 100 / (totalW + 1);
+        bar.style.left  = Math.round(cellPct * (i + 1) - 1.5) + '%';
+        bar.style.width = '3px';
+        // Opacity based on duration: longer shifts = more opaque
+        const alpha = e.barH >= 0.4 ? 0.8 : e.barH >= 0.15 ? 0.6 : 0.45;
+        bar.style.background = 'rgba(240,96,96,' + alpha + ')';
         bar.title = e.person + (e.note ? ': ' + e.note : '') + ' (busy)';
         el.appendChild(bar);
       });
