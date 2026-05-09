@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHels-KRWdW74J9cj0n8aQjUiDaHsYKTM&libraries=places"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHels-KRWdW74J9cj0n8aQjUiDaHsYKTM&libraries=places" async defer></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -988,6 +988,8 @@ let gcalTokenClient = null;
 let gcalAccessToken = null;
 let selectedCalendarIds = [];
 
+let gcalButtonsInitialized = false;
+
 function initGcalButton() {
   // Only show for JD
   if (currentUser !== 'JD') return;
@@ -1002,12 +1004,14 @@ function initGcalButton() {
     if (lastSync) document.getElementById('gcalLastSync').textContent = 'Last synced: ' + lastSync;
   }
 
+  // Only attach listeners once to avoid stacking
+  if (gcalButtonsInitialized) return;
+  gcalButtonsInitialized = true;
+
   document.getElementById('gcalConnectBtn').addEventListener('click', () => {
     if (gcalAccessToken) {
-      // Already authed, open calendar picker
       openGcalModal();
     } else {
-      // Need to auth first
       startGcalAuth();
     }
   });
@@ -1020,19 +1024,30 @@ function initGcalButton() {
 }
 
 function startGcalAuth() {
-  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+    toast('Google auth loading, try again in a moment', 'error');
+    return;
+  }
+  // requestAccessToken requires user gesture — it triggers a popup
+  // initTokenClient must be called first, then requestAccessToken in the same call stack
+  const client = google.accounts.oauth2.initTokenClient({
     client_id: CONFIG.GOOGLE_CLIENT_ID,
     scope: CONFIG.GOOGLE_SCOPES,
     callback: (response) => {
-      if (response.error) { toast('Google auth failed', 'error'); return; }
+      if (response.error) {
+        console.error('GCal auth error:', response);
+        toast('Google auth failed: ' + (response.error_description || response.error), 'error');
+        return;
+      }
       gcalAccessToken = response.access_token;
       sessionStorage.setItem('gcal_token', gcalAccessToken);
       document.getElementById('gcalConnectBtn').textContent = 'Sync Google Calendar';
-      toast('Connected to Google Calendar', 'success');
+      toast('Connected!', 'success');
       openGcalModal();
     },
   });
-  gcalTokenClient.requestAccessToken();
+  gcalTokenClient = client;
+  client.requestAccessToken({ prompt: '' });
 }
 
 async function openGcalModal() {
@@ -1046,12 +1061,14 @@ async function openGcalModal() {
     });
     const data = await res.json();
 
-    if (data.error) {
-      // Token expired, re-auth
+    if (data.error || res.status === 401 || res.status === 403) {
+      console.error('GCal API error:', data.error || res.status);
+      // Token expired or invalid, clear and re-auth
       gcalAccessToken = null;
       sessionStorage.removeItem('gcal_token');
       document.getElementById('gcalModal').classList.remove('open');
-      startGcalAuth();
+      toast('Session expired — re-connecting...', 'error');
+      setTimeout(() => startGcalAuth(), 500);
       return;
     }
 
