@@ -49,7 +49,6 @@
             padding: 16px;
         }
 
-        /* HEADER */
         .header {
             display: flex;
             justify-content: space-between;
@@ -75,7 +74,6 @@
             margin-top: 4px;
         }
 
-        /* TABS */
         .tabs {
             display: flex;
             gap: 8px;
@@ -108,7 +106,6 @@
             border-bottom-color: var(--accent);
         }
 
-        /* TAB CONTENT */
         .tab-content {
             display: none;
         }
@@ -123,7 +120,6 @@
             to { opacity: 1; }
         }
 
-        /* INPUT FORM */
         .form-group {
             margin-bottom: 24px;
         }
@@ -161,7 +157,6 @@
             min-height: 100px;
         }
 
-        /* BUTTONS */
         .btn {
             width: 100%;
             padding: 16px;
@@ -187,7 +182,6 @@
             transform: translateY(0);
         }
 
-        /* PROFILES */
         .profile-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -225,7 +219,6 @@
             letter-spacing: 1px;
         }
 
-        /* DETAIL VIEW */
         .profile-detail {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -291,7 +284,6 @@
             margin-bottom: 4px;
         }
 
-        /* EMPTY STATE */
         .empty-state {
             text-align: center;
             padding: 48px 24px;
@@ -309,7 +301,6 @@
             line-height: 1.8;
         }
 
-        /* FOOTER */
         .footer {
             margin-top: 48px;
             padding-top: 24px;
@@ -319,7 +310,6 @@
             color: var(--text-secondary);
         }
 
-        /* MESSAGE */
         .message {
             position: fixed;
             bottom: 24px;
@@ -340,7 +330,6 @@
             to { transform: translateY(0); }
         }
 
-        /* RESPONSIVE */
         @media (min-width: 481px) {
             .container {
                 max-width: 100%;
@@ -384,7 +373,6 @@
             <button class="tab-btn" onclick="switchTab('calendar')">Calendar</button>
         </div>
 
-        <!-- PROFILES TAB -->
         <div id="profiles" class="tab-content active">
             <div class="profile-grid">
                 <div class="profile-card" onclick="viewProfile('Catherine')">
@@ -404,12 +392,9 @@
                     <div class="profile-age">Age 20</div>
                 </div>
             </div>
-            <div id="profileDetail" style="display: none;">
-                <!-- Profile detail inserted here -->
-            </div>
+            <div id="profileDetail" style="display: none;"></div>
         </div>
 
-        <!-- INPUT TAB -->
         <div id="input" class="tab-content">
             <div class="form-group">
                 <label class="label">Select Person</label>
@@ -439,15 +424,14 @@
             <button class="btn" onclick="submitData()">Add Entry</button>
         </div>
 
-        <!-- CALENDAR TAB -->
         <div id="calendar" class="tab-content">
             <div class="form-group">
                 <label class="label">Your Availability</label>
-                <input class="input" type="date" id="dateStart" placeholder="Start date">
+                <input class="input" type="date" id="dateStart">
             </div>
 
             <div class="form-group">
-                <input class="input" type="date" id="dateEnd" placeholder="End date">
+                <input class="input" type="date" id="dateEnd">
             </div>
 
             <div class="form-group">
@@ -477,13 +461,7 @@
     </div>
 
     <script>
-        // Sibling data with birthdays
-        const siblings = {
-            Catherine: { birthday: '1997-06-22', age: 26 },
-            Ellie: { birthday: '1999-03-18', age: 25 },
-            JD: { birthday: '2000-11-17', age: 23 },
-            James: { birthday: '2003-06-06', age: 20 }
-        };
+        const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_HERE/userweb";
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -491,37 +469,79 @@
             
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
+            
+            if (tabName === 'calendar') {
+                loadGroupAvailability();
+            }
         }
 
         function viewProfile(name) {
             const detailDiv = document.getElementById('profileDetail');
             detailDiv.style.display = 'block';
-            detailDiv.innerHTML = `
-                <div class="profile-detail">
-                    <div class="detail-header">
-                        <button class="back-btn" onclick="backToProfiles()">← Back</button>
-                        <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${name}</div>
-                    </div>
-                    
-                    <div class="section-title">Recent Movies</div>
-                    <div class="item-list">
-                        <div class="item"><span class="item-date">May 5, 2026</span>Dune: Part Two</div>
-                        <div class="item"><span class="item-date">May 1, 2026</span>The Brutalist</div>
-                    </div>
+            
+            const params = new URLSearchParams();
+            params.append('action', 'getProfile');
+            params.append('person', name);
 
-                    <div class="section-title">Recent Music</div>
-                    <div class="item-list">
-                        <div class="item"><span class="item-date">May 6, 2026</span>Kendrick Lamar - GNX</div>
-                        <div class="item"><span class="item-date">May 3, 2026</span>Phoebe Bridgers - Stranger in the Alps</div>
-                    </div>
+            fetch(API_URL, {
+                method: 'POST',
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.profile) {
+                    const profile = data.profile;
+                    let html = `
+                        <div class="profile-detail">
+                            <div class="detail-header">
+                                <button class="back-btn" onclick="backToProfiles()">← Back</button>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${name}</div>
+                            </div>
+                    `;
 
-                    <div class="section-title">Schedule</div>
-                    <div class="item-list">
-                        <div class="item"><span class="item-date">Free</span>July 15 – July 18, 2026</div>
-                        <div class="item"><span class="item-date">Busy</span>July 20 – July 25, 2026</div>
-                    </div>
-                </div>
-            `;
+                    if (profile.movies && profile.movies.length > 0) {
+                        html += `
+                            <div class="section-title">Recent Movies</div>
+                            <div class="item-list">
+                                ${profile.movies.map(item => `<div class="item"><span class="item-date">${item.date}</span>${item.entry}</div>`).join('')}
+                            </div>
+                        `;
+                    }
+
+                    if (profile.music && profile.music.length > 0) {
+                        html += `
+                            <div class="section-title">Recent Music</div>
+                            <div class="item-list">
+                                ${profile.music.map(item => `<div class="item"><span class="item-date">${item.date}</span>${item.entry}</div>`).join('')}
+                            </div>
+                        `;
+                    }
+
+                    if (profile.places && profile.places.length > 0) {
+                        html += `
+                            <div class="section-title">Recent Places</div>
+                            <div class="item-list">
+                                ${profile.places.map(item => `<div class="item"><span class="item-date">${item.date}</span>${item.entry}</div>`).join('')}
+                            </div>
+                        `;
+                    }
+
+                    if (profile.schedule && profile.schedule.length > 0) {
+                        html += `
+                            <div class="section-title">Schedule</div>
+                            <div class="item-list">
+                                ${profile.schedule.map(item => `<div class="item"><span class="item-date">${item.type}</span>${item.start} – ${item.end}</div>`).join('')}
+                            </div>
+                        `;
+                    }
+
+                    html += `</div>`;
+                    detailDiv.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                showMessage('Error loading profile');
+            });
         }
 
         function backToProfiles() {
@@ -552,9 +572,28 @@
                 return;
             }
 
-            console.log(`Submitting: ${person} - ${type} - ${details}`);
-            showMessage(`Added to ${person}'s ${type}!`);
-            document.getElementById('detailsInput').value = '';
+            const params = new URLSearchParams();
+            params.append('action', 'addEntry');
+            params.append('person', person);
+            params.append('type', type);
+            params.append('details', details);
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(`Added to ${person}'s ${type}!`);
+                    document.getElementById('detailsInput').value = '';
+                } else {
+                    showMessage('Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                showMessage('Network error');
+            });
         }
 
         function submitAvailability() {
@@ -567,11 +606,56 @@
                 return;
             }
 
-            console.log(`Availability: ${start} to ${end} - ${status}`);
-            showMessage(`Marked ${status} from ${start} to ${end}`);
-            
-            document.getElementById('dateStart').value = '';
-            document.getElementById('dateEnd').value = '';
+            const params = new URLSearchParams();
+            params.append('action', 'addAvailability');
+            params.append('person', document.getElementById('personSelect').value);
+            params.append('startDate', start);
+            params.append('endDate', end);
+            params.append('status', status);
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(`Marked ${status} from ${start} to ${end}`);
+                    document.getElementById('dateStart').value = '';
+                    document.getElementById('dateEnd').value = '';
+                    loadGroupAvailability();
+                } else {
+                    showMessage('Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                showMessage('Network error');
+            });
+        }
+
+        function loadGroupAvailability() {
+            const params = new URLSearchParams();
+            params.append('action', 'getGroupAvailability');
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.availability) {
+                    const container = document.getElementById('groupAvailability');
+                    if (data.availability.length > 0) {
+                        container.innerHTML = data.availability.map(item => `
+                            <div class="item">
+                                <span class="item-date">${item.attendees.join(', ')}</span>
+                                ${item.start} – ${item.end}
+                            </div>
+                        `).join('');
+                    }
+                }
+            })
+            .catch(error => {});
         }
 
         function showMessage(text) {
@@ -583,7 +667,6 @@
             setTimeout(() => msg.remove(), 3000);
         }
 
-        // Initialize
         updateInputPlaceholder();
     </script>
 </body>
