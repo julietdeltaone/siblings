@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHels-KRWdW74J9cj0n8aQjUiDaHsYKTM&libraries=places"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -309,6 +310,13 @@
           <button class="btn btn-secondary" id="parseBtn" style="flex:1">Parse</button>
           <button class="btn" id="saveAvailBtn" style="flex:1;display:none">Save</button>
         </div>
+      <div id="gcalSyncRow" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:2px">Google Calendar</span>
+          <span id="gcalLastSync" style="font-size:10px;font-family:var(--font-mono);color:var(--muted)"></span>
+        </div>
+        <button class="btn btn-secondary" id="gcalConnectBtn" style="font-size:12px;padding:10px">Connect &amp; Sync Google Calendar</button>
+      </div>
       </div>
 
       <div class="cal-nav">
@@ -426,6 +434,18 @@
   </div>
 </div>
 
+<!-- GCAL SYNC MODAL -->
+<div class="modal-overlay" id="gcalModal">
+  <div class="modal">
+    <div class="modal-title">Google Calendar Sync <button class="modal-close" id="gcalModalClose">&times;</button></div>
+    <div id="gcalContent">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;font-family:var(--font-mono)">Select which calendars to pull into Siblings. Events will be imported as busy blocks for the next 90 days.</p>
+      <div id="gcalList" style="margin-bottom:16px"></div>
+      <button class="btn" id="gcalSyncBtn" style="display:none">Import Selected Calendars</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT MODAL -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
@@ -446,6 +466,8 @@ const CONFIG = {
   SUPABASE_ANON:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wYWdyc3Zjc3Fhb3p0d3hlbXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyOTMwMjAsImV4cCI6MjA5Mzg2OTAyMH0.iVHWrNjmhbId-pN_TSv8JcFKF1FJOJdDBrwc47WqIt8',
   CLAUDE_EDGE_URL: 'https://npagrsvcsqaoztwxemrd.supabase.co/functions/v1/parse-availability',
   TWILIO_EDGE_URL: 'https://npagrsvcsqaoztwxemrd.supabase.co/functions/v1/notify',
+  GOOGLE_CLIENT_ID: '27581659245-o1bma0dfdorvu31rt0e21upp5h22eusl.apps.googleusercontent.com',
+  GOOGLE_SCOPES: 'https://www.googleapis.com/auth/calendar.readonly',
   PIN: '0934',
   SIBLINGS: {
     Catherine: { lastName:'Green',       dob:'1997-06-22', phone:'+13152447324', address:'13 Cummings St, Massena, NY 13662',  lat:44.9282, lng:-74.8924 },
@@ -553,6 +575,7 @@ function loginAs(name) {
   document.getElementById('addingAsLabel').textContent = 'Adding as ' + name;
   showScreen('appScreen');
   initCalendar();
+  initGcalButton();
 }
 function lockApp() {
   currentUser = null; pinBuffer = ''; updatePinDisplay();
@@ -956,6 +979,221 @@ function dateDiff(a,b) { return Math.round((new Date(b)-new Date(a))/86400000); 
 function esc(str) { return(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(str) { return(str||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
 function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
+
+// ══════════════════════════════════════════════
+// GOOGLE CALENDAR SYNC (JD only)
+// ══════════════════════════════════════════════
+
+let gcalTokenClient = null;
+let gcalAccessToken = null;
+let selectedCalendarIds = [];
+
+function initGcalButton() {
+  // Only show for JD
+  if (currentUser !== 'JD') return;
+  document.getElementById('gcalSyncRow').style.display = 'block';
+
+  // Check if we have a stored token
+  const stored = sessionStorage.getItem('gcal_token');
+  if (stored) {
+    gcalAccessToken = stored;
+    document.getElementById('gcalConnectBtn').textContent = 'Sync Google Calendar';
+    const lastSync = localStorage.getItem('gcal_last_sync');
+    if (lastSync) document.getElementById('gcalLastSync').textContent = 'Last synced: ' + lastSync;
+  }
+
+  document.getElementById('gcalConnectBtn').addEventListener('click', () => {
+    if (gcalAccessToken) {
+      // Already authed, open calendar picker
+      openGcalModal();
+    } else {
+      // Need to auth first
+      startGcalAuth();
+    }
+  });
+
+  document.getElementById('gcalModalClose').addEventListener('click', () => {
+    document.getElementById('gcalModal').classList.remove('open');
+  });
+
+  document.getElementById('gcalSyncBtn').addEventListener('click', importSelectedCalendars);
+}
+
+function startGcalAuth() {
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    scope: CONFIG.GOOGLE_SCOPES,
+    callback: (response) => {
+      if (response.error) { toast('Google auth failed', 'error'); return; }
+      gcalAccessToken = response.access_token;
+      sessionStorage.setItem('gcal_token', gcalAccessToken);
+      document.getElementById('gcalConnectBtn').textContent = 'Sync Google Calendar';
+      toast('Connected to Google Calendar', 'success');
+      openGcalModal();
+    },
+  });
+  gcalTokenClient.requestAccessToken();
+}
+
+async function openGcalModal() {
+  document.getElementById('gcalModal').classList.add('open');
+  document.getElementById('gcalList').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading calendars...</div>';
+  document.getElementById('gcalSyncBtn').style.display = 'none';
+
+  try {
+    const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      // Token expired, re-auth
+      gcalAccessToken = null;
+      sessionStorage.removeItem('gcal_token');
+      document.getElementById('gcalModal').classList.remove('open');
+      startGcalAuth();
+      return;
+    }
+
+    // Filter to useful calendars (exclude birthdays, holidays)
+    const cals = (data.items || []).filter(c =>
+      !c.id.includes('holiday') &&
+      !c.id.includes('birthday') &&
+      c.accessRole !== 'freeBusyReader'
+    );
+
+    // Pre-select previously chosen calendars
+    const prevSelected = JSON.parse(localStorage.getItem('gcal_selected') || '[]');
+
+    document.getElementById('gcalList').innerHTML = cals.map(cal => {
+      const checked = prevSelected.includes(cal.id) || prevSelected.length === 0;
+      const color = cal.backgroundColor || '#60c8f0';
+      return `
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
+          <input type="checkbox" data-cal-id="${cal.id}" ${checked ? 'checked' : ''}
+            style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+          <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></span>
+          <span style="font-size:14px;color:var(--text)">${esc(cal.summary)}</span>
+        </label>
+      `;
+    }).join('');
+
+    document.getElementById('gcalSyncBtn').style.display = 'block';
+
+  } catch(err) {
+    document.getElementById('gcalList').innerHTML = '<div class="empty-state">Error loading calendars.</div>';
+    console.error(err);
+  }
+}
+
+async function importSelectedCalendars() {
+  const checkboxes = document.querySelectorAll('#gcalList input[type=checkbox]:checked');
+  selectedCalendarIds = [...checkboxes].map(cb => cb.dataset.calId);
+
+  if (!selectedCalendarIds.length) { toast('Select at least one calendar', 'error'); return; }
+
+  // Save selection for next time
+  localStorage.setItem('gcal_selected', JSON.stringify(selectedCalendarIds));
+
+  const btn = document.getElementById('gcalSyncBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Importing...';
+
+  // Fetch events for next 90 days
+  const now = new Date();
+  const end = new Date();
+  end.setDate(end.getDate() + 90);
+
+  const timeMin = now.toISOString();
+  const timeMax = end.toISOString();
+
+  let allEvents = [];
+
+  for (const calId of selectedCalendarIds) {
+    try {
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=250`;
+      const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + gcalAccessToken } });
+      const data = await res.json();
+      if (data.items) allEvents = allEvents.concat(data.items);
+    } catch(err) {
+      console.error('Error fetching calendar', calId, err);
+    }
+  }
+
+  // Convert events to availability rows
+  // Group by day — if there's an event on a day, mark that day/range as busy
+  const busyDays = {};
+  allEvents.forEach(event => {
+    // Skip all-day events marked as free/transparent
+    if (event.transparency === 'transparent') return;
+    // Skip declined events
+    const selfAttendee = (event.attendees || []).find(a => a.self);
+    if (selfAttendee && selfAttendee.responseStatus === 'declined') return;
+
+    let startDate, endDate, timeNote = null;
+
+    if (event.start.date) {
+      // All-day event
+      startDate = event.start.date;
+      endDate = event.end.date;
+      // end date in Google is exclusive, so subtract one day
+      const ed = new Date(endDate + 'T12:00:00');
+      ed.setDate(ed.getDate() - 1);
+      endDate = ed.toISOString().split('T')[0];
+    } else {
+      // Timed event
+      startDate = event.start.dateTime.split('T')[0];
+      endDate = event.end.dateTime.split('T')[0];
+      const startTime = event.start.dateTime.substring(11, 16);
+      const endTime = event.end.dateTime.substring(11, 16);
+      if (startDate === endDate) {
+        timeNote = fmt12h(startTime) + ' to ' + fmt12h(endTime) + ' — ' + esc(event.summary || 'Event');
+      }
+    }
+
+    const key = startDate + '_' + endDate;
+    if (!busyDays[key]) busyDays[key] = { startDate, endDate, notes: [] };
+    if (timeNote) busyDays[key].notes.push(timeNote);
+  });
+
+  // Delete existing Google Calendar imports for JD (to avoid duplicates)
+  await db.from('availability').delete().eq('person', 'JD').eq('source', 'gcal');
+
+  // Insert new rows
+  const rows = Object.values(busyDays).map(b => ({
+    person: 'JD',
+    start_date: b.startDate,
+    end_date: b.endDate,
+    status: 'busy',
+    note: b.notes.length ? b.notes.slice(0,2).join(' | ') : null,
+    source: 'gcal'
+  }));
+
+  if (rows.length) {
+    const { error } = await db.from('availability').insert(rows);
+    if (error) { toast('Error saving events', 'error'); console.error(error); }
+  }
+
+  const now2 = new Date();
+  const syncTime = now2.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + now2.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  localStorage.setItem('gcal_last_sync', syncTime);
+  document.getElementById('gcalLastSync').textContent = 'Last synced: ' + syncTime;
+
+  btn.disabled = false;
+  btn.textContent = 'Import Selected Calendars';
+  document.getElementById('gcalModal').classList.remove('open');
+
+  toast(`Imported ${rows.length} busy blocks from Google Calendar`, 'success');
+  loadCalendarData();
+}
+
+function fmt12h(time24) {
+  const [h, m] = time24.split(':').map(Number);
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12 = h % 12 || 12;
+  return h12 + (m ? ':' + String(m).padStart(2,'0') : '') + ampm;
+}
+
 </script>
 </body>
 </html>
