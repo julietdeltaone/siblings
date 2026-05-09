@@ -309,12 +309,16 @@
           <button class="btn btn-secondary" id="parseBtn" style="flex:1">Parse</button>
           <button class="btn" id="saveAvailBtn" style="flex:1;display:none">Save</button>
         </div>
-      <div id="gcalSyncRow" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:2px">Google Calendar</span>
-          <span id="gcalLastSync" style="font-size:10px;font-family:var(--font-mono);color:var(--muted)"></span>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px">Import from Calendar File</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:8px;line-height:1.5">Export your calendar as an <strong style="color:var(--accent2)">.ics file</strong>, open it in a text editor, paste the contents below.</div>
+        <textarea class="textarea" id="icsInput" placeholder="Paste .ics file contents here..." style="min-height:80px;font-size:12px;font-family:var(--font-mono)"></textarea>
+        <button class="btn btn-secondary" id="parseIcsBtn" style="margin-top:8px;font-size:12px;padding:10px">Parse Calendar File</button>
+        <div id="icsParsed" style="display:none;margin-top:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:10px 12px">
+          <div style="font-size:9px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px">Parsed events:</div>
+          <div id="icsParsedContent" style="font-size:12px;color:var(--text);font-family:var(--font-mono);white-space:pre-wrap"></div>
+          <button class="btn" id="saveIcsBtn" style="margin-top:10px">Save to Schedule</button>
         </div>
-        <button class="btn btn-secondary" id="gcalConnectBtn" style="font-size:12px;padding:10px">Connect &amp; Sync Google Calendar</button>
       </div>
       </div>
 
@@ -430,18 +434,6 @@
 
     </div><!-- /guide -->
 
-  </div>
-</div>
-
-<!-- GCAL SYNC MODAL -->
-<div class="modal-overlay" id="gcalModal">
-  <div class="modal">
-    <div class="modal-title">Google Calendar Sync <button class="modal-close" id="gcalModalClose">&times;</button></div>
-    <div id="gcalContent">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;font-family:var(--font-mono)">Select which calendars to pull into Siblings. Events will be imported as busy blocks for the next 90 days.</p>
-      <div id="gcalList" style="margin-bottom:16px"></div>
-      <button class="btn" id="gcalSyncBtn" style="display:none">Import Selected Calendars</button>
-    </div>
   </div>
 </div>
 
@@ -578,7 +570,7 @@ function loginAs(name) {
   document.getElementById('addingAsLabel').textContent = 'Adding as ' + name;
   showScreen('appScreen');
   initCalendar();
-  initGcalButton();
+  initIcsParser();
 }
 function lockApp() {
   currentUser = null; pinBuffer = ''; updatePinDisplay();
@@ -984,250 +976,90 @@ function escAttr(str) { return(str||'').replace(/'/g,'&#39;').replace(/"/g,'&quo
 function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
 
 // ══════════════════════════════════════════════
-// GOOGLE CALENDAR SYNC (JD only)
-// Uses redirect-based OAuth — no popups, no blocking
+// ICS CALENDAR FILE PARSER
 // ══════════════════════════════════════════════
 
-let gcalAccessToken = null;
-let selectedCalendarIds = [];
-let gcalButtonsInitialized = false;
+let icsParsedEvents = null;
 
-// On page load, check if we're returning from Google OAuth redirect
-function checkGcalRedirect() {
-  // Log what we see in the URL for debugging
-  console.log('checkGcalRedirect — hash:', window.location.hash, '| search:', window.location.search);
-  
-  const hash = window.location.hash;
-  const searchParams = new URLSearchParams(window.location.search);
-  const searchError = searchParams.get('error');
-  if (searchError) {
-    console.error('GCal OAuth error in search params:', searchError);
-    history.replaceState(null, '', window.location.pathname);
-    return false;
-  }
-  if (!hash || hash === '#') return false;
-  
-  const params = new URLSearchParams(hash.substring(1));
-  const token = params.get('access_token');
-  const error = params.get('error');
-  console.log('GCal hash params — token:', token ? 'FOUND (len=' + token.length + ')' : 'none', '| error:', error);
-  
-  if (error) {
-    console.error('GCal OAuth error:', error);
-    history.replaceState(null, '', window.location.pathname);
-    return false;
-  }
-  if (token) {
-    gcalAccessToken = token;
-    sessionStorage.setItem('gcal_token', token);
-    // Clean hash from URL so refresh doesn't re-process
-    history.replaceState(null, '', window.location.pathname);
-    // Restore saved user session so they don't have to re-login
-    const savedUser = sessionStorage.getItem('siblings_user');
-    console.log('GCal token received! Restoring user:', savedUser);
-    if (savedUser) {
-      currentUser = savedUser;
-      document.getElementById('currentUserLabel').textContent = savedUser;
-      document.getElementById('addingAsLabel').textContent = 'Adding as ' + savedUser;
-      showScreen('appScreen');
-      initCalendar();
-      const schedBtn = document.querySelector('[data-tab="calendar"]');
-      if (schedBtn) switchTab('calendar', schedBtn);
-      initGcalButton();
-      setTimeout(() => openGcalModal(), 400);
-      return true; // handled — don't show lock screen
-    }
-    return true; // token received but no saved user — still handled
-  }
-  return false;
+function initIcsParser() {
+  document.getElementById('parseIcsBtn').addEventListener('click', parseIcsFile);
+  document.getElementById('saveIcsBtn').addEventListener('click', saveIcsEvents);
 }
 
-function startGcalAuth() {
-  // Save current user so we can restore after redirect
-  sessionStorage.setItem('siblings_user', currentUser);
-  
-  const clientId = CONFIG.GOOGLE_CLIENT_ID;
-  const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
-  const scope = encodeURIComponent(CONFIG.GOOGLE_SCOPES);
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}&include_granted_scopes=true`;
-  
-  window.location.href = url;
-}
+async function parseIcsFile() {
+  const text = document.getElementById('icsInput').value.trim();
+  if (!text) { toast('Paste your .ics file contents first', 'error'); return; }
 
-function initGcalButton() {
-  if (currentUser !== 'JD') return;
-  document.getElementById('gcalSyncRow').style.display = 'block';
-
-  const stored = sessionStorage.getItem('gcal_token');
-  if (stored) {
-    gcalAccessToken = stored;
-    document.getElementById('gcalConnectBtn').textContent = 'Sync Google Calendar';
-    const lastSync = localStorage.getItem('gcal_last_sync');
-    if (lastSync) document.getElementById('gcalLastSync').textContent = 'Last synced: ' + lastSync;
-  }
-
-  if (gcalButtonsInitialized) return;
-  gcalButtonsInitialized = true;
-
-  document.getElementById('gcalConnectBtn').addEventListener('click', () => {
-    if (gcalAccessToken) {
-      openGcalModal();
-    } else {
-      startGcalAuth();
-    }
-  });
-
-  document.getElementById('gcalModalClose').addEventListener('click', () => {
-    document.getElementById('gcalModal').classList.remove('open');
-  });
-
-  document.getElementById('gcalSyncBtn').addEventListener('click', importSelectedCalendars);
-}
-
-async function openGcalModal() {
-  document.getElementById('gcalModal').classList.add('open');
-  document.getElementById('gcalList').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading calendars...</div>';
-  document.getElementById('gcalSyncBtn').style.display = 'none';
+  const btn = document.getElementById('parseIcsBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Parsing...';
 
   try {
-    const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
-      headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+    const res = await fetch(CONFIG.CLAUDE_EDGE_URL.replace('parse-availability', 'parse-availability'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ics: text, today: todayStr() })
     });
+    if (!res.ok) throw new Error(res.status);
     const data = await res.json();
+    icsParsedEvents = data.parsed;
 
-    if (data.error || res.status === 401 || res.status === 403) {
-      console.error('GCal API error:', data.error || res.status);
-      gcalAccessToken = null;
-      sessionStorage.removeItem('gcal_token');
-      document.getElementById('gcalModal').classList.remove('open');
-      toast('Session expired — reconnecting...', 'error');
-      setTimeout(() => startGcalAuth(), 800);
+    if (!icsParsedEvents || !icsParsedEvents.length) {
+      toast('No events found in file', 'error');
+      btn.disabled = false; btn.textContent = 'Parse Calendar File';
       return;
     }
 
-    const cals = (data.items || []).filter(c =>
-      !c.id.includes('holiday') &&
-      !c.id.includes('birthday') &&
-      c.accessRole !== 'freeBusyReader'
-    );
+    document.getElementById('icsParsedContent').textContent =
+      icsParsedEvents.map(p =>
+        (p.status || 'busy').toUpperCase() + ': ' +
+        p.start_date + ' → ' + p.end_date +
+        (p.note ? '
+  ' + p.note : '')
+      ).join('
+');
 
-    const prevSelected = JSON.parse(localStorage.getItem('gcal_selected') || '[]');
-
-    document.getElementById('gcalList').innerHTML = cals.map(cal => {
-      const checked = prevSelected.includes(cal.id) || prevSelected.length === 0;
-      const color = cal.backgroundColor || '#60c8f0';
-      return `
-        <label style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
-          <input type="checkbox" data-cal-id="${cal.id}" ${checked ? 'checked' : ''}
-            style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
-          <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></span>
-          <span style="font-size:14px;color:var(--text)">${esc(cal.summary)}</span>
-        </label>
-      `;
-    }).join('');
-
-    document.getElementById('gcalSyncBtn').style.display = 'block';
-
+    document.getElementById('icsParsed').style.display = 'block';
+    toast(icsParsedEvents.length + ' events found', 'success');
   } catch(err) {
-    document.getElementById('gcalList').innerHTML = '<div class="empty-state">Error loading calendars.</div>';
+    toast('Parse failed — check the file format', 'error');
     console.error(err);
   }
-}
-
-async function importSelectedCalendars() {
-  const checkboxes = document.querySelectorAll('#gcalList input[type=checkbox]:checked');
-  selectedCalendarIds = [...checkboxes].map(cb => cb.dataset.calId);
-
-  if (!selectedCalendarIds.length) { toast('Select at least one calendar', 'error'); return; }
-
-  localStorage.setItem('gcal_selected', JSON.stringify(selectedCalendarIds));
-
-  const btn = document.getElementById('gcalSyncBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Importing...';
-
-  const now = new Date();
-  const end = new Date();
-  end.setDate(end.getDate() + 90);
-  const timeMin = now.toISOString();
-  const timeMax = end.toISOString();
-
-  let allEvents = [];
-
-  for (const calId of selectedCalendarIds) {
-    try {
-      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=250`;
-      const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + gcalAccessToken } });
-      const data = await res.json();
-      if (data.items) allEvents = allEvents.concat(data.items);
-    } catch(err) {
-      console.error('Error fetching calendar', calId, err);
-    }
-  }
-
-  const busyDays = {};
-  allEvents.forEach(event => {
-    if (event.transparency === 'transparent') return;
-    const selfAttendee = (event.attendees || []).find(a => a.self);
-    if (selfAttendee && selfAttendee.responseStatus === 'declined') return;
-
-    let startDate, endDate, timeNote = null;
-
-    if (event.start.date) {
-      startDate = event.start.date;
-      endDate = event.end.date;
-      const ed = new Date(endDate + 'T12:00:00');
-      ed.setDate(ed.getDate() - 1);
-      endDate = ed.toISOString().split('T')[0];
-    } else {
-      startDate = event.start.dateTime.split('T')[0];
-      endDate = event.end.dateTime.split('T')[0];
-      const startTime = event.start.dateTime.substring(11, 16);
-      const endTime = event.end.dateTime.substring(11, 16);
-      if (startDate === endDate) {
-        timeNote = fmt12h(startTime) + ' to ' + fmt12h(endTime) + ' — ' + esc(event.summary || 'Event');
-      }
-    }
-
-    const key = startDate + '_' + endDate;
-    if (!busyDays[key]) busyDays[key] = { startDate, endDate, notes: [] };
-    if (timeNote) busyDays[key].notes.push(timeNote);
-  });
-
-  await db.from('availability').delete().eq('person', 'JD').eq('source', 'gcal');
-
-  const rows = Object.values(busyDays).map(b => ({
-    person: 'JD',
-    start_date: b.startDate,
-    end_date: b.endDate,
-    status: 'busy',
-    note: b.notes.length ? b.notes.slice(0,2).join(' | ') : null,
-    source: 'gcal'
-  }));
-
-  if (rows.length) {
-    const { error } = await db.from('availability').insert(rows);
-    if (error) { toast('Error saving events', 'error'); console.error(error); }
-  }
-
-  const now2 = new Date();
-  const syncTime = now2.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + now2.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  localStorage.setItem('gcal_last_sync', syncTime);
-  document.getElementById('gcalLastSync').textContent = 'Last synced: ' + syncTime;
 
   btn.disabled = false;
-  btn.textContent = 'Import Selected Calendars';
-  document.getElementById('gcalModal').classList.remove('open');
-
-  toast('Imported ' + rows.length + ' busy blocks from Google Calendar', 'success');
-  loadCalendarData();
+  btn.textContent = 'Parse Calendar File';
 }
 
-function fmt12h(time24) {
-  const [h, m] = time24.split(':').map(Number);
-  const ampm = h >= 12 ? 'pm' : 'am';
-  const h12 = h % 12 || 12;
-  return h12 + (m ? ':' + String(m).padStart(2,'0') : '') + ampm;
+async function saveIcsEvents() {
+  if (!icsParsedEvents || !icsParsedEvents.length) return;
+  const btn = document.getElementById('saveIcsBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving...';
+
+  // Delete old ics imports for this person to avoid duplicates
+  await db.from('availability').delete().eq('person', currentUser).eq('source', 'ics');
+
+  const rows = icsParsedEvents.map(p => ({
+    person: currentUser,
+    start_date: p.start_date,
+    end_date: p.end_date,
+    status: p.status || 'busy',
+    note: p.note || null,
+    source: 'ics'
+  }));
+
+  const { error } = await db.from('availability').insert(rows);
+  if (error) { toast('Error saving', 'error'); console.error(error); btn.disabled = false; btn.textContent = 'Save to Schedule'; return; }
+
+  document.getElementById('icsInput').value = '';
+  document.getElementById('icsParsed').style.display = 'none';
+  icsParsedEvents = null;
+  toast('Saved ' + rows.length + ' events to your schedule', 'success');
+  loadCalendarData();
+  checkOverlapsAndNotify();
+
+  btn.disabled = false;
+  btn.textContent = 'Save to Schedule';
 }
 </script>
 </body>
