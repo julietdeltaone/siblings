@@ -1008,12 +1008,8 @@ async function parseIcsFile() {
 
     document.getElementById('icsParsedContent').textContent =
       icsParsedEvents.map(p =>
-        (p.status || 'busy').toUpperCase() + ': ' +
-        p.start_date + ' → ' + p.end_date +
-        (p.note ? '
-  ' + p.note : '')
-      ).join('
-');
+        (p.status || 'busy').toUpperCase() + ': ' + p.start_date + ' to ' + p.end_date + (p.note ? ' - ' + p.note : '')
+      ).join('\n');
 
     document.getElementById('icsParsed').style.display = 'block';
     toast(icsParsedEvents.length + ' events found', 'success');
