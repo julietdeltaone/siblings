@@ -543,9 +543,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('editModalSave').addEventListener('click', saveEdit);
 
   updatePlaceholder();
-  // Check if returning from Google OAuth redirect (must run before showScreen)
-  checkGcalRedirect();
-  if (!sessionStorage.getItem('gcal_token') || !sessionStorage.getItem('siblings_user')) {
+  // Check if returning from Google OAuth redirect
+  const didHandleRedirect = checkGcalRedirect();
+  if (!didHandleRedirect) {
     showScreen('lockScreen');
   }
 });
@@ -994,16 +994,28 @@ let gcalButtonsInitialized = false;
 
 // On page load, check if we're returning from Google OAuth redirect
 function checkGcalRedirect() {
+  // Log what we see in the URL for debugging
+  console.log('checkGcalRedirect — hash:', window.location.hash, '| search:', window.location.search);
+  
   const hash = window.location.hash;
-  if (!hash) return;
+  const searchParams = new URLSearchParams(window.location.search);
+  const searchError = searchParams.get('error');
+  if (searchError) {
+    console.error('GCal OAuth error in search params:', searchError);
+    history.replaceState(null, '', window.location.pathname);
+    return false;
+  }
+  if (!hash || hash === '#') return false;
+  
   const params = new URLSearchParams(hash.substring(1));
   const token = params.get('access_token');
   const error = params.get('error');
+  console.log('GCal hash params — token:', token ? 'FOUND (len=' + token.length + ')' : 'none', '| error:', error);
+  
   if (error) {
     console.error('GCal OAuth error:', error);
-    // Clean up URL
     history.replaceState(null, '', window.location.pathname);
-    return;
+    return false;
   }
   if (token) {
     gcalAccessToken = token;
@@ -1012,20 +1024,22 @@ function checkGcalRedirect() {
     history.replaceState(null, '', window.location.pathname);
     // Restore saved user session so they don't have to re-login
     const savedUser = sessionStorage.getItem('siblings_user');
+    console.log('GCal token received! Restoring user:', savedUser);
     if (savedUser) {
-      // Auto-login and open gcal modal
       currentUser = savedUser;
       document.getElementById('currentUserLabel').textContent = savedUser;
       document.getElementById('addingAsLabel').textContent = 'Adding as ' + savedUser;
       showScreen('appScreen');
       initCalendar();
-      // Switch to Schedule tab and open gcal modal
       const schedBtn = document.querySelector('[data-tab="calendar"]');
       if (schedBtn) switchTab('calendar', schedBtn);
       initGcalButton();
-      setTimeout(() => openGcalModal(), 300);
+      setTimeout(() => openGcalModal(), 400);
+      return true; // handled — don't show lock screen
     }
+    return true; // token received but no saved user — still handled
   }
+  return false;
 }
 
 function startGcalAuth() {
