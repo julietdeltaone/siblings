@@ -293,6 +293,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .map-entry-marker{display:none}
 .map-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 
+/* WEEK VIEW */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.week-label{font-family:var(--font-head);font-size:18px;color:var(--text)}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:16px}
+.week-col{display:flex;flex-direction:column;gap:2px}
+.week-dow{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;padding:4px 2px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.week-dow.today-col{color:var(--accent2)}
+.week-day-num{text-align:center;font-size:11px;font-family:var(--font-mono);color:var(--muted);padding:2px 0 4px}
+.week-day-num.today-num{color:var(--accent2);font-weight:700}
+.week-event{border-radius:4px;padding:3px 4px;font-size:9px;font-family:var(--font-mono);line-height:1.3;cursor:pointer;overflow:hidden;margin-bottom:2px;transition:opacity 0.1s}
+.week-event:active{opacity:0.7}
+.week-event.free{background:rgba(200,240,96,0.15);border-left:2px solid var(--accent);color:var(--accent)}
+.week-event.busy{background:rgba(240,96,96,0.12);border-left:2px solid var(--danger);color:var(--danger)}
+.week-toggle{display:flex;align-items:center;gap:4px;margin-bottom:12px}
+.view-btn{padding:5px 12px;border-radius:6px;font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.1s}
+.view-btn.active{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+
 /* DAY POPUP */
 .day-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:800;display:none;align-items:flex-end;justify-content:center;transition:background 0.2s}
 .day-popup-overlay.open{display:flex;background:rgba(0,0,0,0.6)}
@@ -562,18 +579,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           </div>
         </div>
 
-        <div class="cal-nav">
-          <button class="cal-nav-btn" id="calPrevBtn">&#8249;</button>
-          <div class="cal-month" id="calMonthLabel"></div>
-          <button class="cal-nav-btn" id="calNextBtn">&#8250;</button>
+        <!-- VIEW TOGGLE -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="week-toggle">
+            <button class="view-btn active" id="viewMonth" onclick="setCalView('month')">Month</button>
+            <button class="view-btn" id="viewWeek" onclick="setCalView('week')">Week</button>
+          </div>
+          <button class="sec-action" id="clearAllIcsBtn" style="color:var(--danger);font-size:9px">Clear my ICS imports</button>
         </div>
-        <div class="cal-legend">
-          <div class="leg-item"><div class="leg-dot" style="background:rgba(240,200,96,0.3)"></div>2-3 free</div>
-          <div class="leg-item"><div class="leg-dot" style="background:rgba(200,240,96,0.3);box-shadow:0 0 0 1.5px rgba(200,240,96,0.4)"></div>All 4</div>
-          <div class="leg-item"><div class="leg-dot" style="background:rgba(240,96,96,0.4)"></div>Busy</div>
-          <div class="leg-item"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent2);display:inline-block;margin-right:3px"></div>Time note</div>
+
+        <!-- MONTH VIEW -->
+        <div id="monthView">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrevBtn">&#8249;</button>
+            <div class="cal-month" id="calMonthLabel"></div>
+            <button class="cal-nav-btn" id="calNextBtn">&#8250;</button>
+          </div>
+          <div class="cal-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(240,200,96,0.3)"></div>2-3 free</div>
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(200,240,96,0.3);box-shadow:0 0 0 1.5px rgba(200,240,96,0.4)"></div>All 4</div>
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(240,96,96,0.4)"></div>Busy</div>
+            <div class="leg-item"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent2);display:inline-block;margin-right:3px"></div>Time</div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
         </div>
-        <div class="cal-grid" id="calGrid"></div>
+
+        <!-- WEEK VIEW -->
+        <div id="weekView" style="display:none">
+          <div class="week-nav">
+            <button class="cal-nav-btn" id="weekPrevBtn">&#8249;</button>
+            <div class="week-label" id="weekLabel"></div>
+            <button class="cal-nav-btn" id="weekNextBtn">&#8250;</button>
+          </div>
+          <div class="week-grid" id="weekGrid"></div>
+        </div>
 
         <div class="sec-head" style="margin-bottom:10px">
           Your Schedule This Month
@@ -737,6 +776,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('calPrevBtn').addEventListener('click', calPrev);
   document.getElementById('calNextBtn').addEventListener('click', calNext);
   document.getElementById('clearMonthBtn').addEventListener('click', clearMonthSchedule);
+  document.getElementById('weekPrevBtn').addEventListener('click', weekPrev);
+  document.getElementById('weekNextBtn').addEventListener('click', weekNext);
+  document.getElementById('clearAllIcsBtn').addEventListener('click', clearAllIcs);
   initIcsDrop();
   document.getElementById('saveIcsBtn').addEventListener('click', saveIcsEvents);
   document.getElementById('clearIcsBtn').addEventListener('click', clearIcsParsed);
@@ -858,7 +900,10 @@ function switchTab(name, btn) {
   // On profiles, hide overflow so grid fills screen perfectly
   const appContent = document.querySelector('.app-content');
   if (appContent) appContent.style.overflowY = name === 'profiles' ? 'hidden' : 'auto';
-  if (name === 'schedule') loadCalendarData();
+  if (name === 'schedule') {
+    if (calView === 'week') renderWeekView();
+    else loadCalendarData();
+  }
   if (name === 'map') initMap();
   if (name === 'profiles') { backToProfiles(); loadProfilePreviews(); }
 }
@@ -1218,7 +1263,6 @@ function parseIcsLocally(icsText) {
   for (let i = 1; i < blocks.length; i++) {
     const block = blocks[i].split('END:VEVENT')[0];
 
-    // Generic getter handles DTSTART;TZID=...: and plain DTSTART:
     const get = (keyPrefix) => {
       const re = new RegExp('(?:^|\n)' + keyPrefix + '(?:;[^:\n]*)?:([^\n]*)', 'im');
       const m = block.match(re);
@@ -1230,6 +1274,7 @@ function parseIcsLocally(icsText) {
     const summary = (get('SUMMARY') || '(No title)').replace(/\\n/g,' ').replace(/\\,/g,',').trim();
     const transp  = get('TRANSP');
     const status  = get('STATUS');
+    const rrule   = get('RRULE');
 
     if (transp === 'TRANSPARENT') continue;
     if (status === 'CANCELLED') continue;
@@ -1268,10 +1313,90 @@ function parseIcsLocally(icsText) {
       }
     }
 
-    events.push({ start, end, summary: summary.substring(0,80), timeNote });
+    const cleanSummary = summary.substring(0,80);
+
+    if (rrule) {
+      // Expand recurring events
+      const expanded = expandRRule(start, rrule, cleanSummary, timeNote);
+      events.push(...expanded);
+    } else {
+      events.push({ start, end, summary: cleanSummary, timeNote });
+    }
   }
   return events;
 }
+
+function expandRRule(startDate, rrule, summary, timeNote) {
+  const results = [];
+  const params = {};
+  rrule.split(';').forEach(part => {
+    const [k, v] = part.split('=');
+    params[k.trim().toUpperCase()] = (v||'').trim();
+  });
+
+  const freq = params.FREQ || 'WEEKLY';
+  const count = params.COUNT ? parseInt(params.COUNT) : null;
+  const interval = params.INTERVAL ? parseInt(params.INTERVAL) : 1;
+
+  // Parse UNTIL date
+  let until = null;
+  if (params.UNTIL) {
+    const u = params.UNTIL.replace(/T.*/, '').replace(/Z$/, '');
+    if (u.length === 8) until = u.slice(0,4)+'-'+u.slice(4,6)+'-'+u.slice(6,8);
+  }
+
+  // Parse BYDAY for weekly recurrence (MO,TU,WE,TH,FR,SA,SU)
+  const dayMap = {SU:0,MO:1,TU:2,WE:3,TH:4,FR:5,SA:6};
+  const byDay = params.BYDAY ? params.BYDAY.split(',').map(d => dayMap[d.replace(/[+-\d]/g,'').toUpperCase()]).filter(d => d !== undefined) : null;
+
+  // Max 2 years out, max 500 occurrences to prevent runaway
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 2);
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+
+  let cur = new Date(startDate + 'T12:00:00');
+  let occurrenceCount = 0;
+  const maxOccurrences = count || 500;
+
+  while (occurrenceCount < maxOccurrences) {
+    const ds = cur.toISOString().split('T')[0];
+    if (until && ds > until) break;
+    if (ds > maxDateStr) break;
+
+    if (byDay) {
+      // BYDAY: check if current weekday is in the list (1=Mon...0=Sun JS getDay)
+      const jsDay = cur.getDay(); // 0=Sun,1=Mon...6=Sat
+      if (byDay.includes(jsDay)) {
+        results.push({ start: ds, end: ds, summary, timeNote });
+        occurrenceCount++;
+      }
+    } else {
+      results.push({ start: ds, end: ds, summary, timeNote });
+      occurrenceCount++;
+    }
+
+    // Advance by frequency
+    if (freq === 'DAILY') {
+      cur.setDate(cur.getDate() + interval);
+    } else if (freq === 'WEEKLY') {
+      if (byDay && byDay.length > 1) {
+        // Multiple days per week: advance by 1 day at a time
+        cur.setDate(cur.getDate() + 1);
+      } else {
+        cur.setDate(cur.getDate() + (7 * interval));
+      }
+    } else if (freq === 'MONTHLY') {
+      cur.setMonth(cur.getMonth() + interval);
+    } else if (freq === 'YEARLY') {
+      cur.setFullYear(cur.getFullYear() + interval);
+    } else {
+      break; // unknown freq
+    }
+  }
+
+  return results;
+}
+
 
 
 async function parseIcsContent(icsText) {
@@ -1545,25 +1670,30 @@ function openDayPopup(ds) {
   if (!events.length) {
     bodyEl.innerHTML = '<div class="day-popup-empty">No availability logged for this day.</div>';
   } else {
-    // Sort: free first, then busy; group by person
+    // Sort: free first, then busy; within each group sort by person then note
     const sorted = [...events].sort((a,b) => {
       if (a.status !== b.status) return a.status === 'free' ? -1 : 1;
-      return a.person.localeCompare(b.person);
+      if (a.person !== b.person) return a.person.localeCompare(b.person);
+      return (a.note||'').localeCompare(b.note||'');
     });
-    // Deduplicate by person+status
+    // Dedup by person+status+note so same event doesn't appear twice
     const seen = new Set();
     const deduped = sorted.filter(e => {
-      const key = e.person + e.status;
+      const key = e.person + '|' + e.status + '|' + (e.note||'');
       if (seen.has(key)) return false;
       seen.add(key); return true;
     });
     bodyEl.innerHTML = deduped.map(e => {
-      const note = e.note ? shortenNote(e.note) : '';
+      const note = e.note || '';
+      // Extract time from note if present e.g. "OM 603 (6:45pm)"
+      const timeMatch = note.match(/\(([^)]+(?:am|pm)[^)]*)\)/i);
+      const timeStr = timeMatch ? timeMatch[1] : '';
+      const noteName = note.replace(/\s*\([^)]+(?:am|pm)[^)]*\)/i,'').trim();
       return '<div class="day-event">' +
         '<span class="day-event-badge ' + e.status + '">' + e.status + '</span>' +
         '<div class="day-event-info">' +
-          '<div class="day-event-who">' + esc(e.person) + '</div>' +
-          (note ? '<div class="day-event-note">' + esc(note) + '</div>' : '') +
+          '<div class="day-event-who">' + esc(e.person) + (timeStr ? ' <span style="font-size:10px;color:var(--accent2);font-family:var(--font-mono);font-weight:400;margin-left:4px">' + esc(timeStr) + '</span>' : '') + '</div>' +
+          (noteName ? '<div class="day-event-note">' + esc(noteName) + '</div>' : '') +
         '</div></div>';
     }).join('');
   }
@@ -1748,6 +1878,113 @@ function shortenNote(note) {
     return 'Clarkson Security' + times;
   }
   return note;
+}
+
+// ── CALENDAR VIEW TOGGLE ──
+let calView = 'month'; // 'month' or 'week'
+let weekOffset = 0;    // weeks from current week
+
+function setCalView(view) {
+  calView = view;
+  document.getElementById('monthView').style.display = view === 'month' ? 'block' : 'none';
+  document.getElementById('weekView').style.display  = view === 'week'  ? 'block' : 'none';
+  document.getElementById('viewMonth').classList.toggle('active', view === 'month');
+  document.getElementById('viewWeek').classList.toggle('active', view === 'week');
+  if (view === 'week') { weekOffset = 0; renderWeekView(); }
+  else loadCalendarData();
+}
+
+function weekPrev() { weekOffset--; renderWeekView(); }
+function weekNext() { weekOffset++; renderWeekView(); }
+
+async function renderWeekView() {
+  // Find Monday of target week
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + weekOffset * 7);
+  monday.setHours(0,0,0,0);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const weekStart = monday.toISOString().split('T')[0];
+  const weekEnd   = sunday.toISOString().split('T')[0];
+
+  document.getElementById('weekLabel').textContent =
+    monday.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' +
+    sunday.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  // Fetch all availability for this week
+  const { data } = await db.from('availability').select('*').lte('start_date',weekEnd).gte('end_date',weekStart);
+  const tStr = todayStr();
+
+  const grid = document.getElementById('weekGrid');
+  const days = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+  let html = '';
+
+  for (let d = 0; d < 7; d++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + d);
+    const ds = date.toISOString().split('T')[0];
+    const isToday = ds === tStr;
+    const dayEntries = (data||[]).filter(r => r.start_date <= ds && r.end_date >= ds);
+
+    // Sort: free first, busy second; within busy sort by note
+    const sorted = dayEntries.sort((a,b) => {
+      if (a.status !== b.status) return a.status === 'free' ? -1 : 1;
+      return (a.note||'').localeCompare(b.note||'');
+    });
+
+    html += '<div class="week-col">';
+    html += '<div class="week-dow' + (isToday ? ' today-col' : '') + '">' + days[d] + '</div>';
+    html += '<div class="week-day-num' + (isToday ? ' today-num' : '') + '" style="cursor:pointer" onclick="openDayPopup('' + ds + '')">' + date.getDate() + '</div>';
+
+    sorted.forEach(e => {
+      const noteRaw = e.note || '';
+      // Short label: first 12 chars of note content before any time
+      const label = noteRaw.replace(/\s*\([^)]+(?:am|pm)[^)]*\)/i,'').trim().substring(0,12) ||
+                    e.person.substring(0,6);
+      // Time badge
+      const timeMatch = noteRaw.match(/\(([^)]+(?:am|pm)[^)]*)\)/i);
+      const timeStr = timeMatch ? timeMatch[1] : '';
+
+      html += '<div class="week-event ' + e.status + '" onclick="openDayPopup('' + ds + '')" title="' + esc(e.person) + ': ' + esc(noteRaw) + '">';
+      html += '<div style="font-weight:600;font-size:8px">' + esc(e.person.substring(0,3)) + '</div>';
+      if (label) html += '<div>' + esc(label) + '</div>';
+      if (timeStr) html += '<div style="opacity:0.8">' + esc(timeStr) + '</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+  }
+
+  grid.innerHTML = html;
+
+  // Update calDayData for this week so popup works
+  const weekFreeMap = {}, weekBusyMap = {};
+  (data||[]).forEach(row => {
+    const map = row.status === 'free' ? weekFreeMap : weekBusyMap;
+    let cur = new Date(Math.max(new Date(row.start_date+'T12:00:00'), new Date(weekStart+'T12:00:00')));
+    const end = new Date(Math.min(new Date(row.end_date+'T12:00:00'), new Date(weekEnd+'T12:00:00')));
+    while (cur <= end) {
+      const k = cur.toISOString().split('T')[0];
+      if (!map[k]) map[k] = [];
+      map[k].push({person:row.person, note:row.note});
+      cur.setDate(cur.getDate()+1);
+    }
+  });
+  storeDayData(weekFreeMap, weekBusyMap, weekStart, weekEnd);
+}
+
+// ── CLEAR ICS IMPORTS ──
+async function clearAllIcs() {
+  if (!confirm('Delete ALL your imported calendar (ICS) events? This cannot be undone.')) return;
+  const { error } = await db.from('availability').delete().eq('person', currentUser).eq('source', 'ics');
+  if (error) { toast('Error clearing', 'error'); return; }
+  toast('All ICS imports cleared', 'success');
+  loadCalendarData();
+  if (calView === 'week') renderWeekView();
 }
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
