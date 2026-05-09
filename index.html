@@ -535,11 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('editModalSave').addEventListener('click', saveEdit);
 
   updatePlaceholder();
-  // Check if returning from Google OAuth redirect
-  const didHandleRedirect = checkGcalRedirect();
-  if (!didHandleRedirect) {
-    showScreen('lockScreen');
-  }
+  showScreen('lockScreen');
 });
 
 // ── PIN ──
