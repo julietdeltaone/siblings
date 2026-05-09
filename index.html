@@ -1,673 +1,1362 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siblings Scheduler</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Siblings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        :root {
-            --primary: #000000;
-            --bg-dark: #0a0a0a;
-            --bg-card: #1a1a1a;
-            --bg-input: #262626;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --border: #333333;
-            --accent: #ffffff;
-            --accent-muted: #808080;
-            --success: #595959;
-            --font-display: 'Courier New', monospace;
-            --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-        }
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden;
-        }
+    :root {
+      --bg:        #0c0c0f;
+      --surface:   #16161a;
+      --surface2:  #1e1e24;
+      --border:    #2a2a32;
+      --text:      #e8e8f0;
+      --muted:     #6b6b7e;
+      --accent:    #c8f060;
+      --accent2:   #60c8f0;
+      --overlap:   #f0c860;
+      --danger:    #f06060;
+      --font-head: 'DM Serif Display', serif;
+      --font-mono: 'DM Mono', monospace;
+      --font-body: 'DM Sans', sans-serif;
+      --r:         12px;
+    }
 
-        body {
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            font-family: var(--font-body);
-            font-size: 16px;
-            line-height: 1.5;
-            min-height: 100vh;
-            padding-bottom: 40px;
-        }
+    html, body { width: 100%; min-height: 100vh; overflow-x: hidden; }
 
-        .container {
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 16px;
-        }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+    }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-            padding: 24px 0;
-            border-bottom: 1px solid var(--border);
-        }
+    /* ── LOCK SCREEN ── */
+    #lockScreen {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      flex-direction: column;
+      gap: 32px;
+      padding: 24px;
+    }
 
-        .header-title {
-            font-size: 28px;
-            font-weight: 700;
-            font-family: var(--font-display);
-            letter-spacing: 2px;
-            color: var(--accent);
-        }
+    .lock-title {
+      font-family: var(--font-head);
+      font-size: clamp(42px, 10vw, 72px);
+      color: var(--text);
+      letter-spacing: -1px;
+      text-align: center;
+    }
 
-        .header-subtitle {
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 4px;
-        }
+    .lock-title em { color: var(--accent); font-style: italic; }
 
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 32px;
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto;
-            padding-bottom: 12px;
-        }
+    .lock-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-align: center;
+    }
 
-        .tab-btn {
-            padding: 10px 16px;
-            background: transparent;
-            color: var(--text-secondary);
-            border: none;
-            border-bottom: 2px solid transparent;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-            font-family: var(--font-body);
-        }
+    .pin-display {
+      display: flex; gap: 12px; margin: 8px 0;
+    }
 
-        .tab-btn:hover {
-            color: var(--accent);
-        }
+    .pin-dot {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      transition: all 0.2s;
+    }
 
-        .tab-btn.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
+    .pin-dot.filled { background: var(--accent); border-color: var(--accent); }
 
-        .tab-content {
-            display: none;
-        }
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 72px);
+      gap: 10px;
+    }
 
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
+    .pin-key {
+      height: 72px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+    .pin-key:hover { background: var(--surface2); border-color: var(--muted); }
+    .pin-key:active { transform: scale(0.93); }
+    .pin-key.wide { grid-column: span 2; }
+    .pin-key.accent-key { border-color: var(--accent); color: var(--accent); }
 
-        .form-group {
-            margin-bottom: 24px;
-        }
+    .lock-error {
+      color: var(--danger);
+      font-size: 13px;
+      min-height: 18px;
+      text-align: center;
+      font-family: var(--font-mono);
+    }
 
-        .label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent);
-        }
+    /* ── APP SHELL ── */
+    #app { display: none; }
 
-        .input, .textarea, .select {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: var(--font-body);
-            font-size: 16px;
-            transition: all 0.3s;
-        }
+    .container {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 0 16px 80px;
+    }
 
-        .input:focus, .textarea:focus, .select:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: var(--bg-card);
-        }
+    /* ── HEADER ── */
+    .header {
+      padding: 28px 0 20px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
 
-        .textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+    .header-left { display: flex; flex-direction: column; gap: 2px; }
 
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--accent);
-            color: var(--bg-dark);
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            font-family: var(--font-body);
-        }
+    .header-title {
+      font-family: var(--font-head);
+      font-size: 32px;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
-        }
+    .header-title em { color: var(--accent); font-style: italic; }
 
-        .btn:active {
-            transform: translateY(0);
-        }
+    .header-who {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
+    .header-who span { color: var(--accent2); }
 
-        .profile-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
+    .switch-user-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
 
-        .profile-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
-            transform: translateY(-4px);
-        }
+    .switch-user-btn:hover { border-color: var(--muted); color: var(--text); }
 
-        .profile-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 8px;
-        }
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 28px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+    }
 
-        .profile-age {
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      border-radius: 9px;
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
 
-        .profile-detail {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
+    .tab-btn:hover { color: var(--text); }
 
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
+    .tab-btn.active {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
 
-        .back-btn {
-            background: none;
-            border: none;
-            color: var(--accent);
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 0;
-        }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.25s; }
 
-        .back-btn:hover {
-            color: var(--text-secondary);
-        }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        .section-title {
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent);
-            margin-top: 24px;
-            margin-bottom: 16px;
-        }
+    /* ── PROFILE GRID ── */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
 
-        .item-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    .profile-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .item {
-            background: var(--bg-input);
-            border-left: 3px solid var(--accent-muted);
-            padding: 12px 16px;
-            border-radius: 4px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
+    .profile-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
 
-        .item-date {
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: block;
-            margin-bottom: 4px;
-        }
+    .profile-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .profile-card:hover::before { opacity: 1; }
 
-        .empty-state {
-            text-align: center;
-            padding: 48px 24px;
-            color: var(--text-secondary);
-        }
+    .profile-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head);
+      font-size: 20px;
+      color: var(--accent);
+      margin: 0 auto 12px;
+    }
 
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
+    .profile-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
 
-        .empty-text {
-            font-size: 14px;
-            line-height: 1.8;
-        }
+    .profile-age {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
 
-        .footer {
-            margin-top: 48px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
+    /* ── PROFILE DETAIL ── */
+    #profileDetail { display: none; }
 
-        .message {
-            position: fixed;
-            bottom: 24px;
-            left: 16px;
-            right: 16px;
-            padding: 16px;
-            background: var(--success);
-            color: var(--text-primary);
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            animation: slideUp 0.3s;
-            z-index: 2000;
-        }
+    .detail-back {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--font-body);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
+    .detail-name {
+      font-family: var(--font-head);
+      font-size: 36px;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
 
-        @media (min-width: 481px) {
-            .container {
-                max-width: 100%;
-                padding: 32px;
-            }
+    .detail-name em { color: var(--accent); font-style: italic; }
 
-            .header {
-                margin-bottom: 40px;
-                padding: 32px 0;
-            }
+    .section-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
 
-            .header-title {
-                font-size: 36px;
-            }
+    .item-list { margin-bottom: 28px; }
 
-            .profile-grid {
-                grid-template-columns: 1fr 1fr 1fr 1fr;
-                gap: 20px;
-            }
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
 
-            .message {
-                width: auto;
-                left: 32px;
-                right: auto;
-            }
-        }
-    </style>
+    .item:last-child { border-bottom: none; }
+
+    .item-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 70px;
+      padding-top: 2px;
+    }
+
+    .item-text { color: var(--text); flex: 1; }
+
+    .empty-state {
+      text-align: center;
+      padding: 28px 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-family: var(--font-mono);
+    }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 20px; }
+
+    .label {
+      display: block;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 13px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      transition: border-color 0.2s, background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .input:focus, .select:focus, .textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+
+    .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b7e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; cursor: pointer; }
+
+    .textarea { resize: vertical; min-height: 90px; }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--r);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { border-color: var(--muted); opacity: 1; }
+
+    /* ── NLP AVAILABILITY INPUT ── */
+    .nlp-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .nlp-hint {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .nlp-hint strong { color: var(--accent2); }
+
+    .nlp-parsed {
+      background: var(--surface2);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .nlp-parsed-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .nlp-parsed-content { font-size: 13px; color: var(--text); }
+
+    /* ── CALENDAR ── */
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .cal-nav-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .cal-nav-btn:hover { border-color: var(--muted); }
+
+    .cal-month-label {
+      font-family: var(--font-head);
+      font-size: 22px;
+      color: var(--text);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-bottom: 20px;
+    }
+
+    .cal-dow {
+      text-align: center;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 6px 0;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      cursor: default;
+      position: relative;
+      transition: all 0.15s;
+    }
+
+    .cal-day.in-month { color: var(--text); }
+    .cal-day.today { border: 1px solid var(--border); color: var(--text); }
+    .cal-day.has-free { background: rgba(200, 240, 96, 0.12); color: var(--accent); }
+    .cal-day.all-free { background: rgba(200, 240, 96, 0.25); color: var(--accent); font-weight: 700; }
+    .cal-day.overlap-2 { background: rgba(240, 200, 96, 0.18); color: var(--overlap); }
+    .cal-day.overlap-3 { background: rgba(240, 200, 96, 0.3); color: var(--overlap); font-weight: 600; }
+    .cal-day.overlap-all { background: rgba(200, 240, 96, 0.35); color: var(--accent); font-weight: 700; box-shadow: 0 0 0 2px var(--accent); }
+    .cal-day.has-free:hover { transform: scale(1.1); z-index: 1; }
+
+    .cal-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+    }
+
+    /* ── OVERLAP LIST ── */
+    .overlap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .overlap-card.is-overlap { border-color: var(--overlap); }
+
+    .overlap-icon { font-size: 24px; }
+
+    .overlap-info { flex: 1; }
+
+    .overlap-date {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .overlap-who {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      z-index: 2000;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: var(--accent); color: var(--accent); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    /* ── LOADING ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── WHO BADGE ── */
+    .who-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--accent2);
+      margin-bottom: 20px;
+    }
+
+    .who-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent2);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 380px) {
+      .profile-grid { grid-template-columns: 1fr 1fr; }
+      .cal-day { font-size: 11px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <div class="header-title">SIBLINGS</div>
-                <div class="header-subtitle">Scheduler</div>
-            </div>
-        </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('profiles')">Profiles</button>
-            <button class="tab-btn" onclick="switchTab('input')">Add Data</button>
-            <button class="tab-btn" onclick="switchTab('calendar')">Calendar</button>
-        </div>
+<!-- ══════════════════════════════════════
+     LOCK SCREEN
+══════════════════════════════════════ -->
+<div id="lockScreen">
+  <div>
+    <div class="lock-title">Sib<em>lings</em></div>
+    <div class="lock-subtitle" style="margin-top: 6px;">Enter PIN to continue</div>
+  </div>
 
-        <div id="profiles" class="tab-content active">
-            <div class="profile-grid">
-                <div class="profile-card" onclick="viewProfile('Catherine')">
-                    <div class="profile-name">Catherine</div>
-                    <div class="profile-age">Age 26</div>
-                </div>
-                <div class="profile-card" onclick="viewProfile('Ellie')">
-                    <div class="profile-name">Ellie</div>
-                    <div class="profile-age">Age 25</div>
-                </div>
-                <div class="profile-card" onclick="viewProfile('JD')">
-                    <div class="profile-name">JD</div>
-                    <div class="profile-age">Age 23</div>
-                </div>
-                <div class="profile-card" onclick="viewProfile('James')">
-                    <div class="profile-name">James</div>
-                    <div class="profile-age">Age 20</div>
-                </div>
-            </div>
-            <div id="profileDetail" style="display: none;"></div>
-        </div>
+  <div class="pin-display" id="pinDisplay">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
 
-        <div id="input" class="tab-content">
-            <div class="form-group">
-                <label class="label">Select Person</label>
-                <select class="select" id="personSelect">
-                    <option value="Catherine">Catherine Green</option>
-                    <option value="Ellie">Ellie Criscitello</option>
-                    <option value="JD">JD Meyers</option>
-                    <option value="James">James Meyers</option>
-                </select>
-            </div>
+  <div class="lock-error" id="lockError"></div>
 
-            <div class="form-group">
-                <label class="label">Data Type</label>
-                <select class="select" id="dataTypeSelect" onchange="updateInputPlaceholder()">
-                    <option value="movie">Movie Watched</option>
-                    <option value="music">Music Listened</option>
-                    <option value="place">Place Visited</option>
-                    <option value="note">Note</option>
-                </select>
-            </div>
+  <div class="pin-keypad">
+    <button class="pin-key" onclick="pinKey('1')">1</button>
+    <button class="pin-key" onclick="pinKey('2')">2</button>
+    <button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button>
+    <button class="pin-key" onclick="pinKey('5')">5</button>
+    <button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button>
+    <button class="pin-key" onclick="pinKey('8')">8</button>
+    <button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key" onclick="pinClear()">⌫</button>
+    <button class="pin-key" onclick="pinKey('0')">0</button>
+    <button class="pin-key accent-key" onclick="pinSubmit()">↵</button>
+  </div>
+</div>
 
-            <div class="form-group">
-                <label class="label">Details</label>
-                <textarea class="textarea" id="detailsInput" placeholder="e.g., watched Dune at home"></textarea>
-            </div>
+<!-- ══════════════════════════════════════
+     APP
+══════════════════════════════════════ -->
+<div id="app">
+  <div class="container">
 
-            <button class="btn" onclick="submitData()">Add Entry</button>
-        </div>
-
-        <div id="calendar" class="tab-content">
-            <div class="form-group">
-                <label class="label">Your Availability</label>
-                <input class="input" type="date" id="dateStart">
-            </div>
-
-            <div class="form-group">
-                <input class="input" type="date" id="dateEnd">
-            </div>
-
-            <div class="form-group">
-                <label class="label">Status</label>
-                <select class="select" id="statusSelect">
-                    <option value="free">Free</option>
-                    <option value="busy">Busy</option>
-                </select>
-            </div>
-
-            <button class="btn" onclick="submitAvailability()">Update Schedule</button>
-
-            <div style="margin-top: 40px;">
-                <div class="section-title">Group Availability</div>
-                <div id="groupAvailability" class="item-list">
-                    <div class="empty-state">
-                        <div class="empty-icon">📅</div>
-                        <div class="empty-text">No overlapping availability yet</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            Siblings Scheduler v1.0
-        </div>
+    <div class="header">
+      <div class="header-left">
+        <div class="header-title">Sib<em>lings</em></div>
+        <div class="header-who">Logged in as <span id="currentUserLabel">—</span></div>
+      </div>
+      <button class="switch-user-btn" onclick="lockApp()">Switch</button>
     </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxBSp0K1WJF7gyFzmp_kpRnrqAk8oWPJ_lY3-FTcc_QP4lyO8iI2o2qc9dUIbI3uQft/userweb";
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('profiles', this)">Profiles</button>
+      <button class="tab-btn" onclick="switchTab('addData', this)">Add Data</button>
+      <button class="tab-btn" onclick="switchTab('calendar', this)">Calendar</button>
+    </div>
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-            
-            if (tabName === 'calendar') {
-                loadGroupAvailability();
-            }
-        }
+    <!-- ── PROFILES TAB ── -->
+    <div class="tab-content active" id="profiles">
+      <div id="profileGrid" class="profile-grid">
+        <div class="profile-card" onclick="viewProfile('Catherine')">
+          <div class="profile-avatar">C</div>
+          <div class="profile-name">Catherine</div>
+          <div class="profile-age">Age 28 · Green</div>
+        </div>
+        <div class="profile-card" onclick="viewProfile('Ellie')">
+          <div class="profile-avatar">E</div>
+          <div class="profile-name">Ellie</div>
+          <div class="profile-age">Age 27 · Criscitello</div>
+        </div>
+        <div class="profile-card" onclick="viewProfile('JD')">
+          <div class="profile-avatar">J</div>
+          <div class="profile-name">JD</div>
+          <div class="profile-age">Age 25 · Meyers</div>
+        </div>
+        <div class="profile-card" onclick="viewProfile('James')">
+          <div class="profile-avatar">Jm</div>
+          <div class="profile-name">James</div>
+          <div class="profile-age">Age 22 · Meyers</div>
+        </div>
+      </div>
 
-        function viewProfile(name) {
-            const detailDiv = document.getElementById('profileDetail');
-            detailDiv.style.display = 'block';
-            
-            const params = new URLSearchParams();
-            params.append('action', 'getProfile');
-            params.append('person', name);
+      <div id="profileDetail">
+        <button class="detail-back" onclick="backToProfiles()">← All Siblings</button>
+        <div class="detail-name" id="detailName"></div>
+        <div id="detailContent"></div>
+      </div>
+    </div>
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: params
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.profile) {
-                    const profile = data.profile;
-                    let html = `
-                        <div class="profile-detail">
-                            <div class="detail-header">
-                                <button class="back-btn" onclick="backToProfiles()">← Back</button>
-                                <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${name}</div>
-                            </div>
-                    `;
+    <!-- ── ADD DATA TAB ── -->
+    <div class="tab-content" id="addData">
 
-                    if (profile.movies && profile.movies.length > 0) {
-                        html += `
-                            <div class="section-title">Recent Movies</div>
-                            <div class="item-list">
-                                ${profile.movies.map(item => `<div class="item"><span class="item-date">${item.date}</span>${item.entry}</div>`).join('')}
-                            </div>
-                        `;
-                    }
+      <div class="who-badge">
+        <div class="who-dot"></div>
+        <span id="addingAsLabel">Adding as —</span>
+      </div>
 
-                    if (profile.music && profile.music.length > 0) {
-                        html += `
-                            <div class="section-title">Recent Music</div>
-                            <div class="item-list">
-                                ${profile.music.map(item => `<div class="item"><span class="item-date">${item.date}</span>${item.entry}</div>`).join('')}
-                            </div>
-                        `;
-                    }
+      <div class="form-group">
+        <label class="label">Data Type</label>
+        <select class="select" id="dataTypeSelect" onchange="updatePlaceholder()">
+          <option value="movie">🎬 Movie Watched</option>
+          <option value="music">🎵 Music Listened</option>
+          <option value="place">📍 Place / Restaurant</option>
+          <option value="note">💭 Thought / Note</option>
+        </select>
+      </div>
 
-                    if (profile.places && profile.places.length > 0) {
-                        html += `
-                            <div class="section-title">Recent Places</div>
-                            <div class="item-list">
-                                ${profile.places.map(item => `<div class="item"><span class="item-date">${item.date}</span>${item.entry}</div>`).join('')}
-                            </div>
-                        `;
-                    }
+      <div class="form-group">
+        <label class="label">Details</label>
+        <textarea class="textarea" id="detailsInput" placeholder="e.g., Dune: Part Two"></textarea>
+      </div>
 
-                    if (profile.schedule && profile.schedule.length > 0) {
-                        html += `
-                            <div class="section-title">Schedule</div>
-                            <div class="item-list">
-                                ${profile.schedule.map(item => `<div class="item"><span class="item-date">${item.type}</span>${item.start} – ${item.end}</div>`).join('')}
-                            </div>
-                        `;
-                    }
+      <button class="btn" id="submitDataBtn" onclick="submitData()">Add Entry</button>
 
-                    html += `</div>`;
-                    detailDiv.innerHTML = html;
-                }
-            })
-            .catch(error => {
-                showMessage('Error loading profile');
-            });
-        }
+    </div>
 
-        function backToProfiles() {
-            document.getElementById('profileDetail').style.display = 'none';
-        }
+    <!-- ── CALENDAR TAB ── -->
+    <div class="tab-content" id="calendar">
 
-        function updateInputPlaceholder() {
-            const textarea = document.getElementById('detailsInput');
-            const type = document.getElementById('dataTypeSelect').value;
-            
-            const placeholders = {
-                movie: 'e.g., Dune: Part Two',
-                music: 'e.g., Kendrick Lamar - GNX',
-                place: 'e.g., tried that new coffee place downtown',
-                note: 'e.g., had a great day'
-            };
-            
-            textarea.placeholder = placeholders[type];
-        }
+      <!-- NLP Availability Input -->
+      <div class="nlp-box">
+        <div class="section-label" style="border: none; margin-bottom: 8px;">Update Your Availability</div>
+        <div class="nlp-hint">
+          Just type it naturally.<br/>
+          <strong>e.g.</strong> "Free the week of July 4th except Wednesday" or "Busy all of August"
+        </div>
+        <textarea class="textarea" id="nlpInput" placeholder="Tell us when you're free or busy..." style="min-height: 70px;"></textarea>
 
-        function submitData() {
-            const person = document.getElementById('personSelect').value;
-            const type = document.getElementById('dataTypeSelect').value;
-            const details = document.getElementById('detailsInput').value;
+        <div class="nlp-parsed" id="nlpParsed">
+          <div class="nlp-parsed-label">Claude parsed this as:</div>
+          <div class="nlp-parsed-content" id="nlpParsedContent"></div>
+        </div>
 
-            if (!details.trim()) {
-                showMessage('Please enter some details');
-                return;
-            }
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button class="btn btn-secondary" id="parseBtn" onclick="parseAvailability()" style="flex:1">Parse</button>
+          <button class="btn" id="saveAvailBtn" onclick="saveAvailability()" style="flex:1; display:none">Save</button>
+        </div>
+      </div>
 
-            const params = new URLSearchParams();
-            params.append('action', 'addEntry');
-            params.append('person', person);
-            params.append('type', type);
-            params.append('details', details);
+      <!-- Calendar Grid -->
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button class="cal-nav-btn" onclick="calNext()">›</button>
+      </div>
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: params
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage(`Added to ${person}'s ${type}!`);
-                    document.getElementById('detailsInput').value = '';
-                } else {
-                    showMessage('Error: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                showMessage('Network error');
-            });
-        }
+      <div class="cal-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background: rgba(200,240,96,0.25)"></div>1–2 free
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: rgba(240,200,96,0.3)"></div>3 free
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: rgba(200,240,96,0.35); box-shadow: 0 0 0 2px var(--accent)"></div>All 4 free
+        </div>
+      </div>
 
-        function submitAvailability() {
-            const start = document.getElementById('dateStart').value;
-            const end = document.getElementById('dateEnd').value;
-            const status = document.getElementById('statusSelect').value;
+      <div class="cal-grid" id="calGrid"></div>
 
-            if (!start || !end) {
-                showMessage('Please select both dates');
-                return;
-            }
+      <div class="section-label">Upcoming Overlaps</div>
+      <div id="overlapList">
+        <div class="empty-state">Loading availability…</div>
+      </div>
 
-            const params = new URLSearchParams();
-            params.append('action', 'addAvailability');
-            params.append('person', document.getElementById('personSelect').value);
-            params.append('startDate', start);
-            params.append('endDate', end);
-            params.append('status', status);
+    </div>
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: params
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage(`Marked ${status} from ${start} to ${end}`);
-                    document.getElementById('dateStart').value = '';
-                    document.getElementById('dateEnd').value = '';
-                    loadGroupAvailability();
-                } else {
-                    showMessage('Error: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                showMessage('Network error');
-            });
-        }
+  </div><!-- /container -->
+</div><!-- /app -->
 
-        function loadGroupAvailability() {
-            const params = new URLSearchParams();
-            params.append('action', 'getGroupAvailability');
+<div class="toast" id="toast"></div>
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: params
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.availability) {
-                    const container = document.getElementById('groupAvailability');
-                    if (data.availability.length > 0) {
-                        container.innerHTML = data.availability.map(item => `
-                            <div class="item">
-                                <span class="item-date">${item.attendees.join(', ')}</span>
-                                ${item.start} – ${item.end}
-                            </div>
-                        `).join('');
-                    }
-                }
-            })
-            .catch(error => {});
-        }
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — fill these in before deploying
+// ══════════════════════════════════════════════
 
-        function showMessage(text) {
-            const msg = document.createElement('div');
-            msg.className = 'message';
-            msg.textContent = text;
-            document.body.appendChild(msg);
-            
-            setTimeout(() => msg.remove(), 3000);
-        }
+const CONFIG = {
+  // Supabase
+  SUPABASE_URL:    'sb_publishable_BTTxYkkTXq_I5oGzjL4T1Q_OoGnzrXo',
+  SUPABASE_ANON:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wYWdyc3Zjc3Fhb3p0d3hlbXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyOTMwMjAsImV4cCI6MjA5Mzg2OTAyMH0.iVHWrNjmhbId-pN_TSv8JcFKF1FJOJdDBrwc47WqIt8',
 
-        updateInputPlaceholder();
-    </script>
+  // Claude API (Anthropic) — used for NLP availability parsing
+  CLAUDE_KEY:      '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',
+
+  // Twilio — called via Supabase Edge Function (see README)
+  // Direct browser→Twilio calls would expose your auth token.
+  // Deploy the edge function in /supabase/functions/notify/index.ts
+  TWILIO_EDGE_URL: 'https://npagrsvcsqaoztwxemrd.supabase.co/functions/v1/notify',
+
+  // PIN (shared for now; individual PINs easy to add)
+  PIN:             '0934',
+
+  SIBLINGS: {
+    Catherine: { lastName: 'Green',       dob: '1997-06-22', phone: '+13152447324' },
+    Ellie:     { lastName: 'Criscitello', dob: '1999-03-18', phone: '+13152610592' },
+    JD:        { lastName: 'Meyers',      dob: '2000-11-17', phone: '+13152444155' },
+    James:     { lastName: 'Meyers',      dob: '2003-06-06', phone: '+13152658772' },
+  }
+};
+
+// ══════════════════════════════════════════════
+// SUPABASE INIT
+// ══════════════════════════════════════════════
+
+const { createClient } = supabase;
+const db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON);
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+
+let currentUser = null;
+let parsedAvailability = null; // holds Claude-parsed result before save
+let calYear, calMonth;
+
+function today() { return new Date(); }
+
+// ══════════════════════════════════════════════
+// PIN / LOCK
+// ══════════════════════════════════════════════
+
+let pinBuffer = '';
+
+function pinKey(d) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += d;
+  updatePinDisplay();
+  if (pinBuffer.length === 4) setTimeout(pinSubmit, 120);
+}
+
+function pinClear() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDisplay();
+  document.getElementById('lockError').textContent = '';
+}
+
+function updatePinDisplay() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('d' + i).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function pinSubmit() {
+  if (pinBuffer === CONFIG.PIN) {
+    // PIN correct — ask who they are
+    const name = prompt('Which sibling are you?\n\nCatherine, Ellie, JD, or James');
+    const clean = (name || '').trim();
+    if (!CONFIG.SIBLINGS[clean]) {
+      document.getElementById('lockError').textContent = 'Not a valid sibling name.';
+      pinBuffer = '';
+      updatePinDisplay();
+      return;
+    }
+    currentUser = clean;
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('currentUserLabel').textContent = currentUser;
+    document.getElementById('addingAsLabel').textContent = 'Adding as ' + currentUser;
+    initCalendar();
+  } else {
+    document.getElementById('lockError').textContent = 'Wrong PIN. Try again.';
+    pinBuffer = '';
+    updatePinDisplay();
+  }
+}
+
+function lockApp() {
+  currentUser = null;
+  pinBuffer = '';
+  updatePinDisplay();
+  document.getElementById('lockError').textContent = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('lockScreen').style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'calendar') {
+    loadCalendarData();
+  }
+}
+
+// ══════════════════════════════════════════════
+// PROFILES
+// ══════════════════════════════════════════════
+
+async function viewProfile(name) {
+  document.getElementById('profileGrid').style.display = 'none';
+  document.getElementById('profileDetail').style.display = 'block';
+
+  const first = name[0].toUpperCase();
+  document.getElementById('detailName').innerHTML = `${first}<em>${name.slice(1)}</em>`;
+  document.getElementById('detailContent').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
+
+  try {
+    const [movies, music, places, notes, schedule] = await Promise.all([
+      db.from('entries').select('*').eq('person', name).eq('type', 'movie').order('created_at', { ascending: false }).limit(10),
+      db.from('entries').select('*').eq('person', name).eq('type', 'music').order('created_at', { ascending: false }).limit(10),
+      db.from('entries').select('*').eq('person', name).eq('type', 'place').order('created_at', { ascending: false }).limit(10),
+      db.from('entries').select('*').eq('person', name).eq('type', 'note').order('created_at', { ascending: false }).limit(10),
+      db.from('availability').select('*').eq('person', name).order('start_date', { ascending: true }).gte('end_date', new Date().toISOString().split('T')[0]).limit(10),
+    ]);
+
+    let html = '';
+
+    const renderSection = (label, rows, icon) => {
+      if (!rows || rows.length === 0) return '';
+      return `
+        <div class="section-label">${icon} ${label}</div>
+        <div class="item-list">
+          ${rows.map(r => `
+            <div class="item">
+              <span class="item-date">${formatDate(r.created_at || r.start_date)}</span>
+              <span class="item-text">${escHtml(r.content || (r.start_date + ' → ' + r.end_date + ' · ' + r.status))}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    html += renderSection('Movies', movies.data, '🎬');
+    html += renderSection('Music', music.data, '🎵');
+    html += renderSection('Places', places.data, '📍');
+    html += renderSection('Notes', notes.data, '💭');
+    html += renderSection('Schedule', schedule.data, '📅');
+
+    if (!html) html = '<div class="empty-state">Nothing added yet.</div>';
+    document.getElementById('detailContent').innerHTML = html;
+
+  } catch (err) {
+    document.getElementById('detailContent').innerHTML = '<div class="empty-state">Error loading profile.</div>';
+    console.error(err);
+  }
+}
+
+function backToProfiles() {
+  document.getElementById('profileGrid').style.display = 'grid';
+  document.getElementById('profileDetail').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════
+// ADD DATA
+// ══════════════════════════════════════════════
+
+function updatePlaceholder() {
+  const map = {
+    movie: 'e.g., Dune: Part Two',
+    music: 'e.g., Kendrick Lamar – GNX',
+    place: 'e.g., That new ramen spot on 5th',
+    note:  'e.g., Really good week, feeling motivated'
+  };
+  document.getElementById('detailsInput').placeholder = map[document.getElementById('dataTypeSelect').value];
+}
+
+async function submitData() {
+  const type    = document.getElementById('dataTypeSelect').value;
+  const content = document.getElementById('detailsInput').value.trim();
+
+  if (!content) { toast('Enter something first', 'error'); return; }
+
+  const btn = document.getElementById('submitDataBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+  const { error } = await db.from('entries').insert({
+    person:  currentUser,
+    type:    type,
+    content: content,
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Add Entry';
+
+  if (error) {
+    toast('Error saving. Check Supabase config.', 'error');
+    console.error(error);
+  } else {
+    document.getElementById('detailsInput').value = '';
+    toast(`Added to ${currentUser}'s ${type} list ✓`, 'success');
+  }
+}
+
+// ══════════════════════════════════════════════
+// NLP AVAILABILITY — CLAUDE
+// ══════════════════════════════════════════════
+
+async function parseAvailability() {
+  const text = document.getElementById('nlpInput').value.trim();
+  if (!text) { toast('Type something first', 'error'); return; }
+
+  const btn = document.getElementById('parseBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Parsing…';
+
+  const prompt = `You are a scheduling assistant. Parse the following natural language availability statement into a JSON array.
+Each item should have: { "start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD", "status": "free" | "busy", "note": "optional short note" }
+If a range spans multiple non-contiguous blocks (e.g. "free except Wednesday"), return multiple objects.
+Current date: ${new Date().toISOString().split('T')[0]}
+Statement: "${text}"
+Respond with ONLY valid JSON array, no explanation, no markdown.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CONFIG.CLAUDE_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 512,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.content?.[0]?.text?.trim();
+    parsedAvailability = JSON.parse(raw);
+
+    const preview = parsedAvailability.map(p =>
+      `${p.status.toUpperCase()}: ${p.start_date} → ${p.end_date}${p.note ? ' (' + p.note + ')' : ''}`
+    ).join('\n');
+
+    document.getElementById('nlpParsedContent').textContent = preview;
+    document.getElementById('nlpParsed').style.display = 'block';
+    document.getElementById('saveAvailBtn').style.display = 'block';
+
+  } catch (err) {
+    toast('Parse error — check Claude API key', 'error');
+    console.error(err);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Parse';
+}
+
+async function saveAvailability() {
+  if (!parsedAvailability || parsedAvailability.length === 0) return;
+
+  const btn = document.getElementById('saveAvailBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+  const rows = parsedAvailability.map(p => ({
+    person:     currentUser,
+    start_date: p.start_date,
+    end_date:   p.end_date,
+    status:     p.status,
+    note:       p.note || null,
+  }));
+
+  const { error } = await db.from('availability').insert(rows);
+
+  btn.disabled = false;
+  btn.textContent = 'Save';
+
+  if (error) {
+    toast('Error saving availability', 'error');
+    console.error(error);
+  } else {
+    document.getElementById('nlpInput').value = '';
+    document.getElementById('nlpParsed').style.display = 'none';
+    document.getElementById('saveAvailBtn').style.display = 'none';
+    parsedAvailability = null;
+    toast('Availability saved ✓', 'success');
+    loadCalendarData();
+    // Trigger overlap check + Twilio notification
+    checkOverlapsAndNotify();
+  }
+}
+
+// ══════════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════════
+
+function initCalendar() {
+  const now = today();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+  loadCalendarData();
+}
+
+function calPrev() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  loadCalendarData();
+}
+
+function calNext() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  loadCalendarData();
+}
+
+async function loadCalendarData() {
+  // Month bounds
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth + 1, 0);
+  const start    = firstDay.toISOString().split('T')[0];
+  const end      = lastDay.toISOString().split('T')[0];
+
+  const label = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  document.getElementById('calMonthLabel').textContent = label;
+
+  // Fetch all availability overlapping this month
+  const { data, error } = await db
+    .from('availability')
+    .select('*')
+    .eq('status', 'free')
+    .lte('start_date', end)
+    .gte('end_date', start);
+
+  if (error) { console.error(error); return; }
+
+  // Build a map: date string → Set of people free
+  const freeMap = {};
+  (data || []).forEach(row => {
+    let cur = new Date(row.start_date + 'T12:00:00');
+    const rowEnd = new Date(row.end_date + 'T12:00:00');
+    while (cur <= rowEnd) {
+      const key = cur.toISOString().split('T')[0];
+      if (!freeMap[key]) freeMap[key] = new Set();
+      freeMap[key].add(row.person);
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+
+  renderCalendar(freeMap);
+  renderOverlapList(freeMap);
+}
+
+function renderCalendar(freeMap) {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  // Day of week headers
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-dow';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const startDow = firstDay.getDay();
+  const todayStr = today().toISOString().split('T')[0];
+
+  // Blank cells before month start
+  for (let i = 0; i < startDow; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const el = document.createElement('div');
+    el.className = 'cal-day in-month';
+    el.textContent = d;
+    if (dateStr === todayStr) el.classList.add('today');
+
+    const freePeople = freeMap[dateStr];
+    if (freePeople) {
+      const n = freePeople.size;
+      if (n >= 4) el.classList.add('overlap-all');
+      else if (n === 3) el.classList.add('overlap-3');
+      else if (n === 2) el.classList.add('overlap-2');
+      else el.classList.add('has-free');
+
+      el.title = [...freePeople].join(', ') + ' free';
+    }
+
+    grid.appendChild(el);
+  }
+}
+
+function renderOverlapList(freeMap) {
+  const container = document.getElementById('overlapList');
+  const todayStr  = today().toISOString().split('T')[0];
+
+  // Find dates with 2+ siblings free, from today onward
+  const overlaps = Object.entries(freeMap)
+    .filter(([date, people]) => date >= todayStr && people.size >= 2)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(0, 10);
+
+  if (overlaps.length === 0) {
+    container.innerHTML = '<div class="empty-state">No overlapping free days yet. Add availability above.</div>';
+    return;
+  }
+
+  // Group consecutive dates with same people
+  const groups = [];
+  overlaps.forEach(([date, people]) => {
+    const key = [...people].sort().join(',');
+    const last = groups[groups.length - 1];
+    if (last && last.key === key && dateDiff(last.end, date) === 1) {
+      last.end = date;
+    } else {
+      groups.push({ start: date, end: date, people, key });
+    }
+  });
+
+  container.innerHTML = groups.map(g => {
+    const n = g.people.size;
+    const icon = n >= 4 ? '🎉' : n === 3 ? '👥' : '✌️';
+    const label = n >= 4 ? 'All siblings free!' : [...g.people].join(', ') + ' free';
+    const dateLabel = g.start === g.end ? formatDateFull(g.start) : `${formatDateFull(g.start)} – ${formatDateFull(g.end)}`;
+    return `
+      <div class="overlap-card ${n >= 2 ? 'is-overlap' : ''}">
+        <div class="overlap-icon">${icon}</div>
+        <div class="overlap-info">
+          <div class="overlap-date">${dateLabel}</div>
+          <div class="overlap-who">${label}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// TWILIO NOTIFICATIONS via Supabase Edge Function
+// ══════════════════════════════════════════════
+
+async function checkOverlapsAndNotify() {
+  if (!CONFIG.TWILIO_EDGE_URL || CONFIG.TWILIO_EDGE_URL.startsWith('YOUR_')) return;
+
+  // Fetch upcoming 4-way overlaps
+  const todayStr = today().toISOString().split('T')[0];
+  const { data } = await db
+    .from('availability')
+    .select('*')
+    .eq('status', 'free')
+    .gte('end_date', todayStr);
+
+  const freeMap = {};
+  (data || []).forEach(row => {
+    let cur = new Date(row.start_date + 'T12:00:00');
+    const rowEnd = new Date(row.end_date + 'T12:00:00');
+    while (cur <= rowEnd) {
+      const key = cur.toISOString().split('T')[0];
+      if (!freeMap[key]) freeMap[key] = new Set();
+      freeMap[key].add(row.person);
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+
+  const allFree = Object.entries(freeMap)
+    .filter(([date, people]) => people.size >= 4 && date >= todayStr)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  if (allFree.length === 0) return;
+
+  const firstDate = formatDateFull(allFree[0][0]);
+  const msg = `📅 Siblings heads up — everyone is free on ${firstDate}! Someone plan something. — Siblings App`;
+
+  // Call edge function which holds Twilio creds server-side
+  try {
+    await fetch(CONFIG.TWILIO_EDGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        phones: Object.values(CONFIG.SIBLINGS).map(s => s.phone)
+      })
+    });
+  } catch (e) {
+    console.error('Notification error:', e);
+  }
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+
+function formatDate(str) {
+  if (!str) return '';
+  return new Date(str).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatDateFull(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  return new Date(+y, +m - 1, +d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function dateDiff(a, b) {
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+// Init placeholder
+updatePlaceholder();
+</script>
 </body>
 </html>
