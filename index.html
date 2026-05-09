@@ -235,6 +235,68 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* COLLAPSIBLE PANELS */
+.collapse-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.collapse-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.collapse-header:active{background:var(--surface2)}
+.collapse-title{font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:2px;color:var(--muted)}
+.collapse-preview{font-size:11px;color:var(--text);font-family:var(--font-mono);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.collapse-chevron{color:var(--muted);transition:transform 0.2s;flex-shrink:0}
+.collapse-chevron svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.collapse-panel.open .collapse-chevron{transform:rotate(180deg)}
+.collapse-body{display:none;padding:0 14px 14px}
+.collapse-panel.open .collapse-body{display:block}
+
+/* STEPS */
+.step-bar{display:flex;align-items:center;gap:0;margin-bottom:14px}
+.step{display:flex;align-items:center;gap:6px;font-size:10px;font-family:var(--font-mono);color:var(--muted)}
+.step-num{width:20px;height:20px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.step.done .step-num{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.step.active .step-num{border-color:var(--accent2);color:var(--accent2)}
+.step-line{flex:1;height:1px;background:var(--border);margin:0 4px}
+.step.done + .step-line{background:var(--accent)}
+
+/* BUSY CALENDAR BARS */
+.cal-day{position:relative}
+.busy-bar{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 4px 4px;background:rgba(240,96,96,0.35)}
+.busy-bar.long{background:rgba(240,96,96,0.55)}
+
+/* PROFILE QUADRANTS */
+.profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;height:calc(100vh - 120px)}
+.q-card{background:var(--surface);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.q-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.15s}
+.q-card:nth-child(1)::before{background:radial-gradient(ellipse at top left,rgba(200,240,96,0.08),transparent 70%)}
+.q-card:nth-child(2)::before{background:radial-gradient(ellipse at top right,rgba(96,200,240,0.08),transparent 70%)}
+.q-card:nth-child(3)::before{background:radial-gradient(ellipse at bottom left,rgba(240,200,96,0.08),transparent 70%)}
+.q-card:nth-child(4)::before{background:radial-gradient(ellipse at bottom right,rgba(240,96,200,0.08),transparent 70%)}
+.q-card:active::before{opacity:1}
+.q-avatar{width:52px;height:52px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:22px;color:var(--accent);margin-bottom:10px;position:relative}
+.q-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:var(--muted2);border:2px solid var(--surface)}
+.q-dot.on{background:var(--success)}
+.q-name{font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px}
+.q-sub{font-size:10px;color:var(--muted);font-family:var(--font-mono)}
+.q-stat{font-size:10px;color:var(--accent2);font-family:var(--font-mono);margin-top:5px;text-align:center;padding:0 10px;line-height:1.4}
+.q-preview{font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.q-sep{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+
+/* PLACE AUTOCOMPLETE */
+.pac-container{background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:var(--r-sm)!important;box-shadow:none!important;font-family:var(--font-body)!important}
+.pac-item{color:var(--text)!important;border-top:1px solid var(--border)!important;padding:8px 12px!important;cursor:pointer!important;font-size:13px!important}
+.pac-item:hover{background:var(--surface3)!important}
+.pac-item-query{color:var(--text)!important;font-size:13px!important}
+.pac-matched{color:var(--accent)!important}
+.pac-icon{display:none!important}
+
+/* MAP PINS */
+.map-entry-marker{display:none}
+.map-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.map-leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);font-family:var(--font-mono)}
+.map-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* PROFILE STAT EDIT */
+.stat-edit-row{display:flex;gap:8px;margin-bottom:8px}
+.stat-edit-row .input{flex:1;padding:9px 12px;font-size:13px}
 </style>
 </head>
 <body>
@@ -295,26 +357,34 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
     <div class="app-content">
       <!-- PROFILES -->
       <div class="tab-pane active" id="tab-profiles">
-        <div id="profileGrid" class="profile-grid">
-          <div class="profile-card" data-person="Catherine">
-            <div class="p-avatar"><span>C</span><div class="p-dot" id="dot-Catherine"></div></div>
-            <div class="p-name">Catherine</div><div class="p-sub">Green &middot; Massena</div>
-            <div class="p-preview" id="prev-Catherine"></div>
+        <div id="profileGrid" class="profile-grid-full">
+          <div class="q-card" data-person="Catherine">
+            <div class="q-avatar"><span>C</span><div class="q-dot" id="dot-Catherine"></div></div>
+            <div class="q-name">Catherine</div>
+            <div class="q-sub">Green &middot; Massena</div>
+            <div class="q-stat" id="stat-Catherine"></div>
+            <div class="q-preview" id="prev-Catherine"></div>
           </div>
-          <div class="profile-card" data-person="Ellie">
-            <div class="p-avatar"><span>E</span><div class="p-dot" id="dot-Ellie"></div></div>
-            <div class="p-name">Ellie</div><div class="p-sub">Criscitello &middot; Potsdam</div>
-            <div class="p-preview" id="prev-Ellie"></div>
+          <div class="q-card" data-person="Ellie">
+            <div class="q-avatar"><span>E</span><div class="q-dot" id="dot-Ellie"></div></div>
+            <div class="q-name">Ellie</div>
+            <div class="q-sub">Criscitello &middot; Potsdam</div>
+            <div class="q-stat" id="stat-Ellie"></div>
+            <div class="q-preview" id="prev-Ellie"></div>
           </div>
-          <div class="profile-card" data-person="JD">
-            <div class="p-avatar"><span>J</span><div class="p-dot" id="dot-JD"></div></div>
-            <div class="p-name">JD</div><div class="p-sub">Meyers &middot; Potsdam</div>
-            <div class="p-preview" id="prev-JD"></div>
+          <div class="q-card" data-person="JD">
+            <div class="q-avatar"><span>J</span><div class="q-dot" id="dot-JD"></div></div>
+            <div class="q-name">JD</div>
+            <div class="q-sub">Meyers &middot; Potsdam</div>
+            <div class="q-stat" id="stat-JD"></div>
+            <div class="q-preview" id="prev-JD"></div>
           </div>
-          <div class="profile-card" data-person="James">
-            <div class="p-avatar"><span>Jm</span><div class="p-dot" id="dot-James"></div></div>
-            <div class="p-name">James</div><div class="p-sub">Meyers &middot; Potsdam</div>
-            <div class="p-preview" id="prev-James"></div>
+          <div class="q-card" data-person="James">
+            <div class="q-avatar"><span>Jm</span><div class="q-dot" id="dot-James"></div></div>
+            <div class="q-name">James</div>
+            <div class="q-sub">Meyers &middot; Potsdam</div>
+            <div class="q-stat" id="stat-James"></div>
+            <div class="q-preview" id="prev-James"></div>
           </div>
         </div>
         <div id="profileDetail" style="display:none">
@@ -346,6 +416,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <div class="form-group">
           <label class="label">Details</label>
           <textarea class="textarea" id="detailsInput" placeholder="e.g., Dune: Part Two" style="min-height:80px"></textarea>
+          <div id="enrichHint" style="display:none;font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:5px">Claude will enrich this automatically when you save.</div>
+        </div>
+        <div class="form-group" id="addressGroup" style="display:none">
+          <label class="label">Address (optional)</label>
+          <input type="text" class="input" id="addressInput" placeholder="Search for address..." autocomplete="off"/>
+          <div id="addressDisplay" style="font-size:11px;color:var(--accent2);font-family:var(--font-mono);margin-top:4px;display:none"></div>
         </div>
         <div class="form-group" id="ratingGroup" style="display:none">
           <label class="label">Quick rating (optional)</label>
@@ -361,48 +437,80 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 
       <!-- SCHEDULE -->
       <div class="tab-pane" id="tab-schedule">
-        <div class="avail-box">
-          <div class="sec-head" style="border:none;margin-bottom:8px">Update Your Availability</div>
-          <div class="avail-hint">Type naturally &mdash; <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August, mornings only"</div>
-          <textarea class="textarea" id="nlpInput" placeholder="When are you free or busy?" style="min-height:64px;margin-top:8px"></textarea>
-          <div class="parsed-preview" id="nlpParsed">
-            <div class="parsed-label">Claude parsed this as:</div>
-            <div class="parsed-body" id="nlpParsedContent"></div>
+
+        <!-- COLLAPSIBLE: NLP -->
+        <div class="collapse-panel" id="nlpPanel">
+          <div class="collapse-header" id="nlpPanelHeader">
+            <div>
+              <div class="collapse-title">Update Your Availability</div>
+              <div class="collapse-preview" id="nlpPreviewText">Tap to type when you're free or busy</div>
+            </div>
+            <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
           </div>
-          <div class="btn-row" style="margin-top:10px">
-            <button class="btn btn-sec" id="parseBtn">Parse</button>
-            <button class="btn" id="saveAvailBtn" style="display:none">Save</button>
+          <div class="collapse-body">
+            <div class="avail-hint" style="margin-bottom:10px">Type naturally &mdash; <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August, mornings only"</div>
+            <textarea class="textarea" id="nlpInput" placeholder="When are you free or busy?" style="min-height:72px"></textarea>
+            <div class="parsed-preview" id="nlpParsed" style="margin-top:10px">
+              <div class="parsed-label">Claude parsed this as:</div>
+              <div class="parsed-body" id="nlpParsedContent"></div>
+            </div>
+            <div class="btn-row" style="margin-top:10px">
+              <button class="btn btn-sec" id="parseBtn">Parse</button>
+              <button class="btn" id="saveAvailBtn" style="display:none">Save</button>
+            </div>
           </div>
         </div>
 
-        <div class="avail-box" style="margin-bottom:16px">
-          <div class="sec-head" style="border:none;margin-bottom:8px">Import Calendar File (.ics)</div>
-          <div class="avail-hint">Drag and drop a <strong>.ics file</strong> here, or tap to browse. Export from Apple Calendar, Google Calendar, or Outlook &mdash; Claude parses everything automatically.</div>
-          <div class="ics-drop" id="icsDropZone" style="margin-top:8px">
-            <input type="file" id="icsFileInput" accept=".ics,text/calendar"/>
-            <svg style="width:26px;height:26px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <div class="ics-drop-title" id="icsDropTitle">Drop .ics file here</div>
-            <div class="ics-drop-sub">or tap to browse</div>
+        <!-- COLLAPSIBLE: ICS IMPORT -->
+        <div class="collapse-panel" id="icsPanel" style="margin-bottom:16px">
+          <div class="collapse-header" id="icsPanelHeader">
+            <div>
+              <div class="collapse-title">Import Calendar File (.ics)</div>
+              <div class="collapse-preview" id="icsPreviewText">Tap to import from Apple Calendar, Google, Outlook</div>
+            </div>
+            <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
           </div>
-          <div id="icsParsed" style="display:none;margin-top:12px">
-            <div class="history-bar">
-              <div class="history-label" id="historyStatus">No history</div>
-              <div class="history-btns">
-                <button class="h-btn" id="undoBtn" disabled>
-                  <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo
-                </button>
-                <button class="h-btn" id="redoBtn" disabled>
-                  Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg>
-                </button>
+          <div class="collapse-body">
+            <!-- STEPS -->
+            <div class="step-bar" id="icsStepBar">
+              <div class="step active" id="step1"><div class="step-num">1</div><span>Drop file</span></div>
+              <div class="step-line" id="step-line-1"></div>
+              <div class="step" id="step2"><div class="step-num">2</div><span>Parse</span></div>
+              <div class="step-line" id="step-line-2"></div>
+              <div class="step" id="step3"><div class="step-num">3</div><span>Review</span></div>
+              <div class="step-line" id="step-line-3"></div>
+              <div class="step" id="step4"><div class="step-num">4</div><span>Save</span></div>
+            </div>
+
+            <!-- DROP ZONE -->
+            <div class="ics-drop" id="icsDropZone">
+              <input type="file" id="icsFileInput" accept=".ics,text/calendar"/>
+              <svg style="width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div class="ics-drop-title" id="icsDropTitle">Drop .ics file here</div>
+              <div class="ics-drop-sub" id="icsDropSub">or tap to browse</div>
+            </div>
+
+            <!-- PARSED RESULTS -->
+            <div id="icsParsed" style="display:none;margin-top:12px">
+              <div class="history-bar">
+                <div class="history-label" id="historyStatus">No history</div>
+                <div class="history-btns">
+                  <button class="h-btn" id="undoBtn" disabled>
+                    <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo
+                  </button>
+                  <button class="h-btn" id="redoBtn" disabled>
+                    Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg>
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="parsed-preview" style="display:block;margin-bottom:10px">
-              <div class="parsed-label" id="icsEventCount"></div>
-              <div class="parsed-body" id="icsParsedContent"></div>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-sec" id="clearIcsBtn">Clear</button>
-              <button class="btn" id="saveIcsBtn">Save to Schedule</button>
+              <div class="parsed-preview" style="display:block;margin-bottom:10px">
+                <div class="parsed-label" id="icsEventCount"></div>
+                <div class="parsed-body" id="icsParsedContent"></div>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-sec" id="clearIcsBtn">Clear</button>
+                <button class="btn" id="saveIcsBtn">Save to Schedule</button>
+              </div>
             </div>
           </div>
         </div>
@@ -415,6 +523,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <div class="cal-legend">
           <div class="leg-item"><div class="leg-dot" style="background:rgba(240,200,96,0.3)"></div>2-3 free</div>
           <div class="leg-item"><div class="leg-dot" style="background:rgba(200,240,96,0.3);box-shadow:0 0 0 1.5px rgba(200,240,96,0.4)"></div>All 4</div>
+          <div class="leg-item"><div class="leg-dot" style="background:rgba(240,96,96,0.4)"></div>Busy</div>
           <div class="leg-item"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent2);display:inline-block;margin-right:3px"></div>Time note</div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
@@ -432,6 +541,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <!-- MAP -->
       <div class="tab-pane" id="tab-map">
         <div id="mapContainer"></div>
+        <div class="map-legend" id="mapLegend" style="margin-top:12px"></div>
         <div id="siblingLocations"></div>
       </div>
 
@@ -575,10 +685,32 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('redoBtn').addEventListener('click', redoAvail);
   document.getElementById('editModalClose').addEventListener('click', () => document.getElementById('editModal').classList.remove('open'));
   document.getElementById('editModalSave').addEventListener('click', saveEdit);
+
+  // Collapsible panels
+  document.getElementById('nlpPanelHeader').addEventListener('click', () => togglePanel('nlpPanel'));
+  document.getElementById('icsPanelHeader').addEventListener('click', () => togglePanel('icsPanel'));
+
   updatePlaceholder();
   loadProfilePreviews();
   showScreen('lockScreen');
 });
+
+function togglePanel(id) {
+  const panel = document.getElementById(id);
+  panel.classList.toggle('open');
+}
+
+function setIcsStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const s = document.getElementById('step' + i);
+    if (!s) continue;
+    s.classList.remove('active','done');
+    if (i < n) s.classList.add('done');
+    else if (i === n) s.classList.add('active');
+    const line = document.getElementById('step-line-' + i);
+    if (line) line.style.background = i < n ? 'var(--accent)' : 'var(--border)';
+  }
+}
 
 // ── SCREENS ──
 function showScreen(id) {
@@ -608,6 +740,31 @@ function loginAs(name) {
   showScreen('appScreen');
   initCalendar();
   loadProfilePreviews();
+  initPlacesAutocomplete();
+}
+
+let placesAutocomplete = null;
+function initPlacesAutocomplete() {
+  if (placesAutocomplete) return;
+  if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+    setTimeout(initPlacesAutocomplete, 800); return;
+  }
+  const input = document.getElementById('addressInput');
+  if (!input) return;
+  placesAutocomplete = new google.maps.places.Autocomplete(input, {
+    types: ['establishment','geocode'],
+    componentRestrictions: {country:'us'},
+  });
+  placesAutocomplete.addListener('place_changed', () => {
+    const place = placesAutocomplete.getPlace();
+    const addr = place.formatted_address || place.name || '';
+    const display = document.getElementById('addressDisplay');
+    if (display) {
+      display.textContent = addr;
+      display.dataset.address = addr;
+      display.style.display = addr ? 'block' : 'none';
+    }
+  });
 }
 function lockApp() { currentUser = null; pinBuffer = ''; updatePinDisplay(); document.getElementById('lockError').textContent = ''; showScreen('lockScreen'); }
 
@@ -628,10 +785,14 @@ async function loadProfilePreviews() {
     const { data } = await db.from('entries').select('type,content').eq('person',name).order('created_at',{ascending:false}).limit(1);
     const dot = document.getElementById('dot-' + name);
     const prev = document.getElementById('prev-' + name);
+    const stat = document.getElementById('stat-' + name);
     if (data && data.length) {
       if (dot) dot.classList.add('on');
-      if (prev) prev.textContent = data[0].type + ': ' + data[0].content.substring(0,32) + (data[0].content.length > 32 ? '...' : '');
+      if (prev) prev.textContent = data[0].content.substring(0,34) + (data[0].content.length > 34 ? '...' : '');
     }
+    // Load stat from localStorage
+    const savedStat = localStorage.getItem('stat-' + name);
+    if (stat && savedStat) stat.textContent = savedStat;
   }
 }
 
@@ -672,7 +833,8 @@ async function viewProfile(name) {
     if (schedule.data && schedule.data.length) {
       html += '<div class="sec-head"><svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Upcoming Availability</div><div style="margin-bottom:18px">';
       schedule.data.forEach(r => {
-        html += '<div class="avail-item" id="avail-' + r.id + '"><span class="avail-badge ' + r.status + '">' + r.status + '</span><div class="avail-info"><div class="avail-dates">' + fmtFull(r.start_date) + ' — ' + fmtFull(r.end_date) + '</div>' + (r.note ? '<div class="avail-note">' + esc(r.note) + '</div>' : '') + (r.source ? '<div class="avail-src">via ' + r.source + '</div>' : '') + '</div>' + (canEdit ? '<button class="avail-del" onclick="delAvail(\'' + r.id + '\')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>' : '') + '</div>';
+        const dStr2 = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
+        html += '<div class="avail-item" id="avail-' + r.id + '"><span class="avail-badge ' + r.status + '">' + r.status + '</span><div class="avail-info"><div class="avail-dates">' + dStr2 + '</div>' + (r.note ? '<div class="avail-note">' + esc(shortenNote(r.note)) + '</div>' : '') + (r.source ? '<div class="avail-src">via ' + r.source + '</div>' : '') + '</div>' + (canEdit ? '<button class="avail-del" onclick="delAvail(\'' + r.id + '\')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>' : '') + '</div>';
       });
       html += '</div>';
     }
@@ -716,8 +878,11 @@ function backToProfiles() { document.getElementById('profileGrid').style.display
 function onTypeChange() {
   updatePlaceholder();
   const type = document.getElementById('dataTypeSelect').value;
-  const show = ['movie','music','book'].includes(type);
-  document.getElementById('ratingGroup').style.display = show ? 'block' : 'none';
+  const showRating = ['movie','music','book'].includes(type);
+  document.getElementById('ratingGroup').style.display = showRating ? 'block' : 'none';
+  document.getElementById('addressGroup').style.display = type === 'place' ? 'block' : 'none';
+  const showEnrich = ['movie','music','book','activity','note'].includes(type);
+  document.getElementById('enrichHint').style.display = showEnrich ? 'block' : 'none';
   selectedRating = null;
   document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('sel'));
 }
@@ -728,22 +893,54 @@ function updatePlaceholder() {
 }
 async function submitData() {
   const type = document.getElementById('dataTypeSelect').value;
-  const content = document.getElementById('detailsInput').value.trim();
-  if (!content) { toast('Enter something first','error'); return; }
+  let entryContent = document.getElementById('detailsInput').value.trim();
+  if (!entryContent) { toast('Enter something first','error'); return; }
   const btn = document.getElementById('submitDataBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving';
-  const row = {person:currentUser, type, content};
+
+  // Enrich with Claude
+  const enrichTypes = ['movie','music','book','place','activity','note'];
+  if (enrichTypes.includes(type)) {
+    try {
+      const enrichPrompts = {
+        movie: 'Clean up this movie/show entry: "' + entryContent + '". Return JSON array with one item: {"note":"Title (year if known) - genre in 4 words"}. ONLY the array.',
+        music: 'Clean up this music entry: "' + entryContent + '". Return JSON array with one item: {"note":"Artist - Song/Album (genre in 3 words)"}. ONLY the array.',
+        book: 'Clean up this book entry: "' + entryContent + '". Return JSON array with one item: {"note":"Title by Author"}. ONLY the array.',
+        place: 'Clean up this place/restaurant name: "' + entryContent + '". Return JSON array with one item: {"note":"clean name - short descriptor"}. ONLY the array.',
+        activity: 'Clean up this activity/idea: "' + entryContent + '". Make it punchy. Return JSON array with one item: {"note":"cleaned version"}. ONLY the array.',
+        note: 'Clean up this personal note: "' + entryContent + '". Keep the meaning, improve clarity. Return JSON array with one item: {"note":"cleaned version"}. ONLY the array.',
+      };
+      const prompt = enrichPrompts[type] || enrichPrompts.note;
+      const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:prompt, today:todayStr()})});
+      if (res.ok) {
+        const data = await res.json();
+        if (data.parsed && data.parsed.length && data.parsed[0].note) {
+          entryContent = data.parsed[0].note;
+        }
+      }
+    } catch(e) { /* silently use original */ }
+  }
+
+  // Append address for places
+  const addrEl = document.getElementById('addressDisplay');
+  if (type === 'place' && addrEl && addrEl.dataset.address) {
+    entryContent = entryContent + ' -- ' + addrEl.dataset.address;
+  }
+
+  const row = {person:currentUser, type, content:entryContent};
   if (selectedRating) row.rating = selectedRating;
   const { error } = await db.from('entries').insert(row);
   btn.disabled = false; btn.textContent = 'Save Entry';
   if (error) { toast('Error saving','error'); return; }
   document.getElementById('detailsInput').value = '';
+  if (document.getElementById('addressInput')) document.getElementById('addressInput').value = '';
+  if (addrEl) { addrEl.style.display = 'none'; addrEl.dataset.address = ''; addrEl.textContent = ''; }
   selectedRating = null;
   document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('sel'));
   toast('Saved!','success');
 }
 
-// ── NLP ──
+
 async function parseAvailability() {
   const text = document.getElementById('nlpInput').value.trim();
   if (!text) { toast('Type something first','error'); return; }
@@ -789,8 +986,14 @@ function initIcsDrop() {
 }
 async function handleIcsFile(file) {
   if (!file.name.endsWith('.ics') && file.type !== 'text/calendar') { toast('Please use a .ics calendar file','error'); return; }
-  document.getElementById('icsDropTitle').textContent = file.name;
+  // Truncate long filenames
+  const shortName = file.name.length > 30 ? file.name.substring(0,27) + '...' : file.name;
+  document.getElementById('icsDropTitle').textContent = shortName;
+  document.getElementById('icsDropSub').textContent = (file.size / 1024).toFixed(0) + ' KB';
   document.getElementById('icsDropZone').classList.add('loaded');
+  // Open panel if collapsed
+  document.getElementById('icsPanel').classList.add('open');
+  setIcsStep(2);
   const text = await file.text();
   await parseIcsContent(text);
 }
@@ -838,6 +1041,7 @@ function parseIcsLocally(icsText) {
 }
 
 async function parseIcsContent(icsText) {
+  setIcsStep(2);
   const btn = document.getElementById('saveIcsBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Parsing...';
   try {
@@ -876,6 +1080,7 @@ async function parseIcsContent(icsText) {
       (p.status||'busy').toUpperCase() + ': ' + p.start_date + ' to ' + p.end_date + (p.note ? ' -- ' + p.note : '')
     ).join('\n');
     document.getElementById('icsParsed').style.display = 'block';
+    setIcsStep(3);
     toast(icsParsedEvents.length + ' events ready','success');
   } catch(err) {
     // Last resort: use purely local parse
@@ -902,7 +1107,9 @@ function clearIcsParsed() {
   document.getElementById('icsParsed').style.display = 'none';
   document.getElementById('icsDropZone').classList.remove('loaded');
   document.getElementById('icsDropTitle').textContent = 'Drop .ics file here';
+  document.getElementById('icsDropSub').textContent = 'or tap to browse';
   document.getElementById('icsFileInput').value = '';
+  setIcsStep(1);
 }
 async function saveIcsEvents() {
   if (!icsParsedEvents || !icsParsedEvents.length) return;
@@ -914,6 +1121,8 @@ async function saveIcsEvents() {
   if (error) { toast('Error saving','error'); console.error(error); btn.disabled=false; btn.textContent='Save to Schedule'; return; }
   if (data) pushHistory({action:'insert', rows:data});
   clearIcsParsed();
+  setIcsStep(4);
+  setTimeout(() => setIcsStep(1), 2000);
   toast('Saved ' + rows.length + ' events','success');
   loadCalendarData();
   checkOverlapsAndNotify();
@@ -974,9 +1183,13 @@ async function loadCalendarData() {
   const monthStart = firstDay.toISOString().split('T')[0];
   const monthEnd = lastDay.toISOString().split('T')[0];
   document.getElementById('calMonthLabel').textContent = firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  const { data } = await db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart);
-  const freeMap = buildFreeMap(data||[], monthStart, monthEnd);
-  renderCalendar(freeMap);
+  const [freeResp, busyResp] = await Promise.all([
+    db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart),
+    db.from('availability').select('*').eq('status','busy').lte('start_date',monthEnd).gte('end_date',monthStart),
+  ]);
+  const freeMap = buildFreeMap(freeResp.data||[], monthStart, monthEnd);
+  const busyMap = buildBusyMap(busyResp.data||[], monthStart, monthEnd);
+  renderCalendar(freeMap, busyMap);
   renderOverlapList(freeMap, monthStart, monthEnd);
   renderMySchedule(monthStart, monthEnd);
 }
@@ -994,7 +1207,22 @@ function buildFreeMap(data, monthStart, monthEnd) {
   });
   return m;
 }
-function renderCalendar(freeMap) {
+function buildBusyMap(data, monthStart, monthEnd) {
+  const m = {};
+  data.forEach(row => {
+    const totalDays = dateDiff(row.start_date, row.end_date) + 1;
+    let cur = new Date(Math.max(new Date(row.start_date+'T12:00:00'), new Date(monthStart+'T12:00:00')));
+    const end = new Date(Math.min(new Date(row.end_date+'T12:00:00'), new Date(monthEnd+'T12:00:00')));
+    while (cur <= end) {
+      const k = cur.toISOString().split('T')[0];
+      if (!m[k]) m[k] = [];
+      m[k].push({person:row.person, note:row.note, duration:totalDays});
+      cur.setDate(cur.getDate()+1);
+    }
+  });
+  return m;
+}
+function renderCalendar(freeMap, busyMap) {
   const grid = document.getElementById('calGrid');
   grid.innerHTML = '';
   ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => { const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el); });
@@ -1008,17 +1236,34 @@ function renderCalendar(freeMap) {
     el.className = 'cal-day in-month';
     el.textContent = d;
     if (ds === tStr) el.classList.add('today');
-    const entries = freeMap[ds];
-    if (entries) {
-      const people = [...new Set(entries.map(e => e.person))];
+
+    // Free indicators
+    const freeEntries = freeMap[ds];
+    if (freeEntries) {
+      const people = [...new Set(freeEntries.map(e => e.person))];
       const n = people.length;
       if (n >= 4) el.classList.add('oall');
       else if (n === 3) el.classList.add('o3');
       else if (n === 2) el.classList.add('o2');
-      const hasTime = entries.some(e => e.note && /morning|afternoon|evening|am|pm|before|after|\d+:/i.test(e.note));
+      const hasTime = freeEntries.some(e => e.note && /morning|afternoon|evening|am|pm|before|after|\d+:/i.test(e.note));
       if (hasTime && n >= 2) { const dot=document.createElement('div'); dot.className='tdot'; el.appendChild(dot); }
       if (n >= 2) el.title = people.join(', ') + ' free';
     }
+
+    // Busy bar — subtle red bar at bottom, height scaled by duration
+    const busyEntries = busyMap ? busyMap[ds] : null;
+    if (busyEntries && busyEntries.length) {
+      const maxDur = Math.max(...busyEntries.map(e => e.duration || 1));
+      const barH = Math.min(6, 2 + Math.floor(maxDur / 2)); // 2-6px
+      const isLong = maxDur > 3;
+      const bar = document.createElement('div');
+      bar.className = 'busy-bar' + (isLong ? ' long' : '');
+      bar.style.height = barH + 'px';
+      const people = [...new Set(busyEntries.map(e => e.person))];
+      bar.title = people.join(', ') + ' busy';
+      el.appendChild(bar);
+    }
+
     grid.appendChild(el);
   }
 }
@@ -1026,9 +1271,11 @@ async function renderMySchedule(monthStart, monthEnd) {
   const { data } = await db.from('availability').select('*').eq('person',currentUser).lte('start_date',monthEnd).gte('end_date',monthStart).order('start_date',{ascending:true});
   const container = document.getElementById('myScheduleList');
   if (!data || !data.length) { container.innerHTML='<div class="empty-state">Nothing set for this month.</div>'; return; }
-  container.innerHTML = data.map(r =>
-    '<div class="avail-item" id="myschedule-'+r.id+'"><span class="avail-badge '+r.status+'">'+r.status+'</span><div class="avail-info"><div class="avail-dates">'+fmtFull(r.start_date)+' -- '+fmtFull(r.end_date)+'</div>'+(r.note?'<div class="avail-note">'+esc(r.note)+'</div>':'')+(r.source?'<div class="avail-src">via '+r.source+'</div>':'')+'</div><button class="avail-del" onclick="delMyAvail(\''+r.id+'\')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div>'
-  ).join('');
+  container.innerHTML = data.map(r => {
+    const dateStr = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
+    const noteStr = r.note ? shortenNote(r.note) : '';
+    return '<div class="avail-item" id="myschedule-'+r.id+'"><span class="avail-badge '+r.status+'">'+r.status+'</span><div class="avail-info"><div class="avail-dates">'+dateStr+'</div>'+(noteStr?'<div class="avail-note">'+esc(noteStr)+'</div>':'')+(r.source?'<div class="avail-src">via '+r.source+'</div>':'')+'</div><button class="avail-del" onclick="delMyAvail(''+r.id+'')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div>';
+  }).join('');
 }
 async function delMyAvail(id) {
   const { data } = await db.from('availability').select('*').eq('id', id);
@@ -1072,6 +1319,9 @@ function renderOverlapList(freeMap, monthStart, monthEnd) {
 }
 
 // ── MAP ──
+// Sibling colors for map
+const SIBLING_COLORS = {Catherine:'#c8f060', Ellie:'#60c8f0', JD:'#f0c860', James:'#f060c8'};
+
 function initMap() {
   if (mapInstance) return;
   if (typeof google === 'undefined') { setTimeout(initMap, 600); return; }
@@ -1080,19 +1330,68 @@ function initMap() {
     styles:[{elementType:'geometry',stylers:[{color:'#1a1a24'}]},{elementType:'labels.text.fill',stylers:[{color:'#5a5a72'}]},{elementType:'labels.text.stroke',stylers:[{color:'#0a0a0d'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#252530'}]},{featureType:'road.arterial',elementType:'geometry',stylers:[{color:'#2e2e3d'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#0a0a0d'}]},{featureType:'poi',stylers:[{visibility:'off'}]}],
     disableDefaultUI:true, zoomControl:true,
   });
+  // Home pins
   Object.entries(CONFIG.SIBLINGS).forEach(([name,s]) => {
-    new google.maps.Marker({position:{lat:s.lat,lng:s.lng},map:mapInstance,title:name+' -- '+s.address,label:{text:name[0],color:'#c8f060',fontFamily:'DM Mono',fontWeight:'600',fontSize:'11px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:16,fillColor:'#13131a',fillOpacity:1,strokeColor:'#c8f060',strokeWeight:2}});
+    const color = SIBLING_COLORS[name] || '#c8f060';
+    new google.maps.Marker({
+      position:{lat:s.lat,lng:s.lng}, map:mapInstance, title:name+' -- '+s.address,
+      label:{text:name[0],color:'#0a0a0d',fontFamily:'DM Mono',fontWeight:'700',fontSize:'11px'},
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:16,fillColor:color,fillOpacity:0.9,strokeColor:'#0a0a0d',strokeWeight:2},
+      zIndex:10
+    });
   });
   renderLocationCards();
+  loadMapEntries();
 }
+
+async function loadMapEntries() {
+  // Load place/activity entries that have address info
+  const { data } = await db.from('entries').select('*').in('type',['place','activity']).order('created_at',{ascending:false}).limit(100);
+  if (!data || !data.length) return;
+
+  // Build legend
+  const legendEl = document.getElementById('mapLegend');
+  if (legendEl) {
+    legendEl.innerHTML = Object.entries(SIBLING_COLORS).map(([name,color]) =>
+      '<div class="map-leg-item"><div class="map-leg-dot" style="background:'+color+'"></div>'+name+'</div>'
+    ).join('') + '<div class="map-leg-item"><div class="map-leg-dot" style="background:var(--muted2)"></div>Home</div>';
+  }
+
+  const geocoder = new google.maps.Geocoder();
+  const infoWindow = new google.maps.InfoWindow();
+
+  for (const entry of data) {
+    // Only entries that have an address embedded (after ' -- ')
+    const parts = entry.content.split(' -- ');
+    if (parts.length < 2) continue;
+    const addr = parts[parts.length - 1];
+    const placeName = parts[0];
+    const color = SIBLING_COLORS[entry.person] || '#c8f060';
+
+    geocoder.geocode({address: addr}, (results, status) => {
+      if (status !== 'OK' || !results[0]) return;
+      const pos = results[0].geometry.location;
+      const marker = new google.maps.Marker({
+        position: pos, map: mapInstance,
+        title: entry.person + ': ' + placeName,
+        icon: {path:google.maps.SymbolPath.CIRCLE, scale:8, fillColor:color, fillOpacity:0.8, strokeColor:'#0a0a0d', strokeWeight:1.5},
+        zIndex: 5
+      });
+      marker.addListener('click', () => {
+        infoWindow.setContent('<div style="font-family:DM Sans,sans-serif;font-size:13px;color:#0a0a0d;padding:4px 6px"><strong>' + entry.person + '</strong><br>' + placeName + '<br><span style="font-size:11px;color:#555">' + addr + '</span></div>');
+        infoWindow.open(mapInstance, marker);
+      });
+    });
+  }
+}
+
 function renderLocationCards() {
   const container = document.getElementById('siblingLocations');
   const siblings = Object.entries(CONFIG.SIBLINGS);
-  container.innerHTML = siblings.map(([name,s]) => {
+  container.innerHTML = '<div class="sec-head" style="margin-bottom:10px">Addresses</div>' + siblings.map(([name,s]) => {
     const init = name==='James'?'Jm':name[0];
-    const others = siblings.filter(([n,s2]) => n!==name && s2.address!==s.address);
-    const dists = others.map(([n2,s2]) => '<div class="dist-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/></svg>to '+n2+': ~'+approxMiles(s.lat,s.lng,s2.lat,s2.lng)+' mi</div>').join('');
-    return '<div class="loc-card"><div class="loc-hdr"><div class="loc-init">'+init+'</div><div><div class="loc-name">'+name+'</div><div class="loc-addr">'+s.address+'</div></div></div>'+dists+'</div>';
+    const color = SIBLING_COLORS[name] || '#c8f060';
+    return '<div class="loc-card" style="border-left:3px solid '+color+'"><div class="loc-hdr"><div class="loc-init" style="border-color:'+color+';color:'+color+'">'+init+'</div><div><div class="loc-name">'+name+'</div><div class="loc-addr">'+s.address+'</div></div></div></div>';
   }).join('');
 }
 function approxMiles(lat1,lng1,lat2,lng2) {
@@ -1118,6 +1417,17 @@ async function checkOverlapsAndNotify() {
 }
 
 // ── HELPERS ──
+function shortenNote(note) {
+  if (!note) return '';
+  // Shorten Clarkson Security entries
+  if (/clarkson security/i.test(note)) {
+    const timeMatch = note.match(/\d{1,2}[ap]m?\s*(?:-|to)\s*\d{1,2}[ap]m?/i) || note.match(/\(([^)]+)\)/);
+    const times = timeMatch ? ' (' + timeMatch[0].replace(/[()]/g,'').trim() + ')' : '';
+    return 'Clarkson Security' + times;
+  }
+  return note;
+}
+
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function fmt(str) { if(!str)return''; return new Date(str).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 function fmtFull(str) { if(!str)return''; const[y,m,d]=str.split('-'); return new Date(+y,+m-1,+d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
