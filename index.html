@@ -854,6 +854,7 @@ const db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON);
 // ══════════════════════════════════════════════
 
 let currentUser = null;
+let pinBuffer = '';  
 let parsedAvailability = null; // holds Claude-parsed result before save
 let calYear, calMonth;
 
