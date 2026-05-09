@@ -581,7 +581,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <!-- VIEW TOGGLE -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div class="week-toggle">
-            <button class="view-btn active" id="viewMonth" onclick="setCalView('month')">Month</button>
+            <button class="view-btn active" id="viewMonth" id-x="m">Month</button>
             <button class="view-btn" id="viewWeek" onclick="setCalView('week')">Week</button>
           </div>
           <button class="sec-action" id="clearAllIcsBtn" style="color:var(--danger);font-size:9px">Clear my ICS imports</button>
@@ -778,6 +778,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('weekPrevBtn').addEventListener('click', weekPrev);
   document.getElementById('weekNextBtn').addEventListener('click', weekNext);
   document.getElementById('clearAllIcsBtn').addEventListener('click', clearAllIcs);
+  document.getElementById('viewMonth').addEventListener('click', () => setCalView('month'));
+  document.getElementById('viewWeek').addEventListener('click', () => setCalView('week'));
+  // Delegate data-popup clicks (week view day numbers + events)
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-popup]');
+    if (el) openDayPopup(el.dataset.popup);
+  });
+  // saveStats button (dynamically rendered)
+  document.addEventListener('click', e => {
+    if (e.target.id === 'saveStatsBtn') {
+      const name = document.getElementById('detailName')?.dataset?.person || currentUser;
+      saveStats(currentUser);
+    }
+  });
   initIcsDrop();
   document.getElementById('saveIcsBtn').addEventListener('click', saveIcsEvents);
   document.getElementById('clearIcsBtn').addEventListener('click', clearIcsParsed);
@@ -936,6 +950,7 @@ async function viewProfile(name) {
   const initials = name === 'James' ? 'Jm' : name[0];
   document.getElementById('detailAvatar').textContent = initials;
   document.getElementById('detailName').innerHTML = name[0] + '<em>' + name.slice(1) + '</em>';
+  document.getElementById('detailName').dataset.person = name;
   const s = CONFIG.SIBLINGS[name];
   const age = Math.floor((new Date() - new Date(s.dob)) / 31557600000);
   document.getElementById('detailInfo').textContent = s.lastName + ' · ' + age + ' yrs · ' + (s.address.split(',')[1] || '').trim();
@@ -964,7 +979,7 @@ async function viewProfile(name) {
       PROFILE_STAT_KEYS.forEach(k => {
         statsHtml += '<div class="stat-row"><div class="stat-key">' + k + '</div><input class="stat-val-input" data-key="' + esc(k) + '" value="' + esc(savedStats[k]||'') + '" placeholder="..."/></div>';
       });
-      statsHtml += '<button class="btn" style="margin-top:10px" onclick="saveStats(&#39;' + name + '&#39;)">Save Profile</button></div></div>';
+      statsHtml += '<button class="btn" style="margin-top:10px" id="saveStatsBtn">Save Profile</button></div></div>';
     } else {
       const hasVals = PROFILE_STAT_KEYS.some(k => savedStats[k]);
       if (hasVals) {
@@ -2002,7 +2017,7 @@ async function renderWeekView() {
 
     html += '<div class="week-col">';
     html += '<div class="week-dow' + (isToday ? ' today-col' : '') + '">' + days[d] + '</div>';
-    html += '<div class="week-day-num' + (isToday ? ' today-num' : '') + '" style="cursor:pointer" onclick="openDayPopup('' + ds + '')">' + date.getDate() + '</div>';
+    html += '<div class="week-day-num' + (isToday ? ' today-num' : '') + '" data-popup="' + ds + '">' + date.getDate() + '</div>';
 
     sorted.forEach(e => {
       const noteRaw = e.note || '';
@@ -2013,7 +2028,7 @@ async function renderWeekView() {
       const timeMatch = noteRaw.match(/\(([^)]+(?:am|pm)[^)]*)\)/i);
       const timeStr = timeMatch ? timeMatch[1] : '';
 
-      html += '<div class="week-event ' + e.status + '" onclick="openDayPopup('' + ds + '')" title="' + esc(e.person) + ': ' + esc(noteRaw) + '">';
+      html += '<div class="week-event ' + e.status + '" data-popup="' + ds + '" title="' + esc(e.person) + ': ' + esc(noteRaw) + '">';
       html += '<div style="font-weight:600;font-size:8px">' + esc(e.person.substring(0,3)) + '</div>';
       if (label) html += '<div>' + esc(label) + '</div>';
       if (timeStr) html += '<div style="opacity:0.8">' + esc(timeStr) + '</div>';
