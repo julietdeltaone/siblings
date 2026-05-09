@@ -38,7 +38,6 @@
       line-height: 1.6;
     }
 
-    /* ── LOCK SCREEN ── */
     #lockScreen {
       position: fixed; inset: 0;
       background: var(--bg);
@@ -49,791 +48,242 @@
       padding: 24px;
     }
 
-    .lock-title {
-      font-family: var(--font-head);
-      font-size: clamp(42px, 10vw, 72px);
-      color: var(--text);
-      letter-spacing: -1px;
-      text-align: center;
-    }
-
+    .lock-title { font-family: var(--font-head); font-size: clamp(42px, 10vw, 72px); color: var(--text); letter-spacing: -1px; text-align: center; }
     .lock-title em { color: var(--accent); font-style: italic; }
-
-    .lock-subtitle {
-      font-size: 13px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      text-align: center;
-    }
-
-    .pin-display {
-      display: flex; gap: 12px; margin: 8px 0;
-    }
-
-    .pin-dot {
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      background: transparent;
-      transition: all 0.2s;
-    }
-
+    .lock-subtitle { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 3px; text-align: center; }
+    .pin-display { display: flex; gap: 12px; margin: 8px 0; }
+    .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: transparent; transition: all 0.2s; }
     .pin-dot.filled { background: var(--accent); border-color: var(--accent); }
-
-    .pin-keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 72px);
-      gap: 10px;
-    }
-
-    .pin-key {
-      height: 72px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 22px;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex; align-items: center; justify-content: center;
-    }
-
+    .pin-keypad { display: grid; grid-template-columns: repeat(3, 72px); gap: 10px; }
+    .pin-key { height: 72px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--font-mono); font-size: 22px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
     .pin-key:hover { background: var(--surface2); border-color: var(--muted); }
     .pin-key:active { transform: scale(0.93); }
-    .pin-key.wide { grid-column: span 2; }
     .pin-key.accent-key { border-color: var(--accent); color: var(--accent); }
+    .lock-error { color: var(--danger); font-size: 13px; min-height: 18px; text-align: center; font-family: var(--font-mono); }
 
-    .lock-error {
-      color: var(--danger);
-      font-size: 13px;
-      min-height: 18px;
-      text-align: center;
-      font-family: var(--font-mono);
-    }
-
-    /* ── APP SHELL ── */
     #app { display: none; }
+    .container { width: 100%; max-width: 520px; margin: 0 auto; padding: 0 16px 80px; }
 
-    .container {
-      width: 100%;
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 0 16px 80px;
-    }
-
-    /* ── HEADER ── */
-    .header {
-      padding: 28px 0 20px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 28px;
-    }
-
+    .header { padding: 28px 0 20px; display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
     .header-left { display: flex; flex-direction: column; gap: 2px; }
-
-    .header-title {
-      font-family: var(--font-head);
-      font-size: 32px;
-      color: var(--text);
-      letter-spacing: -0.5px;
-      line-height: 1;
-    }
-
+    .header-title { font-family: var(--font-head); font-size: 32px; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
     .header-title em { color: var(--accent); font-style: italic; }
-
-    .header-who {
-      font-size: 12px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
+    .header-who { font-size: 12px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
     .header-who span { color: var(--accent2); }
-
-    .switch-user-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 11px;
-      font-family: var(--font-mono);
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.2s;
-    }
-
+    .switch-user-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-family: var(--font-mono); padding: 6px 10px; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; }
     .switch-user-btn:hover { border-color: var(--muted); color: var(--text); }
 
-    /* ── TABS ── */
-    .tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 28px;
-      background: var(--surface);
-      padding: 4px;
-      border-radius: var(--r);
-      border: 1px solid var(--border);
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 10px 8px;
-      background: transparent;
-      border: none;
-      border-radius: 9px;
-      color: var(--muted);
-      font-family: var(--font-body);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
+    .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--surface); padding: 4px; border-radius: var(--r); border: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 10px 8px; background: transparent; border: none; border-radius: 9px; color: var(--muted); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .tab-btn:hover { color: var(--text); }
-
-    .tab-btn.active {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
+    .tab-btn.active { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn 0.25s; }
-
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ── PROFILE GRID ── */
-    .profile-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .profile-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .profile-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 20px 16px; cursor: pointer; transition: all 0.2s; text-align: center; position: relative; overflow: hidden; }
+    .profile-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); opacity: 0; transition: opacity 0.2s; }
     .profile-card:hover { border-color: var(--accent); transform: translateY(-3px); }
     .profile-card:hover::before { opacity: 1; }
+    .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--surface2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 20px; color: var(--accent); margin: 0 auto 12px; }
+    .profile-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .profile-age { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
 
-    .profile-avatar {
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: var(--surface2);
-      border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-head);
-      font-size: 20px;
-      color: var(--accent);
-      margin: 0 auto 12px;
-    }
-
-    .profile-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .profile-age {
-      font-size: 11px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-    }
-
-    /* ── PROFILE DETAIL ── */
     #profileDetail { display: none; }
-
-    .detail-back {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 20px;
-      display: flex; align-items: center; gap: 6px;
-      font-family: var(--font-body);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .detail-name {
-      font-family: var(--font-head);
-      font-size: 36px;
-      color: var(--text);
-      margin-bottom: 24px;
-    }
-
+    .detail-back { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; gap: 6px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: 1px; }
+    .detail-name { font-family: var(--font-head); font-size: 36px; color: var(--text); margin-bottom: 24px; }
     .detail-name em { color: var(--accent); font-style: italic; }
 
-    .section-label {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--muted);
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-    }
-
+    .section-label { font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
     .item-list { margin-bottom: 28px; }
-
-    .item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-    }
-
+    .item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
     .item:last-child { border-bottom: none; }
-
-    .item-date {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--muted);
-      min-width: 70px;
-      padding-top: 2px;
-    }
-
+    .item-date { font-family: var(--font-mono); font-size: 11px; color: var(--muted); min-width: 70px; padding-top: 2px; }
     .item-text { color: var(--text); flex: 1; }
+    .empty-state { text-align: center; padding: 28px 0; color: var(--muted); font-size: 13px; font-family: var(--font-mono); }
 
-    .empty-state {
-      text-align: center;
-      padding: 28px 0;
-      color: var(--muted);
-      font-size: 13px;
-      font-family: var(--font-mono);
-    }
-
-    /* ── FORM ── */
     .form-group { margin-bottom: 20px; }
-
-    .label {
-      display: block;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .input, .select, .textarea {
-      width: 100%;
-      padding: 13px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 15px;
-      transition: border-color 0.2s, background 0.2s;
-      appearance: none;
-      -webkit-appearance: none;
-    }
-
-    .input:focus, .select:focus, .textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      background: var(--surface2);
-    }
-
+    .label { display: block; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; }
+    .input, .select, .textarea { width: 100%; padding: 13px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--font-body); font-size: 15px; transition: border-color 0.2s, background 0.2s; appearance: none; -webkit-appearance: none; }
+    .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); background: var(--surface2); }
     .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b7e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; cursor: pointer; }
-
     .textarea { resize: vertical; min-height: 90px; }
 
-    .btn {
-      width: 100%;
-      padding: 15px;
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      border-radius: var(--r);
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      font-family: var(--font-body);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
+    .btn { width: 100%; padding: 15px; background: var(--accent); color: var(--bg); border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-family: var(--font-body); cursor: pointer; transition: all 0.2s; }
     .btn:hover { opacity: 0.88; transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-    .btn-secondary {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { border-color: var(--muted); opacity: 1; }
 
-    /* ── NLP AVAILABILITY INPUT ── */
-    .nlp-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .nlp-hint {
-      font-size: 12px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      margin-bottom: 10px;
-      line-height: 1.5;
-    }
-
+    .nlp-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 16px; }
+    .nlp-hint { font-size: 12px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 10px; line-height: 1.5; }
     .nlp-hint strong { color: var(--accent2); }
+    .nlp-parsed { background: var(--surface2); border: 1px solid var(--accent); border-radius: 8px; padding: 12px 14px; margin-top: 12px; display: none; }
+    .nlp-parsed-label { font-size: 10px; font-family: var(--font-mono); color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+    .nlp-parsed-content { font-size: 13px; color: var(--text); white-space: pre-wrap; }
 
-    .nlp-parsed {
-      background: var(--surface2);
-      border: 1px solid var(--accent);
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-top: 12px;
-      display: none;
-    }
-
-    .nlp-parsed-label {
-      font-size: 10px;
-      font-family: var(--font-mono);
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 6px;
-    }
-
-    .nlp-parsed-content { font-size: 13px; color: var(--text); }
-
-    /* ── CALENDAR ── */
-    .cal-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    .cal-nav-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s;
-    }
-
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .cal-nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
     .cal-nav-btn:hover { border-color: var(--muted); }
-
-    .cal-month-label {
-      font-family: var(--font-head);
-      font-size: 22px;
-      color: var(--text);
-    }
-
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 3px;
-      margin-bottom: 20px;
-    }
-
-    .cal-dow {
-      text-align: center;
-      font-size: 10px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-      text-transform: uppercase;
-      padding: 6px 0;
-    }
-
-    .cal-day {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: var(--font-mono);
-      color: var(--muted);
-      cursor: default;
-      position: relative;
-      transition: all 0.15s;
-    }
-
+    .cal-month-label { font-family: var(--font-head); font-size: 22px; color: var(--text); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 20px; }
+    .cal-dow { text-align: center; font-size: 10px; font-family: var(--font-mono); color: var(--muted); text-transform: uppercase; padding: 6px 0; }
+    .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; font-family: var(--font-mono); color: var(--muted); cursor: default; transition: all 0.15s; }
     .cal-day.in-month { color: var(--text); }
-    .cal-day.today { border: 1px solid var(--border); color: var(--text); }
-    .cal-day.has-free { background: rgba(200, 240, 96, 0.12); color: var(--accent); }
-    .cal-day.all-free { background: rgba(200, 240, 96, 0.25); color: var(--accent); font-weight: 700; }
-    .cal-day.overlap-2 { background: rgba(240, 200, 96, 0.18); color: var(--overlap); }
-    .cal-day.overlap-3 { background: rgba(240, 200, 96, 0.3); color: var(--overlap); font-weight: 600; }
-    .cal-day.overlap-all { background: rgba(200, 240, 96, 0.35); color: var(--accent); font-weight: 700; box-shadow: 0 0 0 2px var(--accent); }
-    .cal-day.has-free:hover { transform: scale(1.1); z-index: 1; }
+    .cal-day.today { border: 1px solid var(--border); }
+    .cal-day.has-free { background: rgba(200,240,96,0.12); color: var(--accent); }
+    .cal-day.overlap-2 { background: rgba(240,200,96,0.18); color: var(--overlap); }
+    .cal-day.overlap-3 { background: rgba(240,200,96,0.3); color: var(--overlap); font-weight: 600; }
+    .cal-day.overlap-all { background: rgba(200,240,96,0.35); color: var(--accent); font-weight: 700; box-shadow: 0 0 0 2px var(--accent); }
+    .cal-day.has-free:hover, .cal-day.overlap-2:hover, .cal-day.overlap-3:hover, .cal-day.overlap-all:hover { transform: scale(1.1); z-index: 1; }
+    .cal-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
-    .cal-legend {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-    }
-
-    .legend-dot {
-      width: 10px; height: 10px;
-      border-radius: 3px;
-    }
-
-    /* ── OVERLAP LIST ── */
-    .overlap-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 16px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
+    .overlap-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
     .overlap-card.is-overlap { border-color: var(--overlap); }
-
     .overlap-icon { font-size: 24px; }
-
     .overlap-info { flex: 1; }
+    .overlap-date { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .overlap-who { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
 
-    .overlap-date {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
+    .who-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px; font-family: var(--font-mono); color: var(--accent2); margin-bottom: 20px; }
+    .who-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
 
-    .overlap-who {
-      font-size: 12px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-    }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed;
-      bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px 20px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-family: var(--font-mono);
-      z-index: 2000;
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      white-space: nowrap;
-    }
-
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 999px; font-size: 13px; font-family: var(--font-mono); z-index: 2000; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; max-width: 90vw; text-align: center; }
     .toast.show { transform: translateX(-50%) translateY(0); }
     .toast.success { border-color: var(--accent); color: var(--accent); }
     .toast.error { border-color: var(--danger); color: var(--danger); }
 
-    /* ── LOADING ── */
-    .spinner {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── DIVIDER ── */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 20px 0;
-      color: var(--muted);
-      font-size: 11px;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ── WHO BADGE ── */
-    .who-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      color: var(--accent2);
-      margin-bottom: 20px;
-    }
-
-    .who-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent2);
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 380px) {
-      .profile-grid { grid-template-columns: 1fr 1fr; }
-      .cal-day { font-size: 11px; }
-    }
+    @media (max-width: 380px) { .cal-day { font-size: 11px; } }
   </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════
-     LOCK SCREEN
-══════════════════════════════════════ -->
 <div id="lockScreen">
   <div>
     <div class="lock-title">Sib<em>lings</em></div>
-    <div class="lock-subtitle" style="margin-top: 6px;">Enter PIN to continue</div>
+    <div class="lock-subtitle" style="margin-top:6px">Enter PIN to continue</div>
   </div>
-
   <div class="pin-display" id="pinDisplay">
     <div class="pin-dot" id="d0"></div>
     <div class="pin-dot" id="d1"></div>
     <div class="pin-dot" id="d2"></div>
     <div class="pin-dot" id="d3"></div>
   </div>
-
   <div class="lock-error" id="lockError"></div>
-
-  <div class="pin-keypad">
-    <button class="pin-key" onclick="pinKey('1')">1</button>
-    <button class="pin-key" onclick="pinKey('2')">2</button>
-    <button class="pin-key" onclick="pinKey('3')">3</button>
-    <button class="pin-key" onclick="pinKey('4')">4</button>
-    <button class="pin-key" onclick="pinKey('5')">5</button>
-    <button class="pin-key" onclick="pinKey('6')">6</button>
-    <button class="pin-key" onclick="pinKey('7')">7</button>
-    <button class="pin-key" onclick="pinKey('8')">8</button>
-    <button class="pin-key" onclick="pinKey('9')">9</button>
-    <button class="pin-key" onclick="pinClear()">⌫</button>
-    <button class="pin-key" onclick="pinKey('0')">0</button>
-    <button class="pin-key accent-key" onclick="pinSubmit()">↵</button>
+  <div class="pin-keypad" id="pinKeypad">
+    <button class="pin-key" data-val="1">1</button>
+    <button class="pin-key" data-val="2">2</button>
+    <button class="pin-key" data-val="3">3</button>
+    <button class="pin-key" data-val="4">4</button>
+    <button class="pin-key" data-val="5">5</button>
+    <button class="pin-key" data-val="6">6</button>
+    <button class="pin-key" data-val="7">7</button>
+    <button class="pin-key" data-val="8">8</button>
+    <button class="pin-key" data-val="9">9</button>
+    <button class="pin-key" data-val="clear">⌫</button>
+    <button class="pin-key" data-val="0">0</button>
+    <button class="pin-key accent-key" data-val="submit">↵</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     APP
-══════════════════════════════════════ -->
 <div id="app">
   <div class="container">
-
     <div class="header">
       <div class="header-left">
         <div class="header-title">Sib<em>lings</em></div>
         <div class="header-who">Logged in as <span id="currentUserLabel">—</span></div>
       </div>
-      <button class="switch-user-btn" onclick="lockApp()">Switch</button>
+      <button class="switch-user-btn" id="switchBtn">Switch</button>
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('profiles', this)">Profiles</button>
-      <button class="tab-btn" onclick="switchTab('addData', this)">Add Data</button>
-      <button class="tab-btn" onclick="switchTab('calendar', this)">Calendar</button>
+      <button class="tab-btn active" data-tab="profiles">Profiles</button>
+      <button class="tab-btn" data-tab="addData">Add Data</button>
+      <button class="tab-btn" data-tab="calendar">Calendar</button>
     </div>
 
-    <!-- ── PROFILES TAB ── -->
     <div class="tab-content active" id="profiles">
       <div id="profileGrid" class="profile-grid">
-        <div class="profile-card" onclick="viewProfile('Catherine')">
-          <div class="profile-avatar">C</div>
-          <div class="profile-name">Catherine</div>
-          <div class="profile-age">Age 28 · Green</div>
-        </div>
-        <div class="profile-card" onclick="viewProfile('Ellie')">
-          <div class="profile-avatar">E</div>
-          <div class="profile-name">Ellie</div>
-          <div class="profile-age">Age 27 · Criscitello</div>
-        </div>
-        <div class="profile-card" onclick="viewProfile('JD')">
-          <div class="profile-avatar">J</div>
-          <div class="profile-name">JD</div>
-          <div class="profile-age">Age 25 · Meyers</div>
-        </div>
-        <div class="profile-card" onclick="viewProfile('James')">
-          <div class="profile-avatar">Jm</div>
-          <div class="profile-name">James</div>
-          <div class="profile-age">Age 22 · Meyers</div>
-        </div>
+        <div class="profile-card" data-person="Catherine"><div class="profile-avatar">C</div><div class="profile-name">Catherine</div><div class="profile-age">Age 28 · Green</div></div>
+        <div class="profile-card" data-person="Ellie"><div class="profile-avatar">E</div><div class="profile-name">Ellie</div><div class="profile-age">Age 27 · Criscitello</div></div>
+        <div class="profile-card" data-person="JD"><div class="profile-avatar">J</div><div class="profile-name">JD</div><div class="profile-age">Age 25 · Meyers</div></div>
+        <div class="profile-card" data-person="James"><div class="profile-avatar">Jm</div><div class="profile-name">James</div><div class="profile-age">Age 22 · Meyers</div></div>
       </div>
-
       <div id="profileDetail">
-        <button class="detail-back" onclick="backToProfiles()">← All Siblings</button>
+        <button class="detail-back" id="backBtn">← All Siblings</button>
         <div class="detail-name" id="detailName"></div>
         <div id="detailContent"></div>
       </div>
     </div>
 
-    <!-- ── ADD DATA TAB ── -->
     <div class="tab-content" id="addData">
-
-      <div class="who-badge">
-        <div class="who-dot"></div>
-        <span id="addingAsLabel">Adding as —</span>
-      </div>
-
+      <div class="who-badge"><div class="who-dot"></div><span id="addingAsLabel">Adding as —</span></div>
       <div class="form-group">
         <label class="label">Data Type</label>
-        <select class="select" id="dataTypeSelect" onchange="updatePlaceholder()">
+        <select class="select" id="dataTypeSelect">
           <option value="movie">🎬 Movie Watched</option>
           <option value="music">🎵 Music Listened</option>
           <option value="place">📍 Place / Restaurant</option>
           <option value="note">💭 Thought / Note</option>
         </select>
       </div>
-
       <div class="form-group">
         <label class="label">Details</label>
         <textarea class="textarea" id="detailsInput" placeholder="e.g., Dune: Part Two"></textarea>
       </div>
-
-      <button class="btn" id="submitDataBtn" onclick="submitData()">Add Entry</button>
-
+      <button class="btn" id="submitDataBtn">Add Entry</button>
     </div>
 
-    <!-- ── CALENDAR TAB ── -->
     <div class="tab-content" id="calendar">
-
-      <!-- NLP Availability Input -->
       <div class="nlp-box">
-        <div class="section-label" style="border: none; margin-bottom: 8px;">Update Your Availability</div>
-        <div class="nlp-hint">
-          Just type it naturally.<br/>
-          <strong>e.g.</strong> "Free the week of July 4th except Wednesday" or "Busy all of August"
-        </div>
-        <textarea class="textarea" id="nlpInput" placeholder="Tell us when you're free or busy..." style="min-height: 70px;"></textarea>
-
+        <div class="section-label" style="border:none;margin-bottom:8px">Update Your Availability</div>
+        <div class="nlp-hint">Just type it naturally.<br/><strong>e.g.</strong> "Free the week of July 4th except Wednesday" or "Busy all of August"</div>
+        <textarea class="textarea" id="nlpInput" placeholder="Tell us when you're free or busy..." style="min-height:70px"></textarea>
         <div class="nlp-parsed" id="nlpParsed">
           <div class="nlp-parsed-label">Claude parsed this as:</div>
           <div class="nlp-parsed-content" id="nlpParsedContent"></div>
         </div>
-
-        <div style="display: flex; gap: 8px; margin-top: 12px;">
-          <button class="btn btn-secondary" id="parseBtn" onclick="parseAvailability()" style="flex:1">Parse</button>
-          <button class="btn" id="saveAvailBtn" onclick="saveAvailability()" style="flex:1; display:none">Save</button>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-secondary" id="parseBtn" style="flex:1">Parse</button>
+          <button class="btn" id="saveAvailBtn" style="flex:1;display:none">Save</button>
         </div>
       </div>
 
-      <!-- Calendar Grid -->
       <div class="cal-nav">
-        <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+        <button class="cal-nav-btn" id="calPrevBtn">‹</button>
         <div class="cal-month-label" id="calMonthLabel"></div>
-        <button class="cal-nav-btn" onclick="calNext()">›</button>
+        <button class="cal-nav-btn" id="calNextBtn">›</button>
       </div>
 
       <div class="cal-legend">
-        <div class="legend-item">
-          <div class="legend-dot" style="background: rgba(200,240,96,0.25)"></div>1–2 free
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background: rgba(240,200,96,0.3)"></div>3 free
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background: rgba(200,240,96,0.35); box-shadow: 0 0 0 2px var(--accent)"></div>All 4 free
-        </div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(200,240,96,0.25)"></div>1–2 free</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(240,200,96,0.3)"></div>3 free</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(200,240,96,0.35);box-shadow:0 0 0 2px var(--accent)"></div>All 4 free</div>
       </div>
 
       <div class="cal-grid" id="calGrid"></div>
-
       <div class="section-label">Upcoming Overlaps</div>
-      <div id="overlapList">
-        <div class="empty-state">Loading availability…</div>
-      </div>
-
+      <div id="overlapList"><div class="empty-state">Loading availability…</div></div>
     </div>
-
-  </div><!-- /container -->
-</div><!-- /app -->
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
-// CONFIG — fill these in before deploying
-// ══════════════════════════════════════════════
-
 const CONFIG = {
-  // Supabase
-  SUPABASE_URL:  'https://npagrsvcsqaoztwxemrd.supabase.co',
+  SUPABASE_URL:    'https://npagrsvcsqaoztwxemrd.supabase.co',
   SUPABASE_ANON:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wYWdyc3Zjc3Fhb3p0d3hlbXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyOTMwMjAsImV4cCI6MjA5Mzg2OTAyMH0.iVHWrNjmhbId-pN_TSv8JcFKF1FJOJdDBrwc47WqIt8',
-
-  // Claude API (Anthropic) — used for NLP availability parsing
-  CLAUDE_KEY:      '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',
-
-  // Twilio — called via Supabase Edge Function (see README)
-  // Direct browser→Twilio calls would expose your auth token.
-  // Deploy the edge function in /supabase/functions/notify/index.ts
+  CLAUDE_EDGE_URL: 'https://npagrsvcsqaoztwxemrd.supabase.co/functions/v1/parse-availability',
   TWILIO_EDGE_URL: 'https://npagrsvcsqaoztwxemrd.supabase.co/functions/v1/notify',
-
-  // PIN (shared for now; individual PINs easy to add)
   PIN:             '0934',
-
   SIBLINGS: {
     Catherine: { lastName: 'Green',       dob: '1997-06-22', phone: '+13152447324' },
     Ellie:     { lastName: 'Criscitello', dob: '1999-03-18', phone: '+13152610592' },
@@ -842,29 +292,58 @@ const CONFIG = {
   }
 };
 
-// ══════════════════════════════════════════════
-// SUPABASE INIT
-// ══════════════════════════════════════════════
-
 const { createClient } = supabase;
 const db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON);
 
-// ══════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════
+let currentUser        = null;
+let pinBuffer          = '';
+let parsedAvailability = null;
+let calYear            = new Date().getFullYear();
+let calMonth           = new Date().getMonth();
+let toastTimer         = null;
 
-let currentUser = null;
-let pinBuffer = '';  
-let parsedAvailability = null; // holds Claude-parsed result before save
-let calYear, calMonth;
+document.addEventListener('DOMContentLoaded', () => {
 
-function today() { return new Date(); }
+  // PIN keypad
+  document.getElementById('pinKeypad').addEventListener('click', e => {
+    const btn = e.target.closest('.pin-key');
+    if (!btn) return;
+    const v = btn.dataset.val;
+    if (v === 'clear') pinClear();
+    else if (v === 'submit') pinSubmit();
+    else pinKey(v);
+  });
 
-// ══════════════════════════════════════════════
-// PIN / LOCK
-// ══════════════════════════════════════════════
+  // Physical keyboard
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('lockScreen').style.display === 'none') return;
+    if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+    else if (e.key === 'Backspace') pinClear();
+    else if (e.key === 'Enter') pinSubmit();
+  });
 
+  document.getElementById('switchBtn').addEventListener('click', lockApp);
 
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn));
+  });
+
+  document.querySelectorAll('.profile-card').forEach(card => {
+    card.addEventListener('click', () => viewProfile(card.dataset.person));
+  });
+
+  document.getElementById('backBtn').addEventListener('click', backToProfiles);
+  document.getElementById('dataTypeSelect').addEventListener('change', updatePlaceholder);
+  document.getElementById('submitDataBtn').addEventListener('click', submitData);
+  document.getElementById('parseBtn').addEventListener('click', parseAvailability);
+  document.getElementById('saveAvailBtn').addEventListener('click', saveAvailability);
+  document.getElementById('calPrevBtn').addEventListener('click', calPrev);
+  document.getElementById('calNextBtn').addEventListener('click', calNext);
+
+  updatePlaceholder();
+});
+
+// ── PIN ──
 function pinKey(d) {
   if (pinBuffer.length >= 4) return;
   pinBuffer += d;
@@ -879,106 +358,105 @@ function pinClear() {
 }
 
 function updatePinDisplay() {
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 4; i++)
     document.getElementById('d' + i).classList.toggle('filled', i < pinBuffer.length);
-  }
 }
 
 function pinSubmit() {
-  if (pinBuffer === CONFIG.PIN) {
-    // PIN correct — ask who they are
-    const name = prompt('Which sibling are you?\n\nCatherine, Ellie, JD, or James');
-    const clean = (name || '').trim();
-    if (!CONFIG.SIBLINGS[clean]) {
-      document.getElementById('lockError').textContent = 'Not a valid sibling name.';
-      pinBuffer = '';
-      updatePinDisplay();
-      return;
-    }
-    currentUser = clean;
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('currentUserLabel').textContent = currentUser;
-    document.getElementById('addingAsLabel').textContent = 'Adding as ' + currentUser;
-    initCalendar();
-  } else {
+  if (pinBuffer !== CONFIG.PIN) {
     document.getElementById('lockError').textContent = 'Wrong PIN. Try again.';
     pinBuffer = '';
     updatePinDisplay();
+    return;
   }
+  showSiblingPicker();
+}
+
+function showSiblingPicker() {
+  document.getElementById('pinKeypad').style.display = 'none';
+  document.getElementById('pinDisplay').style.display = 'none';
+  document.getElementById('lockError').style.display = 'none';
+
+  const picker = document.createElement('div');
+  picker.id = 'siblingPicker';
+  picker.style.cssText = 'display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;';
+
+  const lbl = document.createElement('div');
+  lbl.textContent = 'Who are you?';
+  lbl.style.cssText = 'font-family:var(--font-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;text-align:center;';
+  picker.appendChild(lbl);
+
+  Object.keys(CONFIG.SIBLINGS).forEach(name => {
+    const b = document.createElement('button');
+    b.textContent = name;
+    b.style.cssText = 'padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font-body);font-size:16px;cursor:pointer;transition:all 0.15s;';
+    b.addEventListener('pointerover', () => { b.style.borderColor='var(--accent)'; b.style.color='var(--accent)'; });
+    b.addEventListener('pointerout',  () => { b.style.borderColor='var(--border)';  b.style.color='var(--text)'; });
+    b.addEventListener('click', () => loginAs(name));
+    picker.appendChild(b);
+  });
+
+  document.getElementById('lockScreen').appendChild(picker);
+}
+
+function loginAs(name) {
+  currentUser = name;
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('currentUserLabel').textContent = name;
+  document.getElementById('addingAsLabel').textContent = 'Adding as ' + name;
+  const p = document.getElementById('siblingPicker');
+  if (p) p.remove();
+  initCalendar();
 }
 
 function lockApp() {
   currentUser = null;
   pinBuffer = '';
   updatePinDisplay();
+  document.getElementById('pinKeypad').style.display = 'grid';
+  document.getElementById('pinDisplay').style.display = 'flex';
+  document.getElementById('lockError').style.display = 'block';
   document.getElementById('lockError').textContent = '';
+  const p = document.getElementById('siblingPicker');
+  if (p) p.remove();
   document.getElementById('app').style.display = 'none';
   document.getElementById('lockScreen').style.display = 'flex';
 }
 
-// ══════════════════════════════════════════════
-// TABS
-// ══════════════════════════════════════════════
-
+// ── TABS ──
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById(name).classList.add('active');
   btn.classList.add('active');
-  if (name === 'calendar') {
-    loadCalendarData();
-  }
+  if (name === 'calendar') loadCalendarData();
 }
 
-// ══════════════════════════════════════════════
-// PROFILES
-// ══════════════════════════════════════════════
-
+// ── PROFILES ──
 async function viewProfile(name) {
   document.getElementById('profileGrid').style.display = 'none';
   document.getElementById('profileDetail').style.display = 'block';
-
-  const first = name[0].toUpperCase();
-  document.getElementById('detailName').innerHTML = `${first}<em>${name.slice(1)}</em>`;
+  document.getElementById('detailName').innerHTML = name[0] + '<em>' + name.slice(1) + '</em>';
   document.getElementById('detailContent').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading…</div>';
 
   try {
     const [movies, music, places, notes, schedule] = await Promise.all([
-      db.from('entries').select('*').eq('person', name).eq('type', 'movie').order('created_at', { ascending: false }).limit(10),
-      db.from('entries').select('*').eq('person', name).eq('type', 'music').order('created_at', { ascending: false }).limit(10),
-      db.from('entries').select('*').eq('person', name).eq('type', 'place').order('created_at', { ascending: false }).limit(10),
-      db.from('entries').select('*').eq('person', name).eq('type', 'note').order('created_at', { ascending: false }).limit(10),
-      db.from('availability').select('*').eq('person', name).order('start_date', { ascending: true }).gte('end_date', new Date().toISOString().split('T')[0]).limit(10),
+      db.from('entries').select('*').eq('person',name).eq('type','movie').order('created_at',{ascending:false}).limit(10),
+      db.from('entries').select('*').eq('person',name).eq('type','music').order('created_at',{ascending:false}).limit(10),
+      db.from('entries').select('*').eq('person',name).eq('type','place').order('created_at',{ascending:false}).limit(10),
+      db.from('entries').select('*').eq('person',name).eq('type','note').order('created_at',{ascending:false}).limit(10),
+      db.from('availability').select('*').eq('person',name).order('start_date',{ascending:true}).gte('end_date',new Date().toISOString().split('T')[0]).limit(10),
     ]);
 
-    let html = '';
-
-    const renderSection = (label, rows, icon) => {
-      if (!rows || rows.length === 0) return '';
-      return `
-        <div class="section-label">${icon} ${label}</div>
-        <div class="item-list">
-          ${rows.map(r => `
-            <div class="item">
-              <span class="item-date">${formatDate(r.created_at || r.start_date)}</span>
-              <span class="item-text">${escHtml(r.content || (r.start_date + ' → ' + r.end_date + ' · ' + r.status))}</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
+    const sec = (label, rows, icon) => {
+      if (!rows || !rows.length) return '';
+      return `<div class="section-label">${icon} ${label}</div><div class="item-list">${rows.map(r=>`<div class="item"><span class="item-date">${formatDate(r.created_at||r.start_date)}</span><span class="item-text">${escHtml(r.content||(r.start_date+' → '+r.end_date+' · '+r.status))}</span></div>`).join('')}</div>`;
     };
 
-    html += renderSection('Movies', movies.data, '🎬');
-    html += renderSection('Music', music.data, '🎵');
-    html += renderSection('Places', places.data, '📍');
-    html += renderSection('Notes', notes.data, '💭');
-    html += renderSection('Schedule', schedule.data, '📅');
-
-    if (!html) html = '<div class="empty-state">Nothing added yet.</div>';
-    document.getElementById('detailContent').innerHTML = html;
-
-  } catch (err) {
+    let html = sec('Movies',movies.data,'🎬') + sec('Music',music.data,'🎵') + sec('Places',places.data,'📍') + sec('Notes',notes.data,'💭') + sec('Schedule',schedule.data,'📅');
+    document.getElementById('detailContent').innerHTML = html || '<div class="empty-state">Nothing added yet.</div>';
+  } catch(err) {
     document.getElementById('detailContent').innerHTML = '<div class="empty-state">Error loading profile.</div>';
     console.error(err);
   }
@@ -989,86 +467,49 @@ function backToProfiles() {
   document.getElementById('profileDetail').style.display = 'none';
 }
 
-// ══════════════════════════════════════════════
-// ADD DATA
-// ══════════════════════════════════════════════
-
+// ── ADD DATA ──
 function updatePlaceholder() {
-  const map = {
-    movie: 'e.g., Dune: Part Two',
-    music: 'e.g., Kendrick Lamar – GNX',
-    place: 'e.g., That new ramen spot on 5th',
-    note:  'e.g., Really good week, feeling motivated'
-  };
-  document.getElementById('detailsInput').placeholder = map[document.getElementById('dataTypeSelect').value];
+  const map = { movie:'e.g., Dune: Part Two', music:'e.g., Kendrick Lamar – GNX', place:'e.g., That new ramen spot on 5th', note:'e.g., Really good week, feeling motivated' };
+  const el = document.getElementById('detailsInput');
+  if (el) el.placeholder = map[document.getElementById('dataTypeSelect').value];
 }
 
 async function submitData() {
   const type    = document.getElementById('dataTypeSelect').value;
   const content = document.getElementById('detailsInput').value.trim();
-
-  if (!content) { toast('Enter something first', 'error'); return; }
+  if (!content) { toast('Enter something first','error'); return; }
 
   const btn = document.getElementById('submitDataBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Saving…';
 
-  const { error } = await db.from('entries').insert({
-    person:  currentUser,
-    type:    type,
-    content: content,
-  });
-
+  const { error } = await db.from('entries').insert({ person: currentUser, type, content });
   btn.disabled = false;
   btn.textContent = 'Add Entry';
 
-  if (error) {
-    toast('Error saving. Check Supabase config.', 'error');
-    console.error(error);
-  } else {
-    document.getElementById('detailsInput').value = '';
-    toast(`Added to ${currentUser}'s ${type} list ✓`, 'success');
-  }
+  if (error) { toast('Error saving. Check Supabase.','error'); console.error(error); }
+  else { document.getElementById('detailsInput').value = ''; toast(`Added to ${currentUser}'s ${type} list ✓`,'success'); }
 }
 
-// ══════════════════════════════════════════════
-// NLP AVAILABILITY — CLAUDE
-// ══════════════════════════════════════════════
-
+// ── NLP AVAILABILITY via edge function ──
 async function parseAvailability() {
   const text = document.getElementById('nlpInput').value.trim();
-  if (!text) { toast('Type something first', 'error'); return; }
+  if (!text) { toast('Type something first','error'); return; }
 
   const btn = document.getElementById('parseBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Parsing…';
 
-  const prompt = `You are a scheduling assistant. Parse the following natural language availability statement into a JSON array.
-Each item should have: { "start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD", "status": "free" | "busy", "note": "optional short note" }
-If a range spans multiple non-contiguous blocks (e.g. "free except Wednesday"), return multiple objects.
-Current date: ${new Date().toISOString().split('T')[0]}
-Statement: "${text}"
-Respond with ONLY valid JSON array, no explanation, no markdown.`;
-
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CONFIG.CLAUDE_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 512,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, today: new Date().toISOString().split('T')[0] })
     });
 
+    if (!res.ok) throw new Error('Edge function returned ' + res.status);
     const data = await res.json();
-    const raw = data.content?.[0]?.text?.trim();
-    parsedAvailability = JSON.parse(raw);
+    parsedAvailability = data.parsed;
 
     const preview = parsedAvailability.map(p =>
       `${p.status.toUpperCase()}: ${p.start_date} → ${p.end_date}${p.note ? ' (' + p.note + ')' : ''}`
@@ -1078,8 +519,8 @@ Respond with ONLY valid JSON array, no explanation, no markdown.`;
     document.getElementById('nlpParsed').style.display = 'block';
     document.getElementById('saveAvailBtn').style.display = 'block';
 
-  } catch (err) {
-    toast('Parse error — check Claude API key', 'error');
+  } catch(err) {
+    toast('Parse failed — deploy the parse-availability edge function','error');
     console.error(err);
   }
 
@@ -1088,93 +529,60 @@ Respond with ONLY valid JSON array, no explanation, no markdown.`;
 }
 
 async function saveAvailability() {
-  if (!parsedAvailability || parsedAvailability.length === 0) return;
+  if (!parsedAvailability || !parsedAvailability.length) return;
 
   const btn = document.getElementById('saveAvailBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Saving…';
 
-  const rows = parsedAvailability.map(p => ({
-    person:     currentUser,
-    start_date: p.start_date,
-    end_date:   p.end_date,
-    status:     p.status,
-    note:       p.note || null,
-  }));
-
+  const rows = parsedAvailability.map(p => ({ person: currentUser, start_date: p.start_date, end_date: p.end_date, status: p.status, note: p.note||null }));
   const { error } = await db.from('availability').insert(rows);
 
   btn.disabled = false;
   btn.textContent = 'Save';
 
-  if (error) {
-    toast('Error saving availability', 'error');
-    console.error(error);
-  } else {
+  if (error) { toast('Error saving availability','error'); console.error(error); }
+  else {
     document.getElementById('nlpInput').value = '';
     document.getElementById('nlpParsed').style.display = 'none';
     document.getElementById('saveAvailBtn').style.display = 'none';
     parsedAvailability = null;
-    toast('Availability saved ✓', 'success');
+    toast('Availability saved ✓','success');
     loadCalendarData();
-    // Trigger overlap check + Twilio notification
     checkOverlapsAndNotify();
   }
 }
 
-// ══════════════════════════════════════════════
-// CALENDAR
-// ══════════════════════════════════════════════
-
+// ── CALENDAR ──
 function initCalendar() {
-  const now = today();
-  calYear  = now.getFullYear();
-  calMonth = now.getMonth();
+  calYear  = new Date().getFullYear();
+  calMonth = new Date().getMonth();
   loadCalendarData();
 }
 
-function calPrev() {
-  calMonth--;
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  loadCalendarData();
-}
-
-function calNext() {
-  calMonth++;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  loadCalendarData();
-}
+function calPrev() { if (--calMonth < 0) { calMonth=11; calYear--; } loadCalendarData(); }
+function calNext() { if (++calMonth > 11) { calMonth=0; calYear++; } loadCalendarData(); }
 
 async function loadCalendarData() {
-  // Month bounds
   const firstDay = new Date(calYear, calMonth, 1);
-  const lastDay  = new Date(calYear, calMonth + 1, 0);
-  const start    = firstDay.toISOString().split('T')[0];
-  const end      = lastDay.toISOString().split('T')[0];
+  const lastDay  = new Date(calYear, calMonth+1, 0);
+  document.getElementById('calMonthLabel').textContent = firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
 
-  const label = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  document.getElementById('calMonthLabel').textContent = label;
-
-  // Fetch all availability overlapping this month
-  const { data, error } = await db
-    .from('availability')
-    .select('*')
-    .eq('status', 'free')
-    .lte('start_date', end)
-    .gte('end_date', start);
+  const { data, error } = await db.from('availability').select('*').eq('status','free')
+    .lte('start_date', lastDay.toISOString().split('T')[0])
+    .gte('end_date',   firstDay.toISOString().split('T')[0]);
 
   if (error) { console.error(error); return; }
 
-  // Build a map: date string → Set of people free
   const freeMap = {};
-  (data || []).forEach(row => {
-    let cur = new Date(row.start_date + 'T12:00:00');
-    const rowEnd = new Date(row.end_date + 'T12:00:00');
-    while (cur <= rowEnd) {
-      const key = cur.toISOString().split('T')[0];
-      if (!freeMap[key]) freeMap[key] = new Set();
-      freeMap[key].add(row.person);
-      cur.setDate(cur.getDate() + 1);
+  (data||[]).forEach(row => {
+    let cur = new Date(row.start_date+'T12:00:00');
+    const end = new Date(row.end_date+'T12:00:00');
+    while (cur <= end) {
+      const k = cur.toISOString().split('T')[0];
+      if (!freeMap[k]) freeMap[k] = new Set();
+      freeMap[k].add(row.person);
+      cur.setDate(cur.getDate()+1);
     }
   });
 
@@ -1185,178 +593,92 @@ async function loadCalendarData() {
 function renderCalendar(freeMap) {
   const grid = document.getElementById('calGrid');
   grid.innerHTML = '';
-
-  // Day of week headers
   ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-dow';
-    el.textContent = d;
-    grid.appendChild(el);
+    const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
   });
 
   const firstDay = new Date(calYear, calMonth, 1);
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const startDow = firstDay.getDay();
-  const todayStr = today().toISOString().split('T')[0];
+  const days     = new Date(calYear, calMonth+1, 0).getDate();
+  const todayStr = new Date().toISOString().split('T')[0];
 
-  // Blank cells before month start
-  for (let i = 0; i < startDow; i++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day';
-    grid.appendChild(el);
-  }
+  for (let i=0; i<firstDay.getDay(); i++) { const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el); }
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const el = document.createElement('div');
+  for (let d=1; d<=days; d++) {
+    const ds  = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const el  = document.createElement('div');
     el.className = 'cal-day in-month';
     el.textContent = d;
-    if (dateStr === todayStr) el.classList.add('today');
-
-    const freePeople = freeMap[dateStr];
-    if (freePeople) {
-      const n = freePeople.size;
-      if (n >= 4) el.classList.add('overlap-all');
-      else if (n === 3) el.classList.add('overlap-3');
-      else if (n === 2) el.classList.add('overlap-2');
-      else el.classList.add('has-free');
-
-      el.title = [...freePeople].join(', ') + ' free';
+    if (ds === todayStr) el.classList.add('today');
+    const fp = freeMap[ds];
+    if (fp) {
+      const n = fp.size;
+      el.classList.add(n>=4?'overlap-all':n===3?'overlap-3':n===2?'overlap-2':'has-free');
+      el.title = [...fp].join(', ') + ' free';
     }
-
     grid.appendChild(el);
   }
 }
 
 function renderOverlapList(freeMap) {
   const container = document.getElementById('overlapList');
-  const todayStr  = today().toISOString().split('T')[0];
+  const todayStr  = new Date().toISOString().split('T')[0];
 
-  // Find dates with 2+ siblings free, from today onward
   const overlaps = Object.entries(freeMap)
-    .filter(([date, people]) => date >= todayStr && people.size >= 2)
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .slice(0, 10);
+    .filter(([d,p]) => d >= todayStr && p.size >= 2)
+    .sort((a,b) => a[0].localeCompare(b[0])).slice(0,10);
 
-  if (overlaps.length === 0) {
-    container.innerHTML = '<div class="empty-state">No overlapping free days yet. Add availability above.</div>';
-    return;
-  }
+  if (!overlaps.length) { container.innerHTML='<div class="empty-state">No overlapping free days yet. Add availability above.</div>'; return; }
 
-  // Group consecutive dates with same people
   const groups = [];
-  overlaps.forEach(([date, people]) => {
-    const key = [...people].sort().join(',');
-    const last = groups[groups.length - 1];
-    if (last && last.key === key && dateDiff(last.end, date) === 1) {
-      last.end = date;
-    } else {
-      groups.push({ start: date, end: date, people, key });
-    }
+  overlaps.forEach(([date,people]) => {
+    const key  = [...people].sort().join(',');
+    const last = groups[groups.length-1];
+    if (last && last.key===key && dateDiff(last.end,date)===1) last.end=date;
+    else groups.push({start:date,end:date,people,key});
   });
 
   container.innerHTML = groups.map(g => {
-    const n = g.people.size;
-    const icon = n >= 4 ? '🎉' : n === 3 ? '👥' : '✌️';
-    const label = n >= 4 ? 'All siblings free!' : [...g.people].join(', ') + ' free';
-    const dateLabel = g.start === g.end ? formatDateFull(g.start) : `${formatDateFull(g.start)} – ${formatDateFull(g.end)}`;
-    return `
-      <div class="overlap-card ${n >= 2 ? 'is-overlap' : ''}">
-        <div class="overlap-icon">${icon}</div>
-        <div class="overlap-info">
-          <div class="overlap-date">${dateLabel}</div>
-          <div class="overlap-who">${label}</div>
-        </div>
-      </div>
-    `;
+    const n    = g.people.size;
+    const icon = n>=4?'🎉':n===3?'👥':'✌️';
+    const lbl  = n>=4?'All siblings free!':[...g.people].join(', ')+' free';
+    const dl   = g.start===g.end ? formatDateFull(g.start) : formatDateFull(g.start)+' – '+formatDateFull(g.end);
+    return `<div class="overlap-card is-overlap"><div class="overlap-icon">${icon}</div><div class="overlap-info"><div class="overlap-date">${dl}</div><div class="overlap-who">${lbl}</div></div></div>`;
   }).join('');
 }
 
-// ══════════════════════════════════════════════
-// TWILIO NOTIFICATIONS via Supabase Edge Function
-// ══════════════════════════════════════════════
-
+// ── TWILIO ──
 async function checkOverlapsAndNotify() {
-  if (!CONFIG.TWILIO_EDGE_URL || CONFIG.TWILIO_EDGE_URL.startsWith('YOUR_')) return;
-
-  // Fetch upcoming 4-way overlaps
-  const todayStr = today().toISOString().split('T')[0];
-  const { data } = await db
-    .from('availability')
-    .select('*')
-    .eq('status', 'free')
-    .gte('end_date', todayStr);
+  if (!CONFIG.TWILIO_EDGE_URL) return;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const { data } = await db.from('availability').select('*').eq('status','free').gte('end_date',todayStr);
 
   const freeMap = {};
-  (data || []).forEach(row => {
-    let cur = new Date(row.start_date + 'T12:00:00');
-    const rowEnd = new Date(row.end_date + 'T12:00:00');
-    while (cur <= rowEnd) {
-      const key = cur.toISOString().split('T')[0];
-      if (!freeMap[key]) freeMap[key] = new Set();
-      freeMap[key].add(row.person);
-      cur.setDate(cur.getDate() + 1);
+  (data||[]).forEach(row => {
+    let cur = new Date(row.start_date+'T12:00:00');
+    const end = new Date(row.end_date+'T12:00:00');
+    while (cur<=end) {
+      const k=cur.toISOString().split('T')[0];
+      if (!freeMap[k]) freeMap[k]=new Set();
+      freeMap[k].add(row.person);
+      cur.setDate(cur.getDate()+1);
     }
   });
 
-  const allFree = Object.entries(freeMap)
-    .filter(([date, people]) => people.size >= 4 && date >= todayStr)
-    .sort((a, b) => a[0].localeCompare(b[0]));
+  const allFree = Object.entries(freeMap).filter(([d,p])=>p.size>=4&&d>=todayStr).sort((a,b)=>a[0].localeCompare(b[0]));
+  if (!allFree.length) return;
 
-  if (allFree.length === 0) return;
-
-  const firstDate = formatDateFull(allFree[0][0]);
-  const msg = `📅 Siblings heads up — everyone is free on ${firstDate}! Someone plan something. — Siblings App`;
-
-  // Call edge function which holds Twilio creds server-side
+  const msg = `📅 Siblings heads up — everyone is free on ${formatDateFull(allFree[0][0])}! Someone plan something. — Siblings App`;
   try {
-    await fetch(CONFIG.TWILIO_EDGE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: msg,
-        phones: Object.values(CONFIG.SIBLINGS).map(s => s.phone)
-      })
-    });
-  } catch (e) {
-    console.error('Notification error:', e);
-  }
+    await fetch(CONFIG.TWILIO_EDGE_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ message:msg, phones:Object.values(CONFIG.SIBLINGS).map(s=>s.phone) }) });
+  } catch(e) { console.error('Notification error:',e); }
 }
 
-// ══════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════
-
-function formatDate(str) {
-  if (!str) return '';
-  return new Date(str).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function formatDateFull(str) {
-  if (!str) return '';
-  const [y, m, d] = str.split('-');
-  return new Date(+y, +m - 1, +d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function dateDiff(a, b) {
-  return Math.round((new Date(b) - new Date(a)) / 86400000);
-}
-
-function escHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-let toastTimer;
-function toast(msg, type = '') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (type ? ' ' + type : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
-}
-
-// Init placeholder
-updatePlaceholder();
+// ── HELPERS ──
+function formatDate(str) { if(!str)return''; return new Date(str).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function formatDateFull(str) { if(!str)return''; const[y,m,d]=str.split('-'); return new Date(+y,+m-1,+d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function dateDiff(a,b) { return Math.round((new Date(b)-new Date(a))/86400000); }
+function escHtml(str) { return(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
 </script>
 </body>
 </html>
