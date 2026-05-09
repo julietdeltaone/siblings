@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siblings Scheduler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #000000;
+            --bg-dark: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --bg-input: #262626;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border: #333333;
+            --accent: #ffffff;
+            --accent-muted: #808080;
+            --success: #595959;
+            --font-display: 'Courier New', monospace;
+            --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: var(--font-display);
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-family: var(--font-body);
+        }
+
+        .tab-btn:hover {
+            color: var(--accent);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* TAB CONTENT */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* INPUT FORM */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+
+        .input, .textarea, .select {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input:focus, .textarea:focus, .select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-card);
+        }
+
+        .textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* BUTTONS */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-family: var(--font-body);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* PROFILES */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .profile-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .profile-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .profile-age {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* DETAIL VIEW */
+        .profile-detail {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0;
+        }
+
+        .back-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item {
+            background: var(--bg-input);
+            border-left: 3px solid var(--accent-muted);
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .item-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* MESSAGE */
+        .message {
+            position: fixed;
+            bottom: 24px;
+            left: 16px;
+            right: 16px;
+            padding: 16px;
+            background: var(--success);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            animation: slideUp 0.3s;
+            z-index: 2000;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* RESPONSIVE */
+        @media (min-width: 481px) {
+            .container {
+                max-width: 100%;
+                padding: 32px;
+            }
+
+            .header {
+                margin-bottom: 40px;
+                padding: 32px 0;
+            }
+
+            .header-title {
+                font-size: 36px;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+                gap: 20px;
+            }
+
+            .message {
+                width: auto;
+                left: 32px;
+                right: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <div class="header-title">SIBLINGS</div>
+                <div class="header-subtitle">Scheduler</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('profiles')">Profiles</button>
+            <button class="tab-btn" onclick="switchTab('input')">Add Data</button>
+            <button class="tab-btn" onclick="switchTab('calendar')">Calendar</button>
+        </div>
+
+        <!-- PROFILES TAB -->
+        <div id="profiles" class="tab-content active">
+            <div class="profile-grid">
+                <div class="profile-card" onclick="viewProfile('Catherine')">
+                    <div class="profile-name">Catherine</div>
+                    <div class="profile-age">Age 26</div>
+                </div>
+                <div class="profile-card" onclick="viewProfile('Ellie')">
+                    <div class="profile-name">Ellie</div>
+                    <div class="profile-age">Age 25</div>
+                </div>
+                <div class="profile-card" onclick="viewProfile('JD')">
+                    <div class="profile-name">JD</div>
+                    <div class="profile-age">Age 23</div>
+                </div>
+                <div class="profile-card" onclick="viewProfile('James')">
+                    <div class="profile-name">James</div>
+                    <div class="profile-age">Age 20</div>
+                </div>
+            </div>
+            <div id="profileDetail" style="display: none;">
+                <!-- Profile detail inserted here -->
+            </div>
+        </div>
+
+        <!-- INPUT TAB -->
+        <div id="input" class="tab-content">
+            <div class="form-group">
+                <label class="label">Select Person</label>
+                <select class="select" id="personSelect">
+                    <option value="Catherine">Catherine Green</option>
+                    <option value="Ellie">Ellie Criscitello</option>
+                    <option value="JD">JD Meyers</option>
+                    <option value="James">James Meyers</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Data Type</label>
+                <select class="select" id="dataTypeSelect" onchange="updateInputPlaceholder()">
+                    <option value="movie">Movie Watched</option>
+                    <option value="music">Music Listened</option>
+                    <option value="place">Place Visited</option>
+                    <option value="note">Note</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Details</label>
+                <textarea class="textarea" id="detailsInput" placeholder="e.g., watched Dune at home"></textarea>
+            </div>
+
+            <button class="btn" onclick="submitData()">Add Entry</button>
+        </div>
+
+        <!-- CALENDAR TAB -->
+        <div id="calendar" class="tab-content">
+            <div class="form-group">
+                <label class="label">Your Availability</label>
+                <input class="input" type="date" id="dateStart" placeholder="Start date">
+            </div>
+
+            <div class="form-group">
+                <input class="input" type="date" id="dateEnd" placeholder="End date">
+            </div>
+
+            <div class="form-group">
+                <label class="label">Status</label>
+                <select class="select" id="statusSelect">
+                    <option value="free">Free</option>
+                    <option value="busy">Busy</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="submitAvailability()">Update Schedule</button>
+
+            <div style="margin-top: 40px;">
+                <div class="section-title">Group Availability</div>
+                <div id="groupAvailability" class="item-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">📅</div>
+                        <div class="empty-text">No overlapping availability yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Siblings Scheduler v1.0
+        </div>
+    </div>
+
+    <script>
+        // Sibling data with birthdays
+        const siblings = {
+            Catherine: { birthday: '1997-06-22', age: 26 },
+            Ellie: { birthday: '1999-03-18', age: 25 },
+            JD: { birthday: '2000-11-17', age: 23 },
+            James: { birthday: '2003-06-06', age: 20 }
+        };
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function viewProfile(name) {
+            const detailDiv = document.getElementById('profileDetail');
+            detailDiv.style.display = 'block';
+            detailDiv.innerHTML = `
+                <div class="profile-detail">
+                    <div class="detail-header">
+                        <button class="back-btn" onclick="backToProfiles()">← Back</button>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${name}</div>
+                    </div>
+                    
+                    <div class="section-title">Recent Movies</div>
+                    <div class="item-list">
+                        <div class="item"><span class="item-date">May 5, 2026</span>Dune: Part Two</div>
+                        <div class="item"><span class="item-date">May 1, 2026</span>The Brutalist</div>
+                    </div>
+
+                    <div class="section-title">Recent Music</div>
+                    <div class="item-list">
+                        <div class="item"><span class="item-date">May 6, 2026</span>Kendrick Lamar - GNX</div>
+                        <div class="item"><span class="item-date">May 3, 2026</span>Phoebe Bridgers - Stranger in the Alps</div>
+                    </div>
+
+                    <div class="section-title">Schedule</div>
+                    <div class="item-list">
+                        <div class="item"><span class="item-date">Free</span>July 15 – July 18, 2026</div>
+                        <div class="item"><span class="item-date">Busy</span>July 20 – July 25, 2026</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function backToProfiles() {
+            document.getElementById('profileDetail').style.display = 'none';
+        }
+
+        function updateInputPlaceholder() {
+            const textarea = document.getElementById('detailsInput');
+            const type = document.getElementById('dataTypeSelect').value;
+            
+            const placeholders = {
+                movie: 'e.g., Dune: Part Two',
+                music: 'e.g., Kendrick Lamar - GNX',
+                place: 'e.g., tried that new coffee place downtown',
+                note: 'e.g., had a great day'
+            };
+            
+            textarea.placeholder = placeholders[type];
+        }
+
+        function submitData() {
+            const person = document.getElementById('personSelect').value;
+            const type = document.getElementById('dataTypeSelect').value;
+            const details = document.getElementById('detailsInput').value;
+
+            if (!details.trim()) {
+                showMessage('Please enter some details');
+                return;
+            }
+
+            console.log(`Submitting: ${person} - ${type} - ${details}`);
+            showMessage(`Added to ${person}'s ${type}!`);
+            document.getElementById('detailsInput').value = '';
+        }
+
+        function submitAvailability() {
+            const start = document.getElementById('dateStart').value;
+            const end = document.getElementById('dateEnd').value;
+            const status = document.getElementById('statusSelect').value;
+
+            if (!start || !end) {
+                showMessage('Please select both dates');
+                return;
+            }
+
+            console.log(`Availability: ${start} to ${end} - ${status}`);
+            showMessage(`Marked ${status} from ${start} to ${end}`);
+            
+            document.getElementById('dateStart').value = '';
+            document.getElementById('dateEnd').value = '';
+        }
+
+        function showMessage(text) {
+            const msg = document.createElement('div');
+            msg.className = 'message';
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            
+            setTimeout(() => msg.remove(), 3000);
+        }
+
+        // Initialize
+        updateInputPlaceholder();
+    </script>
+</body>
+</html>
