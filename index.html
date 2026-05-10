@@ -1796,6 +1796,21 @@ function buildBusyMap(data, monthStart, monthEnd) {
   });
   return m;
 }
+// Day popup data store
+let calDayData = {};
+
+function storeDayData(freeMap, busyMap, monthStart, monthEnd) {
+  calDayData = {};
+  const addEntries = (map, status) => {
+    Object.entries(map||{}).forEach(([date, entries]) => {
+      if (!calDayData[date]) calDayData[date] = [];
+      entries.forEach(e => calDayData[date].push({...e, status}));
+    });
+  };
+  addEntries(freeMap, 'free');
+  addEntries(busyMap, 'busy');
+}
+
 function renderCalendar(freeMap, busyMap) {
   const grid = document.getElementById('calGrid');
   grid.innerHTML = '';
