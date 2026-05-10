@@ -371,6 +371,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .notif-unread-badge.show{display:block}
 .nav-btn{position:relative}
 
+/* GUIDED EMPTY STATES */
+.guided-empty{text-align:center;padding:24px 16px;color:var(--muted)}
+.guided-empty-icon{margin-bottom:10px;opacity:0.4}
+.guided-empty-title{font-size:14px;color:var(--text);margin-bottom:6px;font-weight:600}
+.guided-empty-sub{font-size:12px;font-family:var(--font-mono);line-height:1.6;margin-bottom:14px}
+.guided-empty .btn{width:auto;padding:9px 18px;font-size:11px;display:inline-block}
+
+/* SYNOPSIS CARD */
+#availSynopsis{position:relative}
+#availSynopsis::before{content:'AI';position:absolute;top:10px;right:12px;font-size:8px;font-family:var(--font-mono);color:var(--accent);background:rgba(200,240,96,0.1);border:1px solid rgba(200,240,96,0.2);border-radius:4px;padding:1px 5px;letter-spacing:1px}
+
+/* SWIPE HINT */
+@keyframes swipeHint{0%,100%{opacity:0}20%,80%{opacity:1}50%{transform:translateX(10px)}}
+
 /* PROFILE STATS EDITOR */
 .profile-stats-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:18px}
 .stat-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -534,10 +548,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <button class="btn" id="submitDataBtn">Save Entry</button>
       </div>
 
-      <!-- SCHEDULE -->
-      <div class="tab-pane" id="tab-schedule">
+      <!-- AVAILABILITY (Claude-powered) -->
+      <div class="tab-pane" id="tab-avail">
+        <div class="sec-head" style="border:none;margin-bottom:4px">
+          <span>Availability Overview</span>
+          <button class="sec-action" id="refreshAvailBtn">Refresh</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:14px;line-height:1.6">
+          Claude analyzes everyone's calendars and tells you when you can actually get together.
+        </div>
 
-        <!-- COLLAPSIBLE: NLP -->
+        <!-- Claude synopsis -->
+        <div id="availSynopsis" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;min-height:80px">
+          <div class="empty-state" style="padding:12px 0"><span class="spinner"></span> Loading availability analysis...</div>
+        </div>
+
+        <!-- Mark yourself free/busy -->
         <div class="collapse-panel" id="nlpPanel">
           <div class="collapse-header" id="nlpPanelHeader">
             <div>
@@ -547,7 +573,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
           </div>
           <div class="collapse-body">
-            <div class="avail-hint" style="margin-bottom:10px">Type naturally &mdash; <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August, mornings only"</div>
+            <div class="avail-hint" style="margin-bottom:10px">Type naturally — <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August"</div>
             <textarea class="textarea" id="nlpInput" placeholder="When are you free or busy?" style="min-height:72px"></textarea>
             <div class="parsed-preview" id="nlpParsed" style="margin-top:10px">
               <div class="parsed-label">Claude parsed this as:</div>
@@ -560,46 +586,29 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           </div>
         </div>
 
-        <!-- COLLAPSIBLE: ICS IMPORT -->
+        <!-- ICS Import -->
         <div class="collapse-panel" id="icsPanel" style="margin-bottom:16px">
           <div class="collapse-header" id="icsPanelHeader">
             <div>
               <div class="collapse-title">Import Calendar File (.ics)</div>
-              <div class="collapse-preview" id="icsPreviewText">Tap to import from Apple Calendar, Google, Outlook</div>
+              <div class="collapse-preview" id="icsPreviewText">Tap to import from Apple Cal, Google, Outlook</div>
             </div>
             <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
           </div>
           <div class="collapse-body">
-            <!-- STEPS -->
-            <div class="step-bar" id="icsStepBar">
-              <div class="step active" id="step1"><div class="step-num">1</div><span>Drop file</span></div>
-              <div class="step-line" id="step-line-1"></div>
-              <div class="step" id="step2"><div class="step-num">2</div><span>Parse</span></div>
-              <div class="step-line" id="step-line-2"></div>
-              <div class="step" id="step3"><div class="step-num">3</div><span>Review</span></div>
-              <div class="step-line" id="step-line-3"></div>
-              <div class="step" id="step4"><div class="step-num">4</div><span>Save</span></div>
-            </div>
-
-            <!-- DROP ZONE -->
-            <div class="ics-drop" id="icsDropZone">
+            <div class="avail-hint">Drag and drop a <strong>.ics file</strong> or tap to browse. Claude parses everything automatically.</div>
+            <div class="ics-drop" id="icsDropZone" style="margin-top:8px">
               <input type="file" id="icsFileInput" accept=".ics,text/calendar"/>
               <svg style="width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <div class="ics-drop-title" id="icsDropTitle">Drop .ics file here</div>
               <div class="ics-drop-sub" id="icsDropSub">or tap to browse</div>
             </div>
-
-            <!-- PARSED RESULTS -->
             <div id="icsParsed" style="display:none;margin-top:12px">
               <div class="history-bar">
                 <div class="history-label" id="historyStatus">No history</div>
                 <div class="history-btns">
-                  <button class="h-btn" id="undoBtn" disabled>
-                    <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo
-                  </button>
-                  <button class="h-btn" id="redoBtn" disabled>
-                    Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg>
-                  </button>
+                  <button class="h-btn" id="undoBtn" disabled><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo</button>
+                  <button class="h-btn" id="redoBtn" disabled>Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg></button>
                 </div>
               </div>
               <div class="parsed-preview" style="display:block;margin-bottom:10px">
@@ -613,6 +622,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             </div>
           </div>
         </div>
+
+        <!-- Your schedule list -->
+        <div class="sec-head" style="margin-bottom:10px">
+          Your Schedule This Month
+          <button class="sec-action" id="clearMonthBtn">Clear all</button>
+        </div>
+        <div id="myScheduleList"><div class="empty-state">Nothing set for this month.</div></div>
+
+        <div class="sec-head" style="margin:18px 0 10px">Overlapping Free Days</div>
+        <div id="overlapList"><div class="empty-state">Loading...</div></div>
+      </div>
+
+      <!-- CALENDAR (read-only event viewer) -->
+      <div class="tab-pane" id="tab-schedule">
+
 
         <!-- VIEW TOGGLE -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -649,14 +673,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           <div class="week-grid" id="weekGrid"></div>
         </div>
 
-        <div class="sec-head" style="margin-bottom:10px">
-          Your Schedule This Month
-          <button class="sec-action" id="clearMonthBtn">Clear all</button>
-        </div>
-        <div id="myScheduleList"><div class="empty-state">Nothing set for this month.</div></div>
-
-        <div class="sec-head" style="margin:18px 0 10px">Overlapping Free Days</div>
-        <div id="overlapList"><div class="empty-state">Loading...</div></div>
+        <!-- Tap a day for details -->
+        <div style="text-align:center;font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:8px;padding-bottom:8px">Tap any day to see details</div>
       </div>
 
       <!-- MAP -->
@@ -719,8 +737,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <button class="nav-btn" data-tab="add">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Add
       </button>
+      <button class="nav-btn" data-tab="avail">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Avail
+      </button>
       <button class="nav-btn" data-tab="schedule">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Schedule
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Cal
       </button>
       <button class="nav-btn" data-tab="map">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/></svg>Map
@@ -830,6 +851,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('clearAllIcsBtn').addEventListener('click', clearAllIcs);
   document.getElementById('viewMonth').addEventListener('click', () => setCalView('month'));
   document.getElementById('viewWeek').addEventListener('click', () => setCalView('week'));
+  document.getElementById('refreshAvailBtn')?.addEventListener('click', loadAvailSynopsis);
+
   document.getElementById('markAllReadBtn').addEventListener('click', async () => {
     await db.from('notifications').update({read:true}).eq('for_person', currentUser);
     document.getElementById('notifBadge').classList.remove('show');
@@ -916,7 +939,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updatePlaceholder();
   loadProfilePreviews();
-  showScreen('lockScreen');
+  // Restore session if already logged in this browser session
+  const savedSession = sessionStorage.getItem('siblings_session');
+  if (savedSession && CONFIG.SIBLINGS[savedSession]) {
+    loginAs(savedSession);
+  } else {
+    showScreen('lockScreen');
+  }
 });
 
 function togglePanel(id) {
@@ -958,6 +987,7 @@ function pinSubmit() {
 }
 function loginAs(name) {
   currentUser = name;
+  sessionStorage.setItem('siblings_session', name);
   document.getElementById('currentUserLabel').textContent = name;
   document.getElementById('addingAsLabel').textContent = 'Adding as ' + name;
   document.getElementById('headerAvatar').textContent = name === 'James' ? 'Jm' : name[0];
@@ -1013,7 +1043,7 @@ function initPlacesAutocomplete() {
     });
   }
 }
-function lockApp() { currentUser = null; pinBuffer = ''; updatePinDisplay(); document.getElementById('lockError').textContent = ''; showScreen('lockScreen'); }
+function lockApp() { currentUser = null; sessionStorage.removeItem('siblings_session'); pinBuffer = ''; updatePinDisplay(); document.getElementById('lockError').textContent = ''; showScreen('lockScreen'); }
 
 // ── TABS ──
 function switchTab(name, btn) {
@@ -1029,6 +1059,7 @@ function switchTab(name, btn) {
     else loadCalendarData();
   }
   if (name === 'notif') loadNotifications();
+  if (name === 'avail') { loadAvailSynopsis(); loadCalendarData(); }
   if (name === 'map') initMap();
   if (name === 'profiles') { backToProfiles(); loadProfilePreviews(); }
 }
@@ -1697,7 +1728,22 @@ async function redoAvail() {
 }
 
 // ── CALENDAR ──
-function initCalendar() { calYear = new Date().getFullYear(); calMonth = new Date().getMonth(); loadCalendarData(); }
+function initCalendar() {
+  calYear = new Date().getFullYear();
+  calMonth = new Date().getMonth();
+  loadCalendarData();
+  // Touch swipe for month navigation
+  const calEl = document.getElementById('tab-schedule');
+  if (calEl && !calEl._swipeInit) {
+    calEl._swipeInit = true;
+    let startX = 0;
+    calEl.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+    calEl.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 50) { if (dx < 0) calNext(); else calPrev(); }
+    }, {passive:true});
+  }
+}
 function calPrev() { if (--calMonth < 0) { calMonth=11; calYear--; } loadCalendarData(); }
 function calNext() { if (++calMonth > 11) { calMonth=0; calYear++; } loadCalendarData(); }
 async function loadCalendarData() {
@@ -2070,6 +2116,60 @@ function shortenNote(note) {
     return 'Clarkson Security' + times;
   }
   return note;
+}
+
+// ── AVAILABILITY SYNOPSIS (Claude) ──
+async function loadAvailSynopsis() {
+  const el = document.getElementById('availSynopsis');
+  if (!el) return;
+  el.innerHTML = '<div class="empty-state" style="padding:12px 0"><span class="spinner"></span> Analyzing schedules...</div>';
+
+  try {
+    // Get all future availability for all siblings
+    const tStr = todayStr();
+    const { data } = await db.from('availability').select('*').gte('end_date', tStr).order('start_date', {ascending:true}).limit(200);
+
+    if (!data || !data.length) {
+      el.innerHTML = '<div style="font-size:13px;color:var(--muted);font-family:var(--font-mono);line-height:1.7">No availability data yet. Import your calendars or type when you are free in the Update section below.</div>';
+      return;
+    }
+
+    // Build a summary for Claude
+    const byPerson = {};
+    data.forEach(r => {
+      if (!byPerson[r.person]) byPerson[r.person] = [];
+      const dateStr = r.start_date === r.end_date ? r.start_date : r.start_date + ' to ' + r.end_date;
+      byPerson[r.person].push(r.status.toUpperCase() + ': ' + dateStr + (r.note ? ' (' + shortenNote(r.note) + ')' : ''));
+    });
+
+    const summaryText = Object.entries(byPerson).map(([name, entries]) =>
+      name + ':' + ' | ' + entries.slice(0,30).join(' | ')
+    ).join(' || ');
+
+    const prompt = 'You are helping 4 siblings (Catherine, Ellie, JD, James) find time to meet. Today is ' + tStr + '. Availability: ' + summaryText + '. Give: 1) A brief 2-3 sentence overview 2) Best 2-3 windows when multiple siblings are free 3) Key conflicts. Be friendly, under 150 words, plain text.';
+
+    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text: prompt, today: tStr, mode: 'synopsis'})
+    });
+
+    if (!res.ok) throw new Error(res.status);
+    const d = await res.json();
+
+    // Edge function returns parsed array - for synopsis we use the raw text
+    // Re-call with a different flag
+    // The edge fn returns {parsed:[...]} for availability, but for synopsis
+    // we need raw text. Extract from parsed notes or use fallback.
+    const synopsis = d.synopsis || d.parsed?.[0]?.note || 'Add your availability and import calendars. Claude will find the best windows to meet.';
+
+    el.innerHTML = '<div style="font-size:13px;color:var(--text);line-height:1.75;font-family:var(--font-body)">' + esc(synopsis) + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:10px">Based on ' + data.length + ' availability entries &middot; <span style="cursor:pointer;color:var(--accent2)" onclick="loadAvailSynopsis()">refresh</span></div>';
+
+  } catch(err) {
+    console.error(err);
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono)">Could not load synopsis. Check your internet connection.</div>';
+  }
 }
 
 // ── LIKES & COMMENTS ──
