@@ -2065,7 +2065,7 @@ async function loadAvailSynopsis() {
       name + ':' + ' | ' + entries.slice(0,30).join(' | ')
     ).join(' || ');
 
-    const prompt = 'You are helping 4 siblings (Catherine, Ellie, JD, James) find time to meet. Today is ' + tStr + '. Availability: ' + summaryText + '. Give: 1) A brief 2-3 sentence overview 2) Best 2-3 windows when multiple siblings are free 3) Key conflicts. Be friendly, under 150 words, plain text.';
+    const prompt = 'You help 4 siblings (Catherine=blue, Ellie=pink, JD=green, James=yellow) find time to get together. Today is ' + tStr + '. Their availability data: ' + summaryText + '. Respond with EXACTLY this format - no other text:\nOVERVIEW: [one sentence, direct]\nBEST WINDOW: [specific date range or dates when 2+ are free, or "None found yet"]\nWHO IS FREE: [comma list of names with free dates, or "No one has marked free time yet"]\nBLOCKERS: [key conflicts in 10 words max, or "None"]\nNEXT STEP: [one action item for the siblings]';
 
     const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
       method: 'POST',
@@ -2082,7 +2082,60 @@ async function loadAvailSynopsis() {
     // we need raw text. Extract from parsed notes or use fallback.
     const synopsis = d.synopsis || d.parsed?.[0]?.note || 'Add your availability and import calendars. Claude will find the best windows to meet.';
 
-    el.innerHTML = '<div style="font-size:13px;color:var(--text);line-height:1.75;font-family:var(--font-body)">' + esc(synopsis) + '</div>';
+    // Parse structured synopsis response
+    const sections = {};
+    synopsis.split('\n').forEach(line => {
+      const m = line.match(/^([A-Z ]+):\s*(.+)/);
+      if (m) sections[m[1].trim()] = m[2].trim();
+    });
+
+    const whoFree = sections['WHO IS FREE'] || '';
+    const bestWindow = sections['BEST WINDOW'] || '';
+    const hasAvailability = whoFree && !/no one|none/i.test(whoFree);
+    const hasBestWindow = bestWindow && !/none/i.test(bestWindow);
+
+    // Big availability indicator
+    let html = '';
+    if (hasAvailability || hasBestWindow) {
+      html += '<div style="background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.25);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px">';
+      html += '<div style="font-size:10px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px">Best window to meet</div>';
+      html += '<div style="font-size:15px;font-weight:700;color:var(--text)">' + esc(hasBestWindow ? bestWindow : whoFree) + '</div>';
+      html += '</div>';
+    } else {
+      html += '<div style="background:rgba(240,96,96,0.06);border:1px solid rgba(240,96,96,0.2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px;text-align:center">';
+      html += '<div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:4px">No overlapping free time found</div>';
+      html += '<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">Import your calendars or add your availability below</div>';
+      html += '</div>';
+    }
+
+    // Who is free pills
+    if (whoFree && hasAvailability) {
+      const names = whoFree.split(',').map(n => n.trim()).filter(Boolean);
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">';
+      names.forEach(nameEntry => {
+        const matchedName = Object.keys(SIBLING_COLORS).find(n => nameEntry.includes(n));
+        const color = matchedName ? SIBLING_COLORS[matchedName] : 'var(--muted)';
+        html += '<div style="padding:4px 10px;border-radius:999px;font-size:11px;font-family:var(--font-mono);border:1px solid '+color+'40;background:'+color+'12;color:'+color+'">'+esc(nameEntry)+'</div>';
+      });
+      html += '</div>';
+    }
+
+    // Overview
+    if (sections['OVERVIEW']) {
+      html += '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px">'+esc(sections['OVERVIEW'])+'</div>';
+    }
+
+    // Blockers
+    if (sections['BLOCKERS'] && !/none/i.test(sections['BLOCKERS'])) {
+      html += '<div style="font-size:11px;color:var(--danger);font-family:var(--font-mono);opacity:0.8">Conflicts: '+esc(sections['BLOCKERS'])+'</div>';
+    }
+
+    // Next step
+    if (sections['NEXT STEP']) {
+      html += '<div style="font-size:11px;color:var(--accent2);font-family:var(--font-mono);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">Next: '+esc(sections['NEXT STEP'])+'</div>';
+    }
+
+    el.innerHTML = html;
     const ageEl = document.getElementById('synopsisAge');
     if (ageEl) ageEl.textContent = 'Based on ' + data.length + ' entries';
 
@@ -2220,6 +2273,122 @@ function setCalView(view) {
 
 function weekPrev() { weekOffset--; renderWeekView(); }
 function weekNext() { weekOffset++; renderWeekView(); }
+
+// Day popup data store
+
+
+function storeDayData(freeMap, busyMap, monthStart, monthEnd) {
+  calDayData = {};
+  Object.entries(freeMap||{}).forEach(([date, entries]) => {
+    if (!calDayData[date]) calDayData[date] = [];
+    entries.forEach(e => calDayData[date].push({...e, status:'free'}));
+  });
+  Object.entries(busyMap||{}).forEach(([date, entries]) => {
+    if (!calDayData[date]) calDayData[date] = [];
+    entries.forEach(e => calDayData[date].push({...e, status:'busy'}));
+  });
+}
+
+function openDayPopup(ds) {
+  const popup = document.getElementById('dayPopup');
+  if (!popup) return;
+  const dateEl = document.getElementById('dayPopupDate');
+  const bodyEl = document.getElementById('dayPopupBody');
+  const [y,m,d] = ds.split('-');
+  dateEl.textContent = new Date(+y,+m-1,+d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const events = calDayData[ds] || [];
+  if (!events.length) {
+    bodyEl.innerHTML = '<div class="day-popup-empty" style="padding:20px 0"><div style="margin-bottom:12px">Nothing logged for this day.</div><button class="btn btn-sec" style="width:auto;padding:8px 16px;font-size:11px" onclick="closeDayPopup();switchTab(\'avail\',document.querySelector(\'[data-tab=avail]\'))">Mark yourself free or busy</button></div>';
+  } else {
+    const seen = new Set();
+    const deduped = [...events].sort((a,b) => a.status==='free'?-1:1).filter(e => {
+      const k = e.person+'|'+e.status+'|'+(e.note||'');
+      if (seen.has(k)) return false; seen.add(k); return true;
+    });
+    bodyEl.innerHTML = deduped.map(e => {
+      const color = SIBLING_COLORS[e.person]||'var(--muted)';
+      const note = e.note||'';
+      const timeMatch = note.match(/\(([^)]+(?:am|pm)[^)]*)\)/i);
+      const timeStr = timeMatch ? timeMatch[1] : '';
+      const noteName = note.replace(/\s*\([^)]+(?:am|pm)[^)]*\)/i,'').trim();
+      return '<div class="day-event"><span class="day-event-badge '+e.status+'">'+e.status+'</span><div class="day-event-info"><div class="day-event-who" style="color:'+color+'">'+esc(e.person)+(timeStr?' <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">'+esc(timeStr)+'</span>':'')+'</div>'+(noteName?'<div class="day-event-note">'+esc(noteName)+'</div>':'')+'</div></div>';
+    }).join('');
+  }
+  popup.classList.add('open');
+  popup.onclick = (ev) => { if (ev.target === popup) closeDayPopup(); };
+}
+
+function closeDayPopup() {
+  const p = document.getElementById('dayPopup');
+  if (p) p.classList.remove('open');
+}
+
+function renderCalendar(freeMap, busyMap) {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+    const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
+  });
+  const firstDay = new Date(calYear, calMonth, 1);
+  const days = new Date(calYear, calMonth+1, 0).getDate();
+  const tStr = todayStr();
+  const siblings = ['Catherine','Ellie','JD','James'];
+  for (let i=0; i<firstDay.getDay(); i++) {
+    const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el);
+  }
+  for (let d=1; d<=days; d++) {
+    const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const el = document.createElement('div');
+    el.className = 'cal-day in-month';
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => openDayPopup(ds));
+    const numEl = document.createElement('div');
+    numEl.textContent = d;
+    if (ds === tStr) { numEl.style.color='var(--accent2)'; numEl.style.fontWeight='700'; }
+    el.appendChild(numEl);
+    const freeEntries = freeMap[ds];
+    if (freeEntries) {
+      const people = [...new Set(freeEntries.map(e => e.person))];
+      const n = people.length;
+      if (n >= 4) el.classList.add('oall');
+      else if (n === 3) el.classList.add('o3');
+      else if (n === 2) el.classList.add('o2');
+    }
+    const busyEntries = busyMap ? busyMap[ds] : null;
+    const freeByPerson = {};
+    if (freeEntries) freeEntries.forEach(e => { freeByPerson[e.person] = e; });
+    const busyByPerson = {};
+    if (busyEntries) busyEntries.forEach(e => {
+      if (!busyByPerson[e.person] || (e.barH||0) > (busyByPerson[e.person].barH||0)) busyByPerson[e.person] = e;
+    });
+    if (Object.keys(freeByPerson).length || Object.keys(busyByPerson).length) {
+      const cols = document.createElement('div');
+      cols.className = 'cal-cols';
+      siblings.forEach(name => {
+        const col = document.createElement('div'); col.className = 'cal-col';
+        const color = SIBLING_COLORS[name]||'#888';
+        const busy = busyByPerson[name]; const free = freeByPerson[name];
+        if (busy) {
+          const seg = document.createElement('div'); seg.className = 'cal-seg busy';
+          seg.style.top = Math.round((busy.barTop||0.85)*100)+'%';
+          seg.style.height = Math.max(Math.round((busy.barH||0.06)*100),6)+'%';
+          seg.style.background = color;
+          seg.style.opacity = busy.barH >= 0.35 ? '0.85' : '0.6';
+          col.appendChild(seg);
+        } else if (free) {
+          const seg = document.createElement('div'); seg.className = 'cal-seg free';
+          seg.style.top = '0'; seg.style.height = '100%';
+          seg.style.background = 'linear-gradient(to bottom,'+color+'55,transparent)';
+          col.appendChild(seg);
+        }
+        cols.appendChild(col);
+      });
+      el.appendChild(cols);
+    }
+    grid.appendChild(el);
+  }
+}
 
 async function renderWeekView() {
   const now = new Date();
