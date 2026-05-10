@@ -259,7 +259,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .step.done + .step-line{background:var(--accent)}
 
 /* CALENDAR DAY CELLS - sibling timeline columns */
-.cal-day{position:relative;overflow:hidden;aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;border-radius:6px;font-size:11px;font-family:var(--font-mono);color:var(--muted)}
+.cal-day{position:relative;overflow:hidden;aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;border-radius:var(--r-sm);font-size:12px;font-family:var(--font-mono);color:var(--muted);cursor:pointer;transition:background 0.1s}.cal-day:active{background:var(--surface2)}
 .cal-cols{position:absolute;bottom:2px;left:2px;right:2px;top:18px;display:flex;gap:1px;pointer-events:none}
 .cal-col{flex:1;position:relative;overflow:hidden}
 .cal-seg{position:absolute;left:0;right:0;border-radius:2px;min-height:2px}
@@ -296,22 +296,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .map-entry-marker{display:none}
 .map-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 
-/* WEEK VIEW */
-.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.week-label{font-family:var(--font-head);font-size:18px;color:var(--text)}
-.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:16px}
-.week-col{display:flex;flex-direction:column;gap:2px}
-.week-dow{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;padding:4px 2px;border-bottom:1px solid var(--border);margin-bottom:4px}
-.week-dow.today-col{color:var(--accent2)}
-.week-day-num{text-align:center;font-size:11px;font-family:var(--font-mono);color:var(--muted);padding:2px 0 4px}
-.week-day-num.today-num{color:var(--accent2);font-weight:700}
-.week-event{border-radius:4px;padding:3px 4px;font-size:9px;font-family:var(--font-mono);line-height:1.3;cursor:pointer;overflow:hidden;margin-bottom:2px;transition:opacity 0.1s}
-.week-event:active{opacity:0.7}
-.week-event.free{background:rgba(200,240,96,0.15);border-left:2px solid var(--accent);color:var(--accent)}
-.week-event.busy{background:rgba(240,96,96,0.12);border-left:2px solid var(--danger);color:var(--danger)}
-.week-toggle{display:flex;align-items:center;gap:4px;margin-bottom:12px}
-.view-btn{padding:5px 12px;border-radius:6px;font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.1s}
+/* WEEK VIEW - redesigned */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.week-label{font-family:var(--font-head);font-size:17px;color:var(--text)}
+.week-toggle{display:flex;align-items:center;gap:4px}
+.view-btn{padding:5px 14px;border-radius:6px;font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all 0.1s}
 .view-btn.active{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+
+/* WEEK GRID */
+.wk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.wk-col{display:flex;flex-direction:column}
+.wk-header{text-align:center;padding:4px 2px 6px;border-bottom:1px solid var(--border);margin-bottom:3px}
+.wk-dow{font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;display:block}
+.wk-num{font-size:14px;font-family:var(--font-head);color:var(--text);display:block;line-height:1.2}
+.wk-num.today{color:var(--accent2)}
+.wk-header.today-col{background:rgba(96,200,240,0.05);border-radius:var(--r-sm) var(--r-sm) 0 0}
+.wk-timeline{position:relative;height:200px;background:var(--surface);border-radius:var(--r-sm);overflow:hidden;cursor:pointer;transition:background 0.1s}
+.wk-timeline:active{background:var(--surface2)}
+.wk-timeline-seg{position:absolute;left:2px;right:2px;border-radius:3px;min-height:3px;opacity:0.85;transition:opacity 0.1s}
+.wk-timeline-seg:hover{opacity:1}
+.wk-hour-line{position:absolute;left:0;right:0;border-top:1px solid var(--border);opacity:0.3}
+.wk-now-line{position:absolute;left:0;right:0;border-top:2px solid var(--accent2);z-index:5}
+.wk-no-data{display:flex;align-items:center;justify-content:center;height:100%;font-size:9px;color:var(--muted2);font-family:var(--font-mono)}
 
 /* DAY POPUP */
 .day-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:800;display:none;align-items:flex-end;justify-content:center;transition:background 0.2s}
@@ -548,103 +554,123 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <button class="btn" id="submitDataBtn">Save Entry</button>
       </div>
 
-      <!-- AVAILABILITY (Claude-powered) -->
+      <!-- AVAILABILITY TAB - Claude synopsis + free/busy input only -->
       <div class="tab-pane" id="tab-avail">
-        <div class="sec-head" style="border:none;margin-bottom:4px">
-          <span>Availability Overview</span>
-          <button class="sec-action" id="refreshAvailBtn">Refresh</button>
+
+        <!-- AI SYNOPSIS -->
+        <div id="availSynopsis" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;min-height:72px;position:relative">
+          <div style="position:absolute;top:10px;right:12px;font-size:8px;font-family:var(--font-mono);color:var(--accent);background:rgba(200,240,96,0.1);border:1px solid rgba(200,240,96,0.2);border-radius:4px;padding:1px 5px;letter-spacing:1px">AI</div>
+          <div class="empty-state" style="padding:8px 0"><span class="spinner"></span> Analyzing schedules...</div>
         </div>
-        <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-bottom:14px;line-height:1.6">
-          Claude analyzes everyone's calendars and tells you when you can actually get together.
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:2px" id="synopsisAge"></div>
+          <button class="sec-action" id="refreshAvailBtn">Refresh analysis</button>
         </div>
 
-        <!-- Claude synopsis -->
-        <div id="availSynopsis" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;min-height:80px">
-          <div class="empty-state" style="padding:12px 0"><span class="spinner"></span> Loading availability analysis...</div>
-        </div>
+        <!-- OVERLAPPING FREE DAYS -->
+        <div class="sec-head" style="margin-bottom:10px">Best times to meet</div>
+        <div id="overlapList"><div class="empty-state">Loading...</div></div>
 
-        <!-- Mark yourself free/busy -->
-        <div class="collapse-panel" id="nlpPanel">
-          <div class="collapse-header" id="nlpPanelHeader">
-            <div>
-              <div class="collapse-title">Update Your Availability</div>
-              <div class="collapse-preview" id="nlpPreviewText">Tap to type when you're free or busy</div>
-            </div>
-            <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
-          </div>
-          <div class="collapse-body">
-            <div class="avail-hint" style="margin-bottom:10px">Type naturally — <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August"</div>
-            <textarea class="textarea" id="nlpInput" placeholder="When are you free or busy?" style="min-height:72px"></textarea>
-            <div class="parsed-preview" id="nlpParsed" style="margin-top:10px">
-              <div class="parsed-label">Claude parsed this as:</div>
-              <div class="parsed-body" id="nlpParsedContent"></div>
-            </div>
-            <div class="btn-row" style="margin-top:10px">
-              <button class="btn btn-sec" id="parseBtn">Parse</button>
-              <button class="btn" id="saveAvailBtn" style="display:none">Save</button>
-            </div>
-          </div>
-        </div>
+        <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
 
-        <!-- ICS Import -->
-        <div class="collapse-panel" id="icsPanel" style="margin-bottom:16px">
-          <div class="collapse-header" id="icsPanelHeader">
-            <div>
-              <div class="collapse-title">Import Calendar File (.ics)</div>
-              <div class="collapse-preview" id="icsPreviewText">Tap to import from Apple Cal, Google, Outlook</div>
+          <!-- NLP INPUT -->
+          <div class="collapse-panel" id="nlpPanel">
+            <div class="collapse-header" id="nlpPanelHeader">
+              <div>
+                <div class="collapse-title">Update Your Availability</div>
+                <div class="collapse-preview" id="nlpPreviewText">Tap to type when you are free or busy</div>
+              </div>
+              <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
             </div>
-            <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="collapse-body">
+              <div class="avail-hint" style="margin-bottom:10px">Type naturally — <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August"</div>
+              <textarea class="textarea" id="nlpInput" placeholder="When are you free or busy?" style="min-height:64px"></textarea>
+              <div class="parsed-preview" id="nlpParsed" style="margin-top:10px">
+                <div class="parsed-label">Parsed as:</div>
+                <div class="parsed-body" id="nlpParsedContent"></div>
+              </div>
+              <div class="btn-row" style="margin-top:10px">
+                <button class="btn btn-sec" id="parseBtn">Parse</button>
+                <button class="btn" id="saveAvailBtn" style="display:none">Save</button>
+              </div>
+            </div>
           </div>
-          <div class="collapse-body">
-            <div class="avail-hint">Drag and drop a <strong>.ics file</strong> or tap to browse. Claude parses everything automatically.</div>
-            <div class="ics-drop" id="icsDropZone" style="margin-top:8px">
-              <input type="file" id="icsFileInput" accept=".ics,text/calendar"/>
-              <svg style="width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <div class="ics-drop-title" id="icsDropTitle">Drop .ics file here</div>
-              <div class="ics-drop-sub" id="icsDropSub">or tap to browse</div>
+
+          <!-- ICS IMPORT -->
+          <div class="collapse-panel" id="icsPanel">
+            <div class="collapse-header" id="icsPanelHeader">
+              <div>
+                <div class="collapse-title">Import Calendar File (.ics)</div>
+                <div class="collapse-preview" id="icsPreviewText">Apple Cal, Google, Outlook</div>
+              </div>
+              <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
             </div>
-            <div id="icsParsed" style="display:none;margin-top:12px">
-              <div class="history-bar">
-                <div class="history-label" id="historyStatus">No history</div>
-                <div class="history-btns">
-                  <button class="h-btn" id="undoBtn" disabled><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo</button>
-                  <button class="h-btn" id="redoBtn" disabled>Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg></button>
+            <div class="collapse-body">
+              <div class="avail-hint">Drop a <strong>.ics file</strong> or tap to browse.</div>
+              <div class="ics-drop" id="icsDropZone" style="margin-top:8px">
+                <input type="file" id="icsFileInput" accept=".ics,text/calendar"/>
+                <svg style="width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:4px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div class="ics-drop-title" id="icsDropTitle">Drop .ics file here</div>
+                <div class="ics-drop-sub" id="icsDropSub">or tap to browse</div>
+              </div>
+              <div id="icsParsed" style="display:none;margin-top:10px">
+                <div class="history-bar">
+                  <div class="history-label" id="historyStatus">No history</div>
+                  <div class="history-btns">
+                    <button class="h-btn" id="undoBtn" disabled><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo</button>
+                    <button class="h-btn" id="redoBtn" disabled>Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg></button>
+                  </div>
+                </div>
+                <div class="parsed-preview" style="display:block;margin-bottom:10px">
+                  <div class="parsed-label" id="icsEventCount"></div>
+                  <div class="parsed-body" id="icsParsedContent"></div>
+                </div>
+                <div class="btn-row">
+                  <button class="btn btn-sec" id="clearIcsBtn">Clear</button>
+                  <button class="btn" id="saveIcsBtn">Save</button>
                 </div>
               </div>
-              <div class="parsed-preview" style="display:block;margin-bottom:10px">
-                <div class="parsed-label" id="icsEventCount"></div>
-                <div class="parsed-body" id="icsParsedContent"></div>
-              </div>
-              <div class="btn-row">
-                <button class="btn btn-sec" id="clearIcsBtn">Clear</button>
-                <button class="btn" id="saveIcsBtn">Save to Schedule</button>
-              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Your schedule list -->
-        <div class="sec-head" style="margin-bottom:10px">
-          Your Schedule This Month
-          <button class="sec-action" id="clearMonthBtn">Clear all</button>
+          <!-- YOUR SCHEDULE -->
+          <div class="sec-head" style="margin:16px 0 10px">
+            Your Schedule This Month
+            <button class="sec-action" id="clearMonthBtn">Clear</button>
+          </div>
+          <div id="myScheduleList"><div class="empty-state">Nothing set.</div></div>
         </div>
-        <div id="myScheduleList"><div class="empty-state">Nothing set for this month.</div></div>
-
-        <div class="sec-head" style="margin:18px 0 10px">Overlapping Free Days</div>
-        <div id="overlapList"><div class="empty-state">Loading...</div></div>
       </div>
 
-      <!-- CALENDAR (read-only event viewer) -->
+      <!-- CALENDAR TAB - availability-only, color coded by sibling -->
       <div class="tab-pane" id="tab-schedule">
 
-
-        <!-- VIEW TOGGLE -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <!-- VIEW TOGGLE + CLEAR -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="week-toggle">
-            <button class="view-btn active" id="viewMonth" id-x="m">Month</button>
-            <button class="view-btn" id="viewWeek" onclick="setCalView('week')">Week</button>
+            <button class="view-btn active" id="viewMonth">Month</button>
+            <button class="view-btn" id="viewWeek">Week</button>
           </div>
-          <button class="sec-action" id="clearAllIcsBtn" style="color:var(--danger);font-size:9px">Clear my ICS imports</button>
+          <button class="sec-action" id="clearAllIcsBtn" style="color:var(--danger)">Clear imports</button>
+        </div>
+
+        <!-- SIBLING COLOR LEGEND -->
+        <div id="calLegend" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
+            <div style="width:10px;height:10px;border-radius:2px;background:#60c8f0"></div>Catherine
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
+            <div style="width:10px;height:10px;border-radius:2px;background:#f060c8"></div>Ellie
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
+            <div style="width:10px;height:10px;border-radius:2px;background:#c8f060"></div>JD
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
+            <div style="width:10px;height:10px;border-radius:2px;background:#f0c860"></div>James
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
+            <div style="width:8px;height:8px;border-radius:50%;background:rgba(200,240,96,0.6)"></div>All free
+          </div>
         </div>
 
         <!-- MONTH VIEW -->
@@ -653,12 +679,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <button class="cal-nav-btn" id="calPrevBtn">&#8249;</button>
             <div class="cal-month" id="calMonthLabel"></div>
             <button class="cal-nav-btn" id="calNextBtn">&#8250;</button>
-          </div>
-          <div class="cal-legend">
-            <div class="leg-item"><div class="leg-dot" style="background:rgba(240,200,96,0.3)"></div>2-3 free</div>
-            <div class="leg-item"><div class="leg-dot" style="background:rgba(200,240,96,0.3);box-shadow:0 0 0 1.5px rgba(200,240,96,0.4)"></div>All 4</div>
-            <div class="leg-item"><div class="leg-dot" style="background:rgba(240,96,96,0.4)"></div>Busy</div>
-            <div class="leg-item"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent2);display:inline-block;margin-right:3px"></div>Time</div>
           </div>
           <div class="cal-grid" id="calGrid"></div>
         </div>
@@ -670,11 +690,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <div class="week-label" id="weekLabel"></div>
             <button class="cal-nav-btn" id="weekNextBtn">&#8250;</button>
           </div>
-          <div class="week-grid" id="weekGrid"></div>
+          <div id="weekGrid"></div>
         </div>
 
-        <!-- Tap a day for details -->
-        <div style="text-align:center;font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:8px;padding-bottom:8px">Tap any day to see details</div>
+        <div style="text-align:center;font-size:10px;color:var(--muted2);font-family:var(--font-mono);margin-top:8px">Tap any day to see who is free</div>
       </div>
 
       <!-- MAP -->
@@ -1845,128 +1864,28 @@ function buildBusyMap(data, monthStart, monthEnd) {
 // Day popup data store
 let calDayData = {};
 
-function storeDayData(freeMap, busyMap, monthStart, monthEnd) {
-  calDayData = {};
-  const addEntries = (map, status) => {
-    Object.entries(map||{}).forEach(([date, entries]) => {
-      if (!calDayData[date]) calDayData[date] = [];
-      entries.forEach(e => calDayData[date].push({...e, status}));
-    });
-  };
-  addEntries(freeMap, 'free');
-  addEntries(busyMap, 'busy');
-}
+function openDayPopup(ds) {
+  const popup = document.getElementById('dayPopup');
+  if (!popup) return;
+  const dateEl = document.getElementById('dayPopupDate');
+  const bodyEl = document.getElementById('dayPopupBody');
+  const [y,m,d] = ds.split('-');
+  const dateObj = new Date(+y,+m-1,+d);
+  dateEl.textContent = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-function renderCalendar(freeMap, busyMap) {
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
-    const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
-  });
-  const firstDay = new Date(calYear, calMonth, 1);
-  const days = new Date(calYear, calMonth+1, 0).getDate();
-  const tStr = todayStr();
-  const siblings = ['Catherine','Ellie','JD','James'];
-
-  for (let i=0; i<firstDay.getDay(); i++) {
-    const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el);
+  const events = calDayData[ds] || [];
+  if (!events.length) {
+    const [py,pm,pd] = ds.split('-');
+    const displayDate = new Date(+py,+pm-1,+pd).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    bodyEl.innerHTML = '<div class="day-popup-empty" style="padding:20px 0">' +
+      '<div style="margin-bottom:12px">Nothing logged for ' + displayDate + '.</div>' +
+      '</div>';
   }
 
-  for (let d=1; d<=days; d++) {
-    const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const el = document.createElement('div');
-    el.className = 'cal-day in-month';
-    el.dataset.date = ds;
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', () => openDayPopup(ds));
-
-    // Day number
-    const numEl = document.createElement('div');
-    numEl.textContent = d;
-    if (ds === tStr) { numEl.style.color='var(--accent2)'; numEl.style.fontWeight='700'; }
-    el.appendChild(numEl);
-
-    // Free day overlaps (background tint)
-    const freeEntries = freeMap[ds];
-    if (freeEntries) {
-      const people = [...new Set(freeEntries.map(e => e.person))];
-      const n = people.length;
-      if (n >= 4) el.classList.add('oall');
-      else if (n === 3) el.classList.add('o3');
-      else if (n === 2) el.classList.add('o2');
-    }
-
-    // Sibling timeline columns
-    const busyEntries = busyMap ? busyMap[ds] : null;
-    const freeByPerson = {};
-    if (freeEntries) freeEntries.forEach(e => { freeByPerson[e.person] = e; });
-    const busyByPerson = {};
-    if (busyEntries) busyEntries.forEach(e => {
-      if (!busyByPerson[e.person] || (e.barH||0) > (busyByPerson[e.person].barH||0))
-        busyByPerson[e.person] = e;
-    });
-
-    const hasSiblingData = Object.keys(freeByPerson).length || Object.keys(busyByPerson).length;
-    if (hasSiblingData) {
-      const cols = document.createElement('div');
-      cols.className = 'cal-cols';
-
-      siblings.forEach(name => {
-        const col = document.createElement('div');
-        col.className = 'cal-col';
-        const color = SIBLING_COLORS[name] || '#888';
-        const busy = busyByPerson[name];
-        const free = freeByPerson[name];
-
-        if (busy) {
-          const seg = document.createElement('div');
-          seg.className = 'cal-seg busy';
-          const topPct = Math.round((busy.barTop || 0.85) * 100);
-          const hPct   = Math.max(Math.round((busy.barH || 0.06) * 100), 6);
-          seg.style.top    = topPct + '%';
-          seg.style.height = hPct + '%';
-          seg.style.background = color;
-          seg.style.opacity = busy.barH >= 0.35 ? '0.85' : '0.6';
-          col.appendChild(seg);
-        } else if (free) {
-          // Free: full-height lighter stripe with top accent
-          const seg = document.createElement('div');
-          seg.className = 'cal-seg free';
-          seg.style.top    = '0';
-          seg.style.height = '100%';
-          seg.style.background = 'linear-gradient(to bottom,' + color + '60,transparent)';
-          col.appendChild(seg);
-        }
-        cols.appendChild(col);
-      });
-      el.appendChild(cols);
-    }
-
-    grid.appendChild(el);
-  }
+  popup.classList.add('open');
+  popup.onclick = (e) => { if (e.target === popup) closeDayPopup(); };
 }
 
-
-async function renderMySchedule(monthStart, monthEnd) {
-  const { data } = await db.from('availability').select('*').eq('person',currentUser).lte('start_date',monthEnd).gte('end_date',monthStart).order('start_date',{ascending:true});
-  const container = document.getElementById('myScheduleList');
-  if (!data || !data.length) { container.innerHTML='<div class="empty-state">Nothing set for this month.</div>'; return; }
-  container.innerHTML = data.map(r => {
-    const dateStr = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
-    const noteStr = r.note ? shortenNote(r.note) : '';
-    let out = '<div class="avail-item" id="myschedule-' + r.id + '">';
-    out += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
-    out += '<div class="avail-info"><div class="avail-dates">' + dateStr + '</div>';
-    if (noteStr) out += '<div class="avail-note">' + esc(noteStr) + '</div>';
-    if (r.source) out += '<div class="avail-src">via ' + r.source + '</div>';
-    out += '</div>';
-    out += '<button class="avail-del" onclick="delMyAvail(&#39;' + r.id + '&#39;)">';
-    out += '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
-    out += '</button></div>';
-    return out;
-  }).join('');
-
-}
 async function delMyAvail(id) {
   const { data } = await db.from('availability').select('*').eq('id', id);
   if (data && data.length) pushHistory({action:'delete', rows:data});
@@ -2163,8 +2082,9 @@ async function loadAvailSynopsis() {
     // we need raw text. Extract from parsed notes or use fallback.
     const synopsis = d.synopsis || d.parsed?.[0]?.note || 'Add your availability and import calendars. Claude will find the best windows to meet.';
 
-    el.innerHTML = '<div style="font-size:13px;color:var(--text);line-height:1.75;font-family:var(--font-body)">' + esc(synopsis) + '</div>' +
-      '<div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:10px">Based on ' + data.length + ' availability entries &middot; <span style="cursor:pointer;color:var(--accent2)" onclick="loadAvailSynopsis()">refresh</span></div>';
+    el.innerHTML = '<div style="font-size:13px;color:var(--text);line-height:1.75;font-family:var(--font-body)">' + esc(synopsis) + '</div>';
+    const ageEl = document.getElementById('synopsisAge');
+    if (ageEl) ageEl.textContent = 'Based on ' + data.length + ' entries';
 
   } catch(err) {
     console.error(err);
@@ -2302,73 +2222,98 @@ function weekPrev() { weekOffset--; renderWeekView(); }
 function weekNext() { weekOffset++; renderWeekView(); }
 
 async function renderWeekView() {
-  // Find Monday of target week
   const now = new Date();
-  const day = now.getDay(); // 0=Sun
+  const day = now.getDay();
   const monday = new Date(now);
   monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + weekOffset * 7);
   monday.setHours(0,0,0,0);
-
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
 
   const weekStart = monday.toISOString().split('T')[0];
   const weekEnd   = sunday.toISOString().split('T')[0];
-
   document.getElementById('weekLabel').textContent =
     monday.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' +
     sunday.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
-  // Fetch all availability for this week
   const { data } = await db.from('availability').select('*').lte('start_date',weekEnd).gte('end_date',weekStart);
   const tStr = todayStr();
+  const siblings = ['Catherine','Ellie','JD','James'];
 
   const grid = document.getElementById('weekGrid');
   const days = ['Mo','Tu','We','Th','Fr','Sa','Su'];
-  let html = '';
 
+  let html = '<div class="wk-grid">';
   for (let d = 0; d < 7; d++) {
     const date = new Date(monday);
     date.setDate(monday.getDate() + d);
     const ds = date.toISOString().split('T')[0];
     const isToday = ds === tStr;
+
     const dayEntries = (data||[]).filter(r => r.start_date <= ds && r.end_date >= ds);
 
-    // Sort: free first, busy second; within busy sort by note
-    const sorted = dayEntries.sort((a,b) => {
-      if (a.status !== b.status) return a.status === 'free' ? -1 : 1;
-      return (a.note||'').localeCompare(b.note||'');
-    });
-
-    html += '<div class="week-col">';
-    html += '<div class="week-dow' + (isToday ? ' today-col' : '') + '">' + days[d] + '</div>';
-    html += '<div class="week-day-num' + (isToday ? ' today-num' : '') + '" data-popup="' + ds + '">' + date.getDate() + '</div>';
-
-    sorted.forEach(e => {
-      const noteRaw = e.note || '';
-      // Short label: first 12 chars of note content before any time
-      const label = noteRaw.replace(/\s*\([^)]+(?:am|pm)[^)]*\)/i,'').trim().substring(0,12) ||
-                    e.person.substring(0,6);
-      // Time badge
-      const timeMatch = noteRaw.match(/\(([^)]+(?:am|pm)[^)]*)\)/i);
-      const timeStr = timeMatch ? timeMatch[1] : '';
-
-      html += '<div class="week-event ' + e.status + '" data-popup="' + ds + '" title="' + esc(e.person) + ': ' + esc(noteRaw) + '">';
-      html += '<div style="font-weight:600;font-size:8px">' + esc(e.person.substring(0,3)) + '</div>';
-      if (label) html += '<div>' + esc(label) + '</div>';
-      if (timeStr) html += '<div style="opacity:0.8">' + esc(timeStr) + '</div>';
-      html += '</div>';
-    });
-
+    html += '<div class="wk-col">';
+    html += '<div class="wk-header' + (isToday ? ' today-col' : '') + '" data-popup="' + ds + '" style="cursor:pointer">';
+    html += '<span class="wk-dow">' + days[d] + '</span>';
+    html += '<span class="wk-num' + (isToday ? ' today' : '') + '">' + date.getDate() + '</span>';
     html += '</div>';
+
+    html += '<div class="wk-timeline" data-popup="' + ds + '">';
+
+    // Hour grid lines at 6am, noon, 6pm
+    [6,12,18].forEach(h => {
+      const pct = (h/24)*100;
+      html += '<div class="wk-hour-line" style="top:' + pct + '%" title="' + (h<=12?h+'am':(h-12)+'pm') + '"></div>';
+    });
+
+    // Now line if today
+    if (isToday) {
+      const nowH = now.getHours() + now.getMinutes()/60;
+      html += '<div class="wk-now-line" style="top:' + ((nowH/24)*100).toFixed(1) + '%"></div>';
+    }
+
+    if (!dayEntries.length) {
+      html += '<div class="wk-no-data">-</div>';
+    } else {
+      // Draw segments per sibling, each in its own column within the cell
+      const colWidth = 90 / siblings.length;
+      siblings.forEach((name, si) => {
+        const personEntries = dayEntries.filter(e => e.person === name);
+        const color = SIBLING_COLORS[name] || '#888';
+        const leftPct = 5 + si * colWidth;
+        personEntries.forEach(e => {
+          const timeInfo = parseTimeRange(e.note);
+          let topPct, hPct;
+          if (timeInfo) {
+            topPct = (timeInfo.startHour / 24) * 100;
+            const rawH = timeInfo.overnight ? (24 - timeInfo.startHour) : (timeInfo.endHour - timeInfo.startHour);
+            hPct = Math.max((rawH / 24) * 100, 4);
+          } else {
+            topPct = 0; hPct = 100;
+          }
+          const alpha = e.status === 'free' ? '0.35' : '0.8';
+          const label = e.status === 'free' ? 'F' : '';
+          html += '<div class="wk-timeline-seg" style="top:' + topPct.toFixed(1) + '%;height:' + hPct.toFixed(1) + '%;left:' + leftPct.toFixed(1) + '%;width:' + (colWidth - 1).toFixed(1) + '%;background:' + color + ';opacity:' + alpha + '" title="' + esc(name) + ': ' + esc(e.note || e.status) + '"></div>';
+        });
+      });
+    }
+
+    html += '</div></div>';
   }
+  html += '</div>';
 
-  grid.innerHTML = html;
+  // Time labels on left
+  const timeLabels = '<div style="display:flex;gap:3px;margin-top:2px"><div style="width:18px;flex-shrink:0;position:relative;height:200px">' +
+    ['6a','12p','6p'].map((t,i) => '<div style="position:absolute;top:' + [25,50,75][i] + '%;font-size:8px;color:var(--muted2);font-family:var(--font-mono);line-height:1;transform:translateY(-50%)">' + t + '</div>').join('') +
+    '</div>' +
+    '<div style="flex:1">' + html.replace('<div class="wk-grid">','').replace(/<\/div>$/, '') + '</div></div>';
 
-  // Update calDayData for this week so popup works
-  const weekFreeMap = {}, weekBusyMap = {};
+  grid.innerHTML = '<div class="wk-grid">' + html.slice(html.indexOf('>') + 1);
+
+  // Update calDayData for popup
+  const wfMap = {}, wbMap = {};
   (data||[]).forEach(row => {
-    const map = row.status === 'free' ? weekFreeMap : weekBusyMap;
+    const map = row.status === 'free' ? wfMap : wbMap;
     let cur = new Date(Math.max(new Date(row.start_date+'T12:00:00'), new Date(weekStart+'T12:00:00')));
     const end = new Date(Math.min(new Date(row.end_date+'T12:00:00'), new Date(weekEnd+'T12:00:00')));
     while (cur <= end) {
@@ -2378,8 +2323,9 @@ async function renderWeekView() {
       cur.setDate(cur.getDate()+1);
     }
   });
-  storeDayData(weekFreeMap, weekBusyMap, weekStart, weekEnd);
+  storeDayData(wfMap, wbMap, weekStart, weekEnd);
 }
+
 
 // ── CLEAR ICS IMPORTS ──
 async function clearAllIcs() {
