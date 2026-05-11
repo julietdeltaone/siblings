@@ -263,7 +263,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 /* cal-cols replaced by dot system */
 
 /* PROFILE QUADRANTS */
-.profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;height:calc(100vh - 108px);padding:3px}
+.profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;height:calc(100vh - 112px);max-height:520px;padding:4px}
 .q-card{background:var(--surface);border-radius:var(--r);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:12px 8px}
 .q-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.15s}
 .q-card:nth-child(1)::before{background:radial-gradient(ellipse at top left,rgba(200,240,96,0.08),transparent 70%)}
@@ -271,13 +271,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .q-card:nth-child(3)::before{background:radial-gradient(ellipse at bottom left,rgba(240,200,96,0.08),transparent 70%)}
 .q-card:nth-child(4)::before{background:radial-gradient(ellipse at bottom right,rgba(240,96,200,0.08),transparent 70%)}
 .q-card:active::before{opacity:1}
-.q-avatar{width:52px;height:52px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:22px;color:var(--accent);margin-bottom:10px;position:relative}
+.q-avatar{width:42px;height:42px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:18px;color:var(--accent);margin-bottom:6px;position:relative}
 .q-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:var(--muted2);border:2px solid var(--surface)}
 .q-dot.on{background:var(--success)}
-.q-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;text-align:center}
+.q-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;text-align:center}
 .q-sub{font-size:9px;color:var(--muted);font-family:var(--font-mono);text-align:center}
-.q-stat{font-size:10px;color:var(--accent2);font-family:var(--font-mono);margin-top:5px;text-align:center;padding:0 10px;line-height:1.4}
-.q-preview{font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.q-stat{font-size:9px;color:var(--accent2);font-family:var(--font-mono);margin-top:3px;text-align:center;padding:0 6px;line-height:1.3}
+.q-preview{display:none;font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
 .q-sep{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
 
 /* PLACE AUTOCOMPLETE */
@@ -377,8 +377,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 @keyframes editBorder{0%{border-color:var(--accent)}50%{border-color:rgba(200,240,96,0.4)}100%{border-color:var(--accent)}}
 .edit-mode-banner{display:none;position:fixed;top:0;left:0;right:0;background:rgba(200,240,96,0.12);border-bottom:2px dashed var(--accent);padding:8px 16px;z-index:600;font-size:11px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;text-align:center}
 #appScreen.edit-mode .edit-mode-banner{display:block}
-.edit-panel{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:16px 18px 32px;z-index:600;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)}
-.edit-panel.open{transform:translateY(0)}
+.edit-panel{position:fixed;bottom:0;left:0;right:0;max-width:540px;margin:0 auto;background:var(--surface);border-top:2px solid var(--accent);border-radius:var(--r) var(--r) 0 0;padding:10px 16px 28px;z-index:600;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)}
+.edit-panel.open{transform:translateY(0)}.edit-panel.expanded{padding-bottom:36px}
 .edit-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 14px}
 .edit-panel-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
 .avail-toggle{display:flex;gap:8px;margin-bottom:14px}
@@ -458,8 +458,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .recent-entry-text{font-size:12px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* PROFILE GRID - status line */
-.q-next-free{font-size:9px;color:var(--accent);font-family:var(--font-mono);margin-top:4px;min-height:12px}
-.q-entry-count{font-size:9px;color:var(--muted2);font-family:var(--font-mono);margin-top:2px}
+.q-next-free{font-size:9px;font-size:9px;color:var(--accent);font-family:var(--font-mono);margin-top:4px;min-height:12px}
+.q-entry-count{display:none;font-size:9px;color:var(--muted2);font-family:var(--font-mono);margin-top:2px}
 
 /* OVERLAP CARDS - day of week */
 .ol-dow{font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
@@ -668,35 +668,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 
 
       <!-- CALENDAR TAB - availability-only, color coded by sibling -->
-      <div class="tab-pane" id="tab-cal">
+      <div class="tab-pane" id="tab-cal" style="padding-top:14px">
 
         <!-- EDIT MODE BANNER -->
         <div class="edit-mode-banner" id="editBanner">✦ EDIT MODE — tap a date to mark availability ✦</div>
 
-
-
-        <!-- OVERLAP LIST -->
-        <div id="overlapList" style="margin-bottom:14px"></div>
-
-        <!-- NLP INPUT (collapsed) -->
-        <details style="margin-bottom:8px">
-          <summary style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;cursor:pointer;padding:6px 0;list-style:none;display:flex;align-items:center;justify-content:center;gap:6px">
-            <span style="font-size:12px">＋</span> Type availability in plain text
-          </summary>
-          <div style="margin-top:10px">
-            <textarea id="availInput" placeholder='e.g. "I am free next weekend and Tuesday afternoon"' style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;resize:none;min-height:72px;box-sizing:border-box"></textarea>
-            <button onclick="parseAvailability()" class="btn" style="width:100%;margin-top:8px">Parse with AI</button>
-          </div>
-        </details>
-
-
-        <!-- MY SCHEDULE -->
-        <div id="myScheduleList" style="margin-bottom:14px"></div>
-
-        <div class="divider"></div>
-
         <!-- CALENDAR HEADER -->
-        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 10px;position:relative">
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
           <button class="cal-nav-btn" id="calPrevBtn">&#8249;</button>
           <div class="cal-month-label" id="calMonthLabel" style="min-width:110px;text-align:center">May 2026</div>
           <button class="cal-nav-btn" id="calNextBtn">&#8250;</button>
@@ -705,7 +683,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         </div>
 
         <!-- MONTH GRID -->
-        <div id="calMonthView" style="width:100%;text-align:center">
+        <div id="calMonthView" style="width:100%;margin-bottom:16px">
           <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px">
             <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">S</div>
             <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">M</div>
@@ -719,7 +697,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         </div>
 
         <!-- WEEK VIEW -->
-        <div id="calWeekView" style="display:none;width:100%">
+        <div id="calWeekView" style="display:none;width:100%;margin-bottom:16px">
           <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px">
             <button class="cal-nav-btn" id="weekPrevBtn">&#8249;</button>
             <div class="week-label" id="weekLabel"></div>
@@ -729,10 +707,30 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         </div>
 
         <!-- SUMMARIZE BUTTON -->
-        <button class="summarize-btn" onclick="openSummaryPopup()" style="margin-top:16px">
+        <button class="summarize-btn" onclick="openSummaryPopup()" style="margin-bottom:20px">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           Summarize availability
         </button>
+
+        <div class="divider" style="margin-bottom:16px"></div>
+
+        <!-- OVERLAP LIST -->
+        <div id="overlapList" style="margin-bottom:16px"></div>
+
+        <!-- NLP INPUT -->
+        <details style="margin-bottom:16px;border:1px solid var(--border);border-radius:var(--r);padding:0 12px">
+          <summary style="font-size:11px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;cursor:pointer;padding:12px 0;list-style:none;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Type availability with AI
+          </summary>
+          <div style="padding-bottom:12px">
+            <textarea id="availInput" placeholder='e.g. "Free this weekend and Tuesday afternoon"' style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;resize:none;min-height:64px;box-sizing:border-box;margin-bottom:8px"></textarea>
+            <button onclick="parseAvailability()" class="btn" style="width:100%">Parse with AI</button>
+          </div>
+        </details>
+
+        <!-- MY SCHEDULE -->
+        <div id="myScheduleList" style="margin-bottom:20px"></div>
 
       </div>
       <!-- MAP -->
@@ -817,36 +815,38 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 <!-- EDIT PANEL -->
 <div class="edit-panel" id="editPanel">
   <div class="edit-handle"></div>
-  <div class="edit-panel-title">Mark your availability</div>
 
-  <div class="avail-toggle" id="availToggle">
-    <button class="avail-toggle-btn sel-avail" data-type="available" onclick="setEditType('available')">
-      <span class="avail-dot-preview"></span> Available
-    </button>
-    <button class="avail-toggle-btn" data-type="tentative" onclick="setEditType('tentative')">
-      <span class="avail-dot-preview"></span> Tentative
-    </button>
-  </div>
-
-  <div id="editDayLabel" style="font-size:13px;color:var(--text);margin-bottom:12px;text-align:center;font-family:var(--font-mono)">Tap a day on the calendar</div>
-  <div class="allday-row" id="editAllDayRow" style="display:none">
-    <input type="checkbox" id="editAllDay" onchange="toggleEditTimes()">
-    <label for="editAllDay" style="font-size:12px;color:var(--text)">All day</label>
-  </div>
-  <div id="editTimeRow" style="display:none;gap:8px;margin-bottom:14px">
-    <div class="edit-date-row" style="margin-bottom:8px">
-      <label>Start</label>
-      <input type="time" id="editStartTime" value="09:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
+  <!-- STRIP ROW: always visible when panel open -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:0" id="editStripRow">
+    <div class="avail-toggle" id="availToggle" style="flex:1;margin-bottom:0">
+      <button class="avail-toggle-btn sel-avail" data-type="available" onclick="setEditType('available')">
+        <span class="avail-dot-preview"></span> Available
+      </button>
+      <button class="avail-toggle-btn" data-type="tentative" onclick="setEditType('tentative')">
+        <span class="avail-dot-preview"></span> Tentative
+      </button>
     </div>
-    <div class="edit-date-row" style="margin-bottom:0">
-      <label>End</label>
-      <input type="time" id="editEndTime" value="17:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
-    </div>
+    <button class="btn btn-ghost" style="flex-shrink:0;padding:8px 14px;font-size:11px" onclick="cancelEditMode()">✕</button>
   </div>
 
-  <div class="edit-actions">
-    <button class="btn btn-ghost" style="flex:1" onclick="cancelEditMode()">Cancel</button>
-    <button class="btn" style="flex:2" onclick="saveEditMode()">Save</button>
+  <!-- EXPANDED SECTION: shown after day is tapped -->
+  <div id="editExpanded" style="display:none;margin-top:12px">
+    <div id="editDayLabel" style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;text-align:center;font-family:var(--font-mono)">—</div>
+    <div class="allday-row" style="margin-bottom:10px">
+      <input type="checkbox" id="editAllDay" onchange="toggleEditTimes()">
+      <label for="editAllDay" style="font-size:12px;color:var(--text)">All day</label>
+    </div>
+    <div id="editTimeRow" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+      <div class="edit-date-row" style="margin-bottom:0">
+        <label>Start</label>
+        <input type="time" id="editStartTime" value="09:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
+      </div>
+      <div class="edit-date-row" style="margin-bottom:0">
+        <label>End</label>
+        <input type="time" id="editEndTime" value="17:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
+      </div>
+    </div>
+    <button class="btn" style="width:100%" onclick="saveEditMode()">Save</button>
   </div>
 </div>
 
@@ -2930,14 +2930,14 @@ function enterEditMode() {
   editCurrentDay = null;
   document.getElementById('appScreen').classList.add('edit-mode');
   document.getElementById('calAddBtn').style.display = 'none';
-  // Show panel but in "waiting" state
-  document.getElementById('editPanel').classList.add('open');
-  document.getElementById('editDayLabel').textContent = 'Tap a day on the calendar ↑';
-  document.getElementById('editAllDayRow').style.display = 'none';
-  document.getElementById('editTimeRow').style.display = 'none';
-  // Reset all-day to unchecked
-  const ad = document.getElementById('editAllDay');
-  if (ad) ad.checked = false;
+  // Open compact strip
+  const panel = document.getElementById('editPanel');
+  panel.classList.add('open');
+  panel.classList.remove('expanded');
+  document.getElementById('editExpanded').style.display = 'none';
+  // Pad cal tab so grid clears the strip (~80px)
+  const calTab = document.getElementById('tab-cal');
+  if (calTab) calTab.style.paddingBottom = '90px';
   renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
 }
 
@@ -2946,7 +2946,12 @@ function cancelEditMode() {
   editCurrentDay = null;
   document.getElementById('appScreen').classList.remove('edit-mode');
   document.getElementById('calAddBtn').style.display = '';
-  document.getElementById('editPanel').classList.remove('open');
+  const panel = document.getElementById('editPanel');
+  panel.classList.remove('open', 'expanded');
+  document.getElementById('editExpanded').style.display = 'none';
+  // Remove bottom padding
+  const calTab = document.getElementById('tab-cal');
+  if (calTab) calTab.style.paddingBottom = '';
   renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
 }
 
@@ -2971,13 +2976,23 @@ function tapEditDay(ds) {
   const dateObj = new Date(+y,+m-1,+d);
   const label = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('editDayLabel').textContent = label;
-  document.getElementById('editAllDayRow').style.display = 'flex';
-  const allDay = document.getElementById('editAllDay')?.checked === true;
-  document.getElementById('editTimeRow').style.display = allDay ? 'none' : 'flex';
+  // Reset allDay to unchecked, show time row
+  const ad = document.getElementById('editAllDay');
+  if (ad) ad.checked = false;
+  document.getElementById('editTimeRow').style.display = 'flex';
+  // Expand the panel
+  const panel = document.getElementById('editPanel');
+  panel.classList.add('expanded');
+  document.getElementById('editExpanded').style.display = 'block';
+  // More padding now that panel is taller
+  const calTab = document.getElementById('tab-cal');
+  if (calTab) calTab.style.paddingBottom = '260px';
   // Highlight selected day
   document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('edit-selected'));
   const dayEl = document.querySelector(`.cal-day[data-date="${ds}"]`);
   if (dayEl) dayEl.classList.add('edit-selected');
+  // Scroll so selected day is visible above the panel
+  if (dayEl) dayEl.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 async function saveEditMode() {
@@ -3001,9 +3016,12 @@ async function saveEditMode() {
   showToast(editType === 'available' ? '✓ Saved' : '✓ Tentative saved');
   // Reset panel to waiting for next tap, don't exit edit mode
   editCurrentDay = null;
-  document.getElementById('editDayLabel').textContent = 'Tap another day, or Save ↑';
-  document.getElementById('editAllDayRow').style.display = 'none';
-  document.getElementById('editTimeRow').style.display = 'none';
+  // Collapse panel back to strip
+  const panel = document.getElementById('editPanel');
+  panel.classList.remove('expanded');
+  document.getElementById('editExpanded').style.display = 'none';
+  const calTab = document.getElementById('tab-cal');
+  if (calTab) calTab.style.paddingBottom = '90px';
   document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('edit-selected'));
   loadCalendarData();
   refreshSynopsisIfVisible();
