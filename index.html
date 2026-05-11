@@ -161,7 +161,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .cal-nav-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:var(--r-sm);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.1s}
 .cal-nav-btn:active{border-color:var(--accent)}
 .cal-month{font-family:var(--font-head);font-size:20px;color:var(--text)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
 .cal-dow{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;padding:5px 0}
 .cal-day{aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;border-radius:6px;font-size:11px;font-family:var(--font-mono);color:var(--muted);position:relative;overflow:hidden}
 .cal-day.in-month{color:var(--text)}
@@ -259,12 +259,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .step.done + .step-line{background:var(--accent)}
 
 /* CALENDAR DAY CELLS - sibling timeline columns */
-.cal-day{position:relative;overflow:hidden;aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;border-radius:var(--r-sm);font-size:12px;font-family:var(--font-mono);color:var(--muted);cursor:pointer;transition:background 0.1s}.cal-day:active{background:var(--surface2)}
-.cal-cols{position:absolute;bottom:2px;left:2px;right:2px;top:18px;display:flex;gap:1px;pointer-events:none}
-.cal-col{flex:1;position:relative;overflow:hidden}
-.cal-seg{position:absolute;left:0;right:0;border-radius:2px;min-height:2px}
-.cal-seg.busy{opacity:0.85}
-.cal-seg.free{opacity:0.4}
+.cal-day{position:relative;overflow:hidden;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 3px 5px;border-radius:var(--r-sm);font-size:12px;font-family:var(--font-mono);color:var(--muted);cursor:pointer;transition:all 0.12s;border:1px solid transparent}.cal-day:active,.cal-day:hover{background:var(--surface2)}.cal-day.has-all{border-color:rgba(200,240,96,0.35);background:rgba(200,240,96,0.05)}.cal-day-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;width:100%}.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:transform 0.1s}.cal-dot.free{opacity:1}.cal-dot.absent{opacity:0.12;background:var(--border2) !important}
+/* cal-cols replaced by dot system */
 
 /* PROFILE QUADRANTS */
 .profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;min-height:calc(100vh - 118px)}
@@ -753,23 +749,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           <button class="sec-action" id="clearAllIcsBtn" style="color:var(--danger)">Clear imports</button>
         </div>
 
-        <!-- SIBLING COLOR LEGEND -->
-        <div id="calLegend" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
-            <div style="width:10px;height:10px;border-radius:2px;background:#60c8f0"></div>Catherine
+        <!-- SIBLING DOT LEGEND -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#60c8f0"></div>Catherine</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#f060c8"></div>Ellie</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#c8f060"></div>JD</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#f0c860"></div>James</div>
           </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
-            <div style="width:10px;height:10px;border-radius:2px;background:#f060c8"></div>Ellie
-          </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
-            <div style="width:10px;height:10px;border-radius:2px;background:#c8f060"></div>JD
-          </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
-            <div style="width:10px;height:10px;border-radius:2px;background:#f0c860"></div>James
-          </div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">
-            <div style="width:8px;height:8px;border-radius:50%;background:rgba(200,240,96,0.6)"></div>All free
-          </div>
+          <div style="font-size:9px;color:var(--muted);font-family:var(--font-mono)">filled dot = free</div>
         </div>
 
         <!-- MONTH VIEW -->
@@ -1918,7 +1906,7 @@ async function loadCalendarData() {
   const freeMap = buildFreeMap(freeResp.data||[], monthStart, monthEnd);
   const busyMap = buildBusyMap(busyResp.data||[], monthStart, monthEnd);
   storeDayData(freeMap, busyMap, monthStart, monthEnd);
-  renderCalendar(freeMap, busyMap);
+  renderCalendar(freeMap);
   renderOverlapList(freeMap, monthStart, monthEnd);
   renderMySchedule(monthStart, monthEnd);
 }
@@ -2499,7 +2487,7 @@ function closeDayPopup() {
   if (p) p.classList.remove('open');
 }
 
-function renderCalendar(freeMap, busyMap) {
+function renderCalendar(freeMap) {
   const grid = document.getElementById('calGrid');
   if (!grid) return;
   grid.innerHTML = '';
@@ -2570,105 +2558,105 @@ async function renderWeekView() {
   const now = new Date();
   const day = now.getDay();
   const monday = new Date(now);
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + weekOffset * 7);
+  monday.setDate(now.getDate() - (day===0?6:day-1) + weekOffset*7);
   monday.setHours(0,0,0,0);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
   const weekStart = monday.toISOString().split('T')[0];
   const weekEnd   = sunday.toISOString().split('T')[0];
+
   document.getElementById('weekLabel').textContent =
-    monday.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' +
+    monday.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' +
     sunday.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
-  const { data } = await db.from('availability').select('*').lte('start_date',weekEnd).gte('end_date',weekStart);
+  const { data } = await db.from('availability').select('*').eq('status','free').lte('start_date',weekEnd).gte('end_date',weekStart);
   const tStr = todayStr();
   const siblings = ['Catherine','Ellie','JD','James'];
-
-  const grid = document.getElementById('weekGrid');
   const days = ['Mo','Tu','We','Th','Fr','Sa','Su'];
 
-  let html = '<div class="wk-grid">';
-  for (let d = 0; d < 7; d++) {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + d);
+  const grid = document.getElementById('weekGrid');
+
+  // Check if any sibling has free time this week
+  const hasFreeTime = data && data.length > 0;
+
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
+
+  for (let d=0; d<7; d++) {
+    const date = new Date(monday); date.setDate(monday.getDate()+d);
     const ds = date.toISOString().split('T')[0];
     const isToday = ds === tStr;
+    const dayEntries = (data||[]).filter(r => r.start_date <= ds && r.end_date >= ds && r.status === 'free');
+    const freeSet = new Set(dayEntries.map(e => e.person));
+    const allFree = siblings.every(s => freeSet.has(s));
 
-    const dayEntries = (data||[]).filter(r => r.start_date <= ds && r.end_date >= ds);
+    html += '<div style="display:flex;flex-direction:column;gap:3px" data-popup="' + ds + '">';
 
-    html += '<div class="wk-col">';
-    html += '<div class="wk-header' + (isToday ? ' today-col' : '') + '" data-popup="' + ds + '" style="cursor:pointer">';
-    html += '<span class="wk-dow">' + days[d] + '</span>';
-    html += '<span class="wk-num' + (isToday ? ' today' : '') + '">' + date.getDate() + '</span>';
+    // Day header
+    html += '<div style="text-align:center;padding:6px 2px 8px;cursor:pointer;border-bottom:1px solid var(--border);margin-bottom:2px' +
+      (isToday ? ';background:rgba(96,200,240,0.05);border-radius:var(--r-sm) var(--r-sm) 0 0' : '') + '">';
+    html += '<div style="font-size:9px;font-family:var(--font-mono);color:' + (isToday?'var(--accent2)':'var(--muted)') + ';text-transform:uppercase">' + days[d] + '</div>';
+    html += '<div style="font-size:16px;font-family:var(--font-head);color:' + (isToday?'var(--accent2)':'var(--text)') + ';font-weight:' + (isToday?'700':'400') + '">' + date.getDate() + '</div>';
+    if (allFree && siblings.length > 1) {
+      html += '<div style="font-size:8px;color:var(--accent);font-family:var(--font-mono);margin-top:2px">ALL FREE</div>';
+    }
     html += '</div>';
 
-    html += '<div class="wk-timeline" data-popup="' + ds + '">';
-
-    // Hour grid lines at 6am, noon, 6pm
-    [6,12,18].forEach(h => {
-      const pct = (h/24)*100;
-      html += '<div class="wk-hour-line" style="top:' + pct + '%" title="' + (h<=12?h+'am':(h-12)+'pm') + '"></div>';
-    });
-
-    // Now line if today
-    if (isToday) {
-      const nowH = now.getHours() + now.getMinutes()/60;
-      html += '<div class="wk-now-line" style="top:' + ((nowH/24)*100).toFixed(1) + '%"></div>';
-    }
-
-    if (!dayEntries.length) {
-      html += '<div class="wk-no-data">-</div>';
+    // Sibling availability blocks
+    if (dayEntries.length === 0) {
+      html += '<div style="padding:8px 0;text-align:center;font-size:9px;color:var(--muted2);font-family:var(--font-mono)">—</div>';
     } else {
-      // Draw segments per sibling, each in its own column within the cell
-      const colWidth = 90 / siblings.length;
-      siblings.forEach((name, si) => {
-        const personEntries = dayEntries.filter(e => e.person === name);
+      siblings.forEach(name => {
+        const isFree = freeSet.has(name);
         const color = SIBLING_COLORS[name] || '#888';
-        const leftPct = 5 + si * colWidth;
-        personEntries.forEach(e => {
-          const timeInfo = parseTimeRange(e.note);
-          let topPct, hPct;
-          if (timeInfo) {
-            topPct = (timeInfo.startHour / 24) * 100;
-            const rawH = timeInfo.overnight ? (24 - timeInfo.startHour) : (timeInfo.endHour - timeInfo.startHour);
-            hPct = Math.max((rawH / 24) * 100, 4);
-          } else {
-            topPct = 0; hPct = 100;
-          }
-          const alpha = e.status === 'free' ? '0.35' : '0.8';
-          const label = e.status === 'free' ? 'F' : '';
-          html += '<div class="wk-timeline-seg" style="top:' + topPct.toFixed(1) + '%;height:' + hPct.toFixed(1) + '%;left:' + leftPct.toFixed(1) + '%;width:' + (colWidth - 1).toFixed(1) + '%;background:' + color + ';opacity:' + alpha + '" title="' + esc(name) + ': ' + esc(e.note || e.status) + '"></div>';
-        });
+        const entry = dayEntries.find(e => e.person === name);
+        const note = entry ? shortenNote(entry.note||'') : '';
+        const timeMatch = note.match(/\(([^)]+(?:am|pm)[^)]*)\)/i);
+        const timeStr = timeMatch ? timeMatch[1] : '';
+
+        html += '<div style="border-radius:5px;padding:5px 4px;background:' +
+          (isFree ? color+'18' : 'transparent') +
+          ';border:1px solid ' +
+          (isFree ? color+'50' : 'transparent') +
+          ';transition:all 0.1s;min-height:28px">';
+
+        if (isFree) {
+          html += '<div style="display:flex;align-items:center;gap:3px">';
+          html += '<div style="width:6px;height:6px;border-radius:50%;background:' + color + ';flex-shrink:0"></div>';
+          html += '<div style="font-size:9px;font-family:var(--font-mono);color:' + color + ';font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + name.substring(0,3) + '</div>';
+          html += '</div>';
+          if (timeStr) html += '<div style="font-size:8px;color:var(--muted);font-family:var(--font-mono);margin-top:2px">' + esc(timeStr) + '</div>';
+        }
+        html += '</div>';
       });
     }
 
-    html += '</div></div>';
+    html += '</div>';
   }
+
   html += '</div>';
 
-  // Time labels on left
-  const timeLabels = '<div style="display:flex;gap:3px;margin-top:2px"><div style="width:18px;flex-shrink:0;position:relative;height:200px">' +
-    ['6a','12p','6p'].map((t,i) => '<div style="position:absolute;top:' + [25,50,75][i] + '%;font-size:8px;color:var(--muted2);font-family:var(--font-mono);line-height:1;transform:translateY(-50%)">' + t + '</div>').join('') +
-    '</div>' +
-    '<div style="flex:1">' + html.replace('<div class="wk-grid">','').replace(/<\/div>$/, '') + '</div></div>';
+  // No free time message
+  if (!hasFreeTime) {
+    html += '<div style="text-align:center;padding:20px;margin-top:8px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border)">';
+    html += '<div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px">No free time logged this week</div>';
+    html += '<div style="font-size:11px;color:var(--muted2);font-family:var(--font-mono)">Go to Avail tab to add your availability</div>';
+    html += '</div>';
+  }
 
-  grid.innerHTML = '<div class="wk-grid">' + html.slice(html.indexOf('>') + 1);
+  grid.innerHTML = html;
 
   // Update calDayData for popup
-  const wfMap = {}, wbMap = {};
+  const wfMap = {};
   (data||[]).forEach(row => {
-    const map = row.status === 'free' ? wfMap : wbMap;
     let cur = new Date(Math.max(new Date(row.start_date+'T12:00:00'), new Date(weekStart+'T12:00:00')));
     const end = new Date(Math.min(new Date(row.end_date+'T12:00:00'), new Date(weekEnd+'T12:00:00')));
-    while (cur <= end) {
-      const k = cur.toISOString().split('T')[0];
-      if (!map[k]) map[k] = [];
-      map[k].push({person:row.person, note:row.note});
+    while (cur<=end) {
+      const k=cur.toISOString().split('T')[0];
+      if (!wfMap[k]) wfMap[k]=[];
+      wfMap[k].push({person:row.person,note:row.note});
       cur.setDate(cur.getDate()+1);
     }
   });
-  storeDayData(wfMap, wbMap, weekStart, weekEnd);
+  storeDayData(wfMap, {}, weekStart, weekEnd);
 }
 
 
@@ -2808,4 +2796,65 @@ function escAttr(str) { return(str||'').replace(/'/g,'&#39;').replace(/"/g,'&quo
 function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
 </script>
 </body>
-</html>
+</htmlfunction renderCalendar(freeMap) {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const days = new Date(calYear, calMonth+1, 0).getDate();
+  const tStr = todayStr();
+  const siblings = ['Catherine','Ellie','JD','James'];
+
+  // Blank cells before month starts
+  for (let i=0; i<firstDay.getDay(); i++) {
+    const el = document.createElement('div'); el.className = 'cal-day'; grid.appendChild(el);
+  }
+
+  for (let d=1; d<=days; d++) {
+    const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const el = document.createElement('div');
+    el.className = 'cal-day in-month';
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => openDayPopup(ds));
+
+    // Day number
+    const numEl = document.createElement('span');
+    numEl.textContent = d;
+    numEl.style.fontFamily = 'var(--font-mono)';
+    numEl.style.fontSize = '11px';
+    if (ds === tStr) {
+      numEl.style.color = 'var(--accent2)';
+      numEl.style.fontWeight = '700';
+    }
+    el.appendChild(numEl);
+
+    // Sibling dots
+    const freeEntries = freeMap[ds];
+    const freeSet = new Set((freeEntries||[]).map(e => e.person));
+    const allFree = siblings.every(s => freeSet.has(s));
+    if (allFree) el.classList.add('has-all');
+
+    if (freeEntries && freeEntries.length) {
+      const dots = document.createElement('div');
+      dots.className = 'cal-day-dots';
+      siblings.forEach(name => {
+        const dot = document.createElement('div');
+        dot.className = 'cal-dot ' + (freeSet.has(name) ? 'free' : 'absent');
+        dot.style.background = SIBLING_COLORS[name] || '#888';
+        dot.title = name + (freeSet.has(name) ? ' free' : ' busy');
+        dots.appendChild(dot);
+      });
+      el.appendChild(dots);
+    }
+
+    grid.appendChild(el);
+  }
+}
+
+>
