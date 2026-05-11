@@ -1004,15 +1004,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
   </div>
 
   <!-- EXPANDED SECTION: shown after day is tapped -->
-  <div id="editExpanded" style="display:none;margin-top:12px">
+  <div id="editExpanded" style="display:none;margin-top:12px;overflow:hidden">
     <div id="editDayLabel" style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;text-align:center;font-family:var(--font-mono)">—</div>
     <div class="allday-row" style="margin-bottom:10px">
       <input type="checkbox" id="editAllDay" onchange="toggleEditTimes()">
       <label for="editAllDay" style="font-size:12px;color:var(--text)">All day</label>
     </div>
-    <div style="margin-bottom:10px">
-      <label style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">End Date <span style="color:var(--muted2);font-size:9px">(optional, for multi-day)</span></label>
-      <input type="date" id="editEndDate" style="width:100%;max-width:100%;box-sizing:border-box;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px;display:block">
+    <div style="margin-bottom:10px;overflow:hidden">
+      <label style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">End Date <span style="color:var(--muted2)">(optional)</span></label>
+      <input type="date" id="editEndDate" style="width:calc(100% - 2px);box-sizing:border-box;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px;display:block;min-width:0">
     </div>
     <div id="editTimeRow" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
       <div class="edit-date-row" style="margin-bottom:0">
@@ -3342,6 +3342,11 @@ async function tapEditDay(ds) {
   const dateObj = new Date(+y,+m-1,+d);
   const label = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('editDayLabel').textContent = label;
+  // Default end date to day+1 (suggests a range but doesn't force one)
+  const nextDay = new Date(dateObj); nextDay.setDate(dateObj.getDate() + 1);
+  const nextDayStr = nextDay.toISOString().split('T')[0];
+  const endDateEl = document.getElementById('editEndDate');
+  if (endDateEl) { endDateEl.value = nextDayStr; endDateEl.min = ds; }
 
   // Check if user already has an entry for this day (UX 9: pre-populate, UX 8: warn)
   const { data: existing } = await db.from('availability').select('*')
@@ -3782,9 +3787,7 @@ function copyLastTimes() {
 function initEditPanel() {
   const startEl = document.getElementById('editStartTime');
   const endEl   = document.getElementById('editEndTime');
-  // Set editEndDate min to today
-  const edEl = document.getElementById('editEndDate');
-  if (edEl) edEl.min = todayStr();
+  // editEndDate min is set dynamically per tap in tapEditDay
 }
 
 </script>
