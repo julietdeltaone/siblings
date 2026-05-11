@@ -728,25 +728,25 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <!-- HOW TO USE HINT -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:14px">
           <div style="font-size:9px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px">How to use</div>
-          <div style="display:flex;flex-direction:column;gap:7px">
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="font-size:14px;flex-shrink:0">👆</span>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="6" x2="12" y2="6.01"/><line x1="12" y1="10" x2="12" y2="18"/></svg>
               <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap a day</strong> to see who is free</span>
             </div>
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="font-size:14px;flex-shrink:0">✦</span>
-              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap +</strong> to enter edit mode and mark your availability</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap +</strong> to mark your availability</span>
             </div>
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="font-size:14px;flex-shrink:0">👈</span>
-              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Swipe left / right</strong> or use ‹ › to change months</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><polyline points="15 18 9 12 15 6"/></svg>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Swipe or tap ‹ ›</strong> to change months</span>
             </div>
-            <div style="display:flex;align-items:flex-start;gap:10px;padding-top:6px;border-top:1px solid var(--border)">
-              <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <div style="display:flex;align-items:center;gap:10px;padding-top:6px;border-top:1px solid var(--border)">
+              <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
                 <div style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
                 <div style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--accent2)"></div>
               </div>
-              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Solid dot</strong> = available · <strong style="color:var(--text)">Dashed</strong> = tentative</span>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Solid</strong> = available · <strong style="color:var(--text)">Dashed</strong> = tentative</span>
             </div>
           </div>
         </div>
@@ -1183,7 +1183,7 @@ function showScreen(id) {
       const banner = document.createElement('div');
       banner.id = 'previewBanner';
       banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(200,240,96,0.12);border:1px solid rgba(200,240,96,0.3);border-radius:8px;padding:8px 14px;font-size:10px;font-family:var(--font-mono);color:var(--accent);z-index:9999;pointer-events:none;white-space:nowrap;letter-spacing:1px';
-      banner.textContent = '⚡ PREVIEW MODE — deploy to use real data';
+      banner.textContent = 'PREVIEW MODE — deploy to use real data';
       document.body.appendChild(banner);
     }
   }
@@ -2132,7 +2132,7 @@ function openDayPopup(ds) {
       freeList.forEach(n => {
         const color = SIBLING_COLORS[n]||'#888';
         const entry = freeMap[ds].find(e => e.person===n);
-        const note = entry?.notes ? ' · ' + entry.notes : '';
+        const note = entry?.note ? ' · ' + entry.note : '';
         html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
           <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
           <div style="font-size:12px;color:var(--text)">${n}${note}</div></div>`;
@@ -2346,7 +2346,7 @@ async function loadAvailSynopsis() {
   const el = document.getElementById('availSynopsis');
   if (!el) return;
   if (PREVIEW_MODE) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono);text-align:center;padding:12px 0">⚡ Deploy to see AI availability analysis</div>';
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono);text-align:center;padding:12px 0">Deploy to see AI availability analysis</div>';
     return;
   }
   el.innerHTML = '<div class="empty-state" style="padding:12px 0"><span class="spinner"></span> Analyzing schedules...</div>';
@@ -3037,7 +3037,7 @@ async function openSummaryPopup() {
   document.getElementById('summaryOverlay').classList.add('open');
   document.getElementById('summaryPopup').classList.add('open');
   if (PREVIEW_MODE) {
-    document.getElementById('summaryContent').innerHTML = '<div style="text-align:center;padding:20px 0;font-size:13px;color:var(--muted)">⚡ Deploy to see AI summary</div>';
+    document.getElementById('summaryContent').innerHTML = '<div style="text-align:center;padding:20px 0;font-size:13px;color:var(--muted)">Deploy to see AI summary</div>';
     return;
   }
   document.getElementById('summaryContent').innerHTML = '<div class="empty-state"><span class="spinner"></span> Asking Claude...</div>';
