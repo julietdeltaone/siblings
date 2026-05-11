@@ -72,7 +72,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 
 /* TABS */
 .tab-pane{display:none;padding:18px 18px 100px;max-width:540px;margin:0 auto}
-.tab-pane.active{display:block;animation:fadeUp 0.18s ease}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
 /* SECTION */
@@ -122,7 +122,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a5a72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
 .textarea{resize:vertical;min-height:80px}
 .btn{width:100%;padding:14px;background:var(--accent);color:var(--bg);border:none;border-radius:var(--r);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:var(--font-body);cursor:pointer;transition:opacity 0.1s}
-.btn:active{opacity:0.8}
+.btn:active{opacity:0.8;transform:scale(0.96);opacity:0.85}
 .btn:disabled{opacity:0.35;cursor:not-allowed}
 .btn-sec{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
 .btn-row{display:flex;gap:8px}
@@ -175,7 +175,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 
 /* AVAIL ITEMS */
-.avail-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.avail-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);animation:fadeUp 0.15s ease both}
 .avail-item:last-child{border-bottom:none}
 .avail-badge{padding:2px 8px;border-radius:999px;font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;flex-shrink:0;margin-top:2px}
 .avail-badge.free{background:rgba(200,240,96,0.12);color:var(--accent);border:1px solid rgba(200,240,96,0.2)}
@@ -319,7 +319,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .day-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:800;display:none;align-items:flex-end;justify-content:center;transition:background 0.2s}
 .day-popup-overlay.open{display:flex;background:rgba(0,0,0,0.6)}
 .day-popup{background:var(--surface);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:540px;max-height:72vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)}
-.day-popup-overlay.open .day-popup{transform:translateY(0)}
+
 .day-popup-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:12px auto 0}
 .day-popup-header{padding:12px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
 .day-popup-date{font-family:var(--font-head);font-size:22px;color:var(--text)}
@@ -465,8 +465,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .ol-dow{font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
 
 /* SMOOTH TAB TRANSITIONS */
-.tab-pane{animation:none}
-.tab-pane.active{animation:tabIn 0.18s cubic-bezier(0.22,1,0.36,1)}
+
+
 @keyframes tabIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ONBOARDING HINT */
@@ -561,7 +561,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 
 /* Tab switches */
 .tab-pane{animation:none}
-.tab-pane.active{animation:tabSlideIn 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both}
+.tab-pane.active{display:block;animation:tabSlideIn 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both}
 @keyframes tabSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* Calendar dots stagger in */
@@ -571,10 +571,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 /* Day tap ripple */
 .cal-day.in-month:active{transform:scale(0.88);transition:transform 0.1s}
 
-/* Edit panel slide up */
-#editPanel{transition:transform 0.28s cubic-bezier(0.32,0.72,0,1),opacity 0.2s}
-#editPanel.hidden{transform:translateY(100%);opacity:0;pointer-events:none}
-#editPanel:not(.hidden){transform:translateY(0);opacity:1}
+/* Edit panel uses .edit-panel.open class via existing CSS */
 
 /* Profile card tap */
 .q-card{transition:transform 0.15s,background 0.12s}
@@ -599,7 +596,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 
 /* Button press */
 .btn{transition:transform 0.1s,opacity 0.1s}
-.btn:active{transform:scale(0.96);opacity:0.85}
+
 
 /* Dot stagger (applied via JS) */
 .cal-dot{transition:opacity 0.2s,transform 0.2s}
@@ -617,7 +614,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 @keyframes editPulse{0%,100%{opacity:0.6}50%{opacity:1}}
 
 /* Avail item appear */
-.avail-item{animation:fadeUp 0.15s ease both}
+
 
 /* Month label transition */
 #calMonthLabel{transition:opacity 0.15s}
@@ -1378,7 +1375,8 @@ function lockApp() { currentUser = null; sessionStorage.removeItem('siblings_ses
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
+  const pane = document.getElementById('tab-' + name);
+  if (pane) { pane.classList.add('active'); if (name === 'profiles') pane.style.animation = 'none'; else pane.style.animation = ''; }
   if (btn) btn.classList.add('active');
   // On profiles, hide overflow so grid fills screen perfectly
   const appContent = document.querySelector('.app-content');
