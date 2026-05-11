@@ -1132,10 +1132,16 @@ document.addEventListener('DOMContentLoaded', () => {
     delAvail(btn.dataset.delAvail);
   });
   // Delete my schedule items
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('[data-del-my]');
-    if (!btn) return;
-    delMyAvail(btn.dataset.delMy);
+  document.addEventListener('click', async e => {
+    const delBtn = e.target.closest('[data-del-my]');
+    if (delBtn) { delMyAvail(delBtn.dataset.delMy); return; }
+    const toggleBtn = e.target.closest('[data-toggle-type]');
+    if (toggleBtn) {
+      const nextType = toggleBtn.dataset.nextType;
+      await db.from('availability').update({ type: nextType }).eq('id', toggleBtn.dataset.toggleType);
+      showToast(nextType === 'available' ? '✓ Marked available' : '✓ Marked tentative');
+      loadCalendarData();
+    }
   });
   initIcsDrop();
   document.getElementById('saveIcsBtn').addEventListener('click', saveIcsEvents);
@@ -2147,14 +2153,26 @@ function openDayPopup(ds) {
       html += '<div style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Tentative</div>';
       tentList.forEach(n => {
         const color = SIBLING_COLORS[n]||'#888';
+        const tentEntry = tentMap[ds].find(e => e.person===n);
+        const tentNote = tentEntry?.note ? ' · ' + fmtNote(tentEntry.note) : '';
         html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
           <div style="width:8px;height:8px;border-radius:50%;background:transparent;border:1.5px dashed ${color};flex-shrink:0"></div>
-          <div style="font-size:12px;color:var(--text)">${n}</div></div>`;
+          <div style="font-size:12px;color:var(--text)">${n}${tentNote}</div></div>`;
       });
       html += '</div>';
     }
   } else {
     html += `<div style="padding:16px 0;text-align:center"><div style="color:var(--muted);font-size:12px;margin-bottom:12px">No availability marked for this day.</div><button onclick="closeDayPopup();enterEditMode('${ds}');" style="padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:var(--r-sm);font-size:12px;font-family:var(--font-mono);font-weight:600;cursor:pointer">+ Mark yourself free</button></div>`;
+  }
+
+  // Overlap indicator
+  if (freeList.length >= 2) {
+    const overlapColors = freeList.map(n => SIBLING_COLORS[n]||'#888');
+    const dots = overlapColors.map(c => `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};margin-right:3px"></span>`).join('');
+    const tag = freeList.length >= 4
+      ? '<div style="background:rgba(200,240,96,0.12);border:1px solid rgba(200,240,96,0.35);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent);fill:none;stroke-width:2;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent)">Everyone is free — great day to meet!</span></div>'
+      : `<div style="background:rgba(200,240,96,0.07);border:1px solid rgba(200,240,96,0.2);border-radius:var(--r-sm);padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px">${dots}<span style="font-size:12px;color:var(--muted)">${freeList.length} people free — potential overlap</span></div>`;
+    html = tag + html;
   }
 
   if (bodyEl) bodyEl.innerHTML = html;
@@ -2178,9 +2196,17 @@ async function renderMySchedule(monthStart, monthEnd) {
     if (noteStr) out += '<div class="avail-note">' + esc(noteStr) + '</div>';
     if (r.source) out += '<div class="avail-src">via ' + r.source + '</div>';
     out += '</div>';
+    // Toggle type button (available ↔ tentative)
+    const nextType = (r.type === 'tentative') ? 'available' : 'tentative';
+    const typeIcon = r.type === 'tentative'
+      ? '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    const typeTitle = r.type === 'tentative' ? 'Mark available' : 'Mark tentative';
+    out += '<div style="display:flex;gap:4px;align-items:center">';
+    out += '<button class="avail-del" title="' + typeTitle + '" data-toggle-type="' + r.id + '" data-next-type="' + nextType + '" style="opacity:0.6">' + typeIcon + '</button>';
     out += '<button class="avail-del" data-del-my="' + r.id + '">';
     out += '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
-    out += '</button></div>';
+    out += '</button></div></div>';
     return out;
   }).join('');
 }
@@ -3067,22 +3093,92 @@ async function openSummaryPopup() {
   document.getElementById('summaryContent').innerHTML = '<div class="empty-state"><span class="spinner"></span> Asking Claude...</div>';
 
   try {
-    const firstDay = new Date(calYear, calMonth, 1);
-    const lastDay = new Date(calYear, calMonth+1, 0);
-    const monthStart = firstDay.toISOString().split('T')[0];
-    const monthEnd = lastDay.toISOString().split('T')[0];
-    const { data } = await db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart);
+    const tStr = todayStr();
+    const { data } = await db.from('availability').select('*').eq('status','free').gte('end_date', tStr).order('start_date',{ascending:true}).limit(200);
 
-    const resp = await fetch(CONFIG.EDGE_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':CONFIG.SUPABASE_ANON_KEY,'Authorization':'Bearer '+CONFIG.SUPABASE_ANON_KEY},
-      body: JSON.stringify({ mode:'synopsis', data })
+    if (!data || !data.length) {
+      document.getElementById('summaryContent').innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">No availability data yet — add some first.</div>';
+      return;
+    }
+
+    // Build readable summary for Claude
+    const byPerson = {};
+    data.forEach(r => {
+      if (!byPerson[r.person]) byPerson[r.person] = [];
+      const ds = r.start_date === r.end_date ? r.start_date : r.start_date + ' to ' + r.end_date;
+      byPerson[r.person].push((r.type==='tentative'?'tentative':'available') + ' ' + ds + (r.note ? ' (' + fmtNote(r.note) + ')' : ''));
     });
+    const summaryText = Object.entries(byPerson).map(([n,e]) => n + ': ' + e.join(', ')).join(' | ');
+    const prompt = 'You help 4 siblings (Catherine, Ellie, JD, James) find time to meet. Today is ' + tStr + '. Availability: ' + summaryText + '. Reply in EXACTLY this format - no other text:\nOVERVIEW: [one direct sentence]\nBEST WINDOW: [specific dates when 2+ are free, or None yet]\nWHO IS FREE: [names with dates]\nBLOCKERS: [key conflicts brief, or None]\nNEXT STEP: [one action item]';
+
+    const resp = await fetch(CONFIG.CLAUDE_EDGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey':CONFIG.SUPABASE_ANON, 'Authorization':'Bearer '+CONFIG.SUPABASE_ANON },
+      body: JSON.stringify({ text: prompt, today: tStr, mode: 'synopsis' })
+    });
+    if (!resp.ok) throw new Error('Edge function error ' + resp.status);
     const json = await resp.json();
-    const text = json.synopsis || json.error || 'No response from AI';
-    document.getElementById('summaryContent').innerHTML = formatSynopsis(text);
+    const synopsis = json.synopsis || (json.parsed && json.parsed[0]?.note) || 'Could not parse response';
+
+    // Parse sections
+    const sections = {};
+    synopsis.split('\n').forEach(line => {
+      const m = line.match(/^([A-Z ]+):\s*(.+)/);
+      if (m) sections[m[1].trim()] = m[2].trim();
+    });
+
+    const bestWindow = sections['BEST WINDOW'] || '';
+    const whoFree = sections['WHO IS FREE'] || '';
+    const hasBest = bestWindow && !/none yet|none/i.test(bestWindow);
+    const hasWho = whoFree && !/no one|none/i.test(whoFree);
+    let html = '';
+
+    // Best window card
+    if (hasBest) {
+      html += '<div style="background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.3);border-radius:var(--r);padding:16px;margin-bottom:14px">';
+      html += '<div style="font-size:9px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">Best window</div>';
+      html += '<div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.3">' + esc(bestWindow) + '</div>';
+      html += '</div>';
+    } else {
+      html += '<div style="background:rgba(240,96,96,0.06);border:1px solid rgba(240,96,96,0.2);border-radius:var(--r);padding:16px;margin-bottom:14px;text-align:center">';
+      html += '<div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:6px">No overlap found yet</div>';
+      html += '<div style="font-size:12px;color:var(--muted)">Add more availability so Claude can find a window</div>';
+      html += '</div>';
+    }
+
+    // Who is free pills
+    if (hasWho) {
+      const names = whoFree.split(',').map(n => n.trim()).filter(Boolean);
+      html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">';
+      names.forEach(nameEntry => {
+        const matched = Object.keys(SIBLING_COLORS).find(n => nameEntry.includes(n));
+        const color = matched ? SIBLING_COLORS[matched] : 'var(--muted)';
+        html += '<div style="padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;font-family:var(--font-mono);border:1px solid '+color+'50;background:'+color+'18;color:'+color+'">' + esc(nameEntry) + '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Overview
+    if (sections['OVERVIEW']) {
+      html += '<div style="font-size:14px;color:var(--text);line-height:1.7;margin-bottom:12px;padding:12px 14px;background:var(--surface2);border-radius:var(--r-sm)">' + esc(sections['OVERVIEW']) + '</div>';
+    }
+
+    // Blockers
+    if (sections['BLOCKERS'] && !/^none$/i.test(sections['BLOCKERS'].trim())) {
+      html += '<div style="font-size:12px;color:var(--danger);font-family:var(--font-mono);margin-bottom:10px;padding:8px 12px;background:rgba(240,96,96,0.06);border-radius:var(--r-sm)">Conflicts: ' + esc(sections['BLOCKERS']) + '</div>';
+    }
+
+    // Next step
+    if (sections['NEXT STEP']) {
+      html += '<div style="margin-top:8px;padding:12px 14px;background:rgba(96,200,240,0.06);border:1px solid rgba(96,200,240,0.2);border-radius:var(--r-sm)">';
+      html += '<div style="font-size:9px;font-family:var(--font-mono);color:var(--accent2);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px">Next step</div>';
+      html += '<div style="font-size:13px;color:var(--text);line-height:1.5">' + esc(sections['NEXT STEP']) + '</div>';
+      html += '</div>';
+    }
+
+    document.getElementById('summaryContent').innerHTML = html;
   } catch(e) {
-    document.getElementById('summaryContent').innerHTML = '<div style="color:var(--danger);font-size:12px">Error: '+e.message+'</div>';
+    document.getElementById('summaryContent').innerHTML = '<div style="color:var(--danger);font-size:13px;padding:10px 0">Error: ' + esc(e.message) + '</div>';
   }
 }
 
