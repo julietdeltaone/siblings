@@ -263,8 +263,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 /* cal-cols replaced by dot system */
 
 /* PROFILE QUADRANTS */
-.profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;min-height:calc(100vh - 118px)}
-.q-card{background:var(--surface);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.profile-grid-full{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;height:calc(100vh - 108px);padding:3px}
+.q-card{background:var(--surface);border-radius:var(--r);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:12px 8px}
 .q-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.15s}
 .q-card:nth-child(1)::before{background:radial-gradient(ellipse at top left,rgba(200,240,96,0.08),transparent 70%)}
 .q-card:nth-child(2)::before{background:radial-gradient(ellipse at top right,rgba(96,200,240,0.08),transparent 70%)}
@@ -274,8 +274,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .q-avatar{width:52px;height:52px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:22px;color:var(--accent);margin-bottom:10px;position:relative}
 .q-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:var(--muted2);border:2px solid var(--surface)}
 .q-dot.on{background:var(--success)}
-.q-name{font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px}
-.q-sub{font-size:10px;color:var(--muted);font-family:var(--font-mono)}
+.q-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;text-align:center}
+.q-sub{font-size:9px;color:var(--muted);font-family:var(--font-mono);text-align:center}
 .q-stat{font-size:10px;color:var(--accent2);font-family:var(--font-mono);margin-top:5px;text-align:center;padding:0 10px;line-height:1.4}
 .q-preview{font-size:9px;color:var(--muted);font-family:var(--font-mono);margin-top:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
 .q-sep{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
@@ -371,6 +371,44 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .notif-time{font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:2px}
 .notif-unread-badge{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);display:none}
 .notif-unread-badge.show{display:block}
+
+/* CALENDAR EDIT MODE */
+#appScreen.edit-mode::after{content:'';position:fixed;inset:0;border:3px dashed var(--accent);border-radius:0;z-index:500;pointer-events:none;animation:editBorder 1s linear infinite}
+@keyframes editBorder{0%{border-color:var(--accent)}50%{border-color:rgba(200,240,96,0.4)}100%{border-color:var(--accent)}}
+.edit-mode-banner{display:none;position:fixed;top:0;left:0;right:0;background:rgba(200,240,96,0.12);border-bottom:2px dashed var(--accent);padding:8px 16px;z-index:600;font-size:11px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;text-align:center}
+#appScreen.edit-mode .edit-mode-banner{display:block}
+.edit-panel{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:16px 18px 32px;z-index:600;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)}
+.edit-panel.open{transform:translateY(0)}
+.edit-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 14px}
+.edit-panel-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
+.avail-toggle{display:flex;gap:8px;margin-bottom:14px}
+.avail-toggle-btn{flex:1;padding:10px;border-radius:var(--r-sm);border:2px solid var(--border);background:none;color:var(--muted);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all 0.12s;display:flex;align-items:center;justify-content:center;gap:6px}
+.avail-toggle-btn.sel-avail{border-color:var(--accent);color:var(--accent);background:rgba(200,240,96,0.08)}
+.avail-toggle-btn.sel-tent{border-color:var(--accent2);color:var(--accent2);background:rgba(96,200,240,0.08)}
+.avail-dot-preview{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.avail-toggle-btn.sel-avail .avail-dot-preview{background:var(--accent)}
+.avail-toggle-btn.sel-tent .avail-dot-preview{background:transparent;border:2px dashed var(--accent2)}
+.edit-date-row{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+.edit-date-row label{font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;width:32px;flex-shrink:0}
+.edit-date-row input[type=date]{flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px;-webkit-appearance:none}
+.edit-date-row input[type=date]:focus{outline:none;border-color:var(--accent)}
+.allday-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12px;font-family:var(--font-mono);color:var(--muted)}
+.allday-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.edit-actions{display:flex;gap:8px}
+
+/* CALENDAR DOT UPDATES */
+.cal-dot.tentative{opacity:1;background:transparent !important;border:2px dashed;border-radius:50%}
+
+/* SUMMARIZE BUTTON */
+.summarize-btn{width:100%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:2px;cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.12s}
+.summarize-btn:active{border-color:var(--accent);color:var(--accent);background:rgba(200,240,96,0.05)}
+.summarize-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* SUMMARY POPUP */
+.summary-popup{position:fixed;bottom:0;left:0;right:0;max-width:540px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:20px 18px 32px;z-index:700;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto}
+.summary-popup.open{transform:translateY(0)}
+.summary-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:699;display:none;transition:background 0.2s}
+.summary-overlay.open{display:block;background:rgba(0,0,0,0.6)}
 .nav-btn{position:relative}
 
 /* IMPROVED NAV - label only on active */
@@ -478,34 +516,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 </style>
 </head>
 <body>
-
-<!-- LOCK -->
-<div id="lockScreen" class="active">
-  <div>
-    <div class="lock-title">Sib<em>lings</em></div>
-    <div class="lock-tagline">The four of us</div>
-  </div>
-  <div class="pin-display" id="pinDisplay">
-    <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
-    <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
-  </div>
-  <div class="pin-hint">Hint: Bagdad</div>
-  <div class="lock-error" id="lockError"></div>
-  <div class="pin-keypad" id="pinKeypad">
-    <button class="pin-key" data-val="1">1</button>
-    <button class="pin-key" data-val="2">2</button>
-    <button class="pin-key" data-val="3">3</button>
-    <button class="pin-key" data-val="4">4</button>
-    <button class="pin-key" data-val="5">5</button>
-    <button class="pin-key" data-val="6">6</button>
-    <button class="pin-key" data-val="7">7</button>
-    <button class="pin-key" data-val="8">8</button>
-    <button class="pin-key" data-val="9">9</button>
-    <button class="pin-key" data-val="clear"><svg style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg></button>
-    <button class="pin-key" data-val="0">0</button>
-    <button class="pin-key accent-key" data-val="submit"><svg style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
-  </div>
-</div>
 
 <!-- PICKER -->
 <div id="pickerScreen">
@@ -653,125 +663,71 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <!-- CALENDAR TAB - availability-only, color coded by sibling -->
       <div class="tab-pane" id="tab-cal">
 
-        <!-- AI SYNOPSIS -->
+        <!-- EDIT MODE BANNER -->
+        <div class="edit-mode-banner" id="editBanner">✦ EDIT MODE — tap dates to mark availability ✦</div>
+
+        <!-- AI SYNOPSIS (collapsed by default) -->
         <div id="availSynopsis" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;min-height:72px;position:relative">
           <div style="position:absolute;top:10px;right:12px;font-size:8px;font-family:var(--font-mono);color:var(--accent);background:rgba(200,240,96,0.1);border:1px solid rgba(200,240,96,0.2);border-radius:4px;padding:1px 5px;letter-spacing:1px">AI</div>
           <div class="empty-state" style="padding:8px 0"><span class="spinner"></span> Analyzing schedules...</div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:2px" id="synopsisAge"></div>
-          <button class="sec-action" id="refreshAvailBtn">Refresh analysis</button>
-        </div>
 
-        <!-- OVERLAPPING FREE DAYS -->
-        <div class="sec-head" style="margin-bottom:10px">Best times to meet</div>
-        <div id="overlapList"><div class="empty-state">Loading...</div></div>
+        <!-- OVERLAP LIST -->
+        <div id="overlapList" style="margin-bottom:14px"></div>
 
-        <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
-
-          <!-- NLP INPUT -->
-          <div class="collapse-panel" id="nlpPanel">
-            <div class="collapse-header" id="nlpPanelHeader">
-              <div>
-                <div class="collapse-title">Update Your Availability</div>
-                <div class="collapse-preview" id="nlpPreviewText">Tap to type when you are free or busy</div>
-              </div>
-              <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
-            </div>
-            <div class="collapse-body">
-              <div class="avail-hint" style="margin-bottom:10px">Type naturally — <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August"</div>
-              <textarea class="textarea" id="nlpInput" placeholder="When are you free or busy?" style="min-height:64px"></textarea>
-              <div class="parsed-preview" id="nlpParsed" style="margin-top:10px">
-                <div class="parsed-label">Parsed as:</div>
-                <div class="parsed-body" id="nlpParsedContent"></div>
-              </div>
-              <div class="btn-row" style="margin-top:10px">
-                <button class="btn btn-sec" id="parseBtn">Parse</button>
-                <button class="btn" id="saveAvailBtn" style="display:none">Save</button>
-              </div>
-            </div>
+        <!-- NLP INPUT (collapsed) -->
+        <details style="margin-bottom:14px">
+          <summary style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;cursor:pointer;padding:6px 0;list-style:none;display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px">＋</span> Type availability in plain text
+          </summary>
+          <div style="margin-top:10px">
+            <textarea id="availInput" placeholder='e.g. "I'm free next weekend and Tuesday afternoon"' style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;resize:none;min-height:72px;box-sizing:border-box"></textarea>
+            <button onclick="parseAvailability()" class="btn" style="width:100%;margin-top:8px">Parse with AI</button>
           </div>
+        </details>
 
-          <!-- ICS IMPORT -->
-          <div class="collapse-panel" id="icsPanel">
-            <div class="collapse-header" id="icsPanelHeader">
-              <div>
-                <div class="collapse-title">Import Calendar File (.ics)</div>
-                <div class="collapse-preview" id="icsPreviewText">Apple Cal, Google, Outlook</div>
-              </div>
-              <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
-            </div>
-            <div class="collapse-body">
-              <div class="avail-hint">Drop a <strong>.ics file</strong> or tap to browse.</div>
-              <div class="ics-drop" id="icsDropZone" style="margin-top:8px">
-                <input type="file" id="icsFileInput" accept=".ics,text/calendar"/>
-                <svg style="width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:4px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <div class="ics-drop-title" id="icsDropTitle">Drop .ics file here</div>
-                <div class="ics-drop-sub" id="icsDropSub">or tap to browse</div>
-              </div>
-              <div id="icsParsed" style="display:none;margin-top:10px">
-                <div class="history-bar">
-                  <div class="history-label" id="historyStatus">No history</div>
-                  <div class="history-btns">
-                    <button class="h-btn" id="undoBtn" disabled><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo</button>
-                    <button class="h-btn" id="redoBtn" disabled>Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg></button>
-                  </div>
-                </div>
-                <div class="parsed-preview" style="display:block;margin-bottom:10px">
-                  <div class="parsed-label" id="icsEventCount"></div>
-                  <div class="parsed-body" id="icsParsedContent"></div>
-                </div>
-                <div class="btn-row">
-                  <button class="btn btn-sec" id="clearIcsBtn">Clear</button>
-                  <button class="btn" id="saveIcsBtn">Save</button>
-                </div>
-              </div>
-            </div>
+        <!-- ICS IMPORT (collapsed) -->
+        <details style="margin-bottom:14px">
+          <summary style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;cursor:pointer;padding:6px 0;list-style:none;display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px">📅</span> Import calendar (.ics)
+          </summary>
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+            <input type="file" id="icsFile" accept=".ics" style="flex:1;font-size:12px;color:var(--text)">
+            <button onclick="importIcs()" class="btn btn-sm">Import</button>
           </div>
+          <div id="icsStatus" style="margin-top:8px;font-size:11px;font-family:var(--font-mono);color:var(--muted)"></div>
+          <button onclick="clearAllIcs()" style="margin-top:8px;font-size:10px;font-family:var(--font-mono);color:var(--danger);background:none;border:none;cursor:pointer;padding:0">Clear imported events</button>
+        </details>
 
-          <!-- YOUR SCHEDULE -->
-          <div class="sec-head" style="margin:16px 0 10px">
-            Your Schedule This Month
-            <button class="sec-action" id="clearMonthBtn">Clear</button>
-          </div>
-          <div id="myScheduleList"><div class="empty-state">Nothing set.</div></div>
-        </div>
-        <div class="divider" style="margin:16px 0 14px"></div>
+        <!-- MY SCHEDULE -->
+        <div id="myScheduleList" style="margin-bottom:14px"></div>
 
+        <div class="divider"></div>
 
-        <!-- VIEW TOGGLE + CLEAR -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="week-toggle">
-            <button class="view-btn active" id="viewMonth">Month</button>
-            <button class="view-btn" id="viewWeek">Week</button>
-          </div>
-          <button class="sec-action" id="clearAllIcsBtn" style="color:var(--danger)">Clear imports</button>
-        </div>
-
-        <!-- SIBLING DOT LEGEND -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#60c8f0"></div>Catherine</div>
-            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#f060c8"></div>Ellie</div>
-            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#c8f060"></div>JD</div>
-            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:var(--font-mono)"><div style="width:8px;height:8px;border-radius:50%;background:#f0c860"></div>James</div>
-          </div>
-          <div style="font-size:9px;color:var(--muted);font-family:var(--font-mono)">filled dot = free</div>
-        </div>
-
-        <!-- MONTH VIEW -->
-        <div id="monthView">
-          <div class="cal-nav">
+        <!-- CALENDAR HEADER -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 10px">
+          <div style="display:flex;align-items:center;gap:6px">
             <button class="cal-nav-btn" id="calPrevBtn">&#8249;</button>
-            <div class="cal-month" id="calMonthLabel"></div>
+            <div class="cal-month-label" id="calMonthLabel"></div>
             <button class="cal-nav-btn" id="calNextBtn">&#8250;</button>
           </div>
-          <div class="cal-grid" id="calGrid"></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="cal-view-toggle" id="calViewToggle" onclick="toggleCalView()">Week</button>
+            <button onclick="enterEditMode()" id="calAddBtn" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">+</button>
+          </div>
+        </div>
+
+        <!-- MONTH GRID -->
+        <div id="calMonthView">
+          <div class="cal-dow-header">
+            <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+          </div>
+          <div id="calGrid"></div>
         </div>
 
         <!-- WEEK VIEW -->
-        <div id="weekView" style="display:none">
-          <div class="week-nav">
+        <div id="calWeekView" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px">
             <button class="cal-nav-btn" id="weekPrevBtn">&#8249;</button>
             <div class="week-label" id="weekLabel"></div>
             <button class="cal-nav-btn" id="weekNextBtn">&#8250;</button>
@@ -779,9 +735,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           <div id="weekGrid"></div>
         </div>
 
-        <div style="text-align:center;font-size:10px;color:var(--muted2);font-family:var(--font-mono);margin-top:8px">Tap any day to see who is free</div>
-      </div>
+        <!-- SUMMARIZE BUTTON -->
+        <button class="summarize-btn" onclick="openSummaryPopup()">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          Summarize availability
+        </button>
 
+      </div>
       <!-- MAP -->
       <div class="tab-pane" id="tab-map">
         <div id="mapContainer"></div>
@@ -861,6 +821,52 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
   </div>
 </div>
 
+<!-- EDIT PANEL -->
+<div class="edit-panel" id="editPanel">
+  <div class="edit-handle"></div>
+  <div class="edit-panel-title">Mark your availability</div>
+
+  <div class="avail-toggle" id="availToggle">
+    <button class="avail-toggle-btn sel-avail" data-type="available" onclick="setEditType('available')">
+      <span class="avail-dot-preview"></span> Available
+    </button>
+    <button class="avail-toggle-btn" data-type="tentative" onclick="setEditType('tentative')">
+      <span class="avail-dot-preview"></span> Tentative
+    </button>
+  </div>
+
+  <div class="edit-date-row">
+    <label>From</label>
+    <input type="date" id="editFromDate">
+  </div>
+  <div class="edit-date-row">
+    <label>To</label>
+    <input type="date" id="editToDate">
+  </div>
+  <div class="allday-row">
+    <input type="checkbox" id="editAllDay" checked>
+    <label for="editAllDay">All day</label>
+  </div>
+
+  <div class="edit-actions">
+    <button class="btn btn-ghost" style="flex:1" onclick="cancelEditMode()">Cancel</button>
+    <button class="btn" style="flex:2" onclick="saveEditMode()">Save</button>
+  </div>
+</div>
+
+<!-- SUMMARY OVERLAY + POPUP -->
+<div class="summary-overlay" id="summaryOverlay" onclick="closeSummaryPopup()"></div>
+<div class="summary-popup" id="summaryPopup">
+  <div class="edit-handle"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="font-size:14px;font-weight:600;color:var(--text)">Availability Summary</div>
+    <button onclick="closeSummaryPopup()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">×</button>
+  </div>
+  <div id="summaryContent">
+    <div class="empty-state"><span class="spinner"></span> Asking Claude...</div>
+  </div>
+</div>
+
 <!-- DAY POPUP -->
 <div class="day-popup-overlay" id="dayPopup">
   <div class="day-popup">
@@ -911,8 +917,43 @@ const CONFIG = {
   }
 };
 
-const { createClient } = supabase;
-const db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON);
+// ── DB with preview fallback ──
+let db;
+const PREVIEW_MODE = (() => {
+  try {
+    if (typeof supabase === 'undefined' || !supabase.createClient) return true;
+    db = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON);
+    return false;
+  } catch(e) { return true; }
+})();
+
+if (PREVIEW_MODE) {
+  // Proxy-based mock: any chain of method calls returns the proxy, final await = {data:[],error:null}
+  function makeMockDb() {
+    const p = new Proxy(function(){}, {
+      get(t, k) {
+        if (k === 'then') return undefined; // not a thenable by default
+        if (k === 'data') return [];
+        if (k === 'error') return null;
+        return (...args) => p;
+      },
+      apply() { return p; }
+    });
+    // Make it awaitable as {data:[],error:null}
+    const queryProxy = new Proxy(function(){}, {
+      get(t, k) {
+        if (k === 'then') return (res) => { res({data:[],error:null}); return Promise.resolve({data:[],error:null}); };
+        if (k === 'data') return [];
+        if (k === 'error') return null;
+        return (...args) => queryProxy;
+      },
+      apply() { return queryProxy; }
+    });
+    return { from: () => queryProxy };
+  }
+  db = makeMockDb();
+  console.log('[PREVIEW MODE] Running with mock data — deploy to see real data');
+}
 
 let currentUser = null, pinBuffer = '', parsedAvailability = null;
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
@@ -922,21 +963,7 @@ let availHistory = [], availHistoryIdx = -1;
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('pinKeypad').addEventListener('pointerdown', e => {
-    e.preventDefault();
-    const btn = e.target.closest('.pin-key');
-    if (!btn) return;
-    const v = btn.dataset.val;
-    if (v === 'clear') pinClear();
-    else if (v === 'submit') pinSubmit();
-    else pinKey(v);
-  });
-  document.addEventListener('keydown', e => {
-    if (!document.getElementById('lockScreen').classList.contains('active')) return;
-    if (e.key >= '0' && e.key <= '9') pinKey(e.key);
-    else if (e.key === 'Backspace') pinClear();
-    else if (e.key === 'Enter') pinSubmit();
-  });
+  // No PIN - direct access
   document.querySelectorAll('.picker-btn').forEach(btn =>
     btn.addEventListener('pointerdown', e => { e.preventDefault(); loginAs(btn.dataset.person); })
   );
@@ -1075,12 +1102,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updatePlaceholder();
   loadProfilePreviews();
-  // Restore session if already logged in this browser session
+  // No PIN - restore session or show picker
   const savedSession = sessionStorage.getItem('siblings_session');
   if (savedSession && CONFIG.SIBLINGS[savedSession]) {
     loginAs(savedSession);
   } else {
-    showScreen('lockScreen');
+    showScreen('pickerScreen');
   }
 });
 
@@ -1103,13 +1130,26 @@ function setIcsStep(n) {
 
 // ── SCREENS ──
 function showScreen(id) {
-  ['lockScreen','pickerScreen','appScreen'].forEach(s => {
+  // Show preview mode notice if needed
+  if (PREVIEW_MODE && id === 'appScreen') {
+    const existing = document.getElementById('previewBanner');
+    if (!existing) {
+      const banner = document.createElement('div');
+      banner.id = 'previewBanner';
+      banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(200,240,96,0.12);border:1px solid rgba(200,240,96,0.3);border-radius:8px;padding:8px 14px;font-size:10px;font-family:var(--font-mono);color:var(--accent);z-index:9999;pointer-events:none;white-space:nowrap;letter-spacing:1px';
+      banner.textContent = '⚡ PREVIEW MODE — deploy to use real data';
+      document.body.appendChild(banner);
+    }
+  }
+  ['pickerScreen','appScreen'].forEach(s => {
     const el = document.getElementById(s);
+    if (!el) return;
     el.classList.remove('active');
     if (s !== 'appScreen') el.style.display = '';
   });
   const el = document.getElementById(id);
-  if (id === 'lockScreen' || id === 'pickerScreen') { el.style.display = 'flex'; el.classList.add('active'); }
+  if (!el) return;
+  if (id === 'pickerScreen') { el.style.display = 'flex'; el.classList.add('active'); }
   else el.classList.add('active');
 }
 
@@ -1184,7 +1224,7 @@ function initPlacesAutocomplete() {
     });
   }
 }
-function lockApp() { currentUser = null; sessionStorage.removeItem('siblings_session'); pinBuffer = ''; updatePinDisplay(); document.getElementById('lockError').textContent = ''; showScreen('lockScreen'); }
+function lockApp() { currentUser = null; sessionStorage.removeItem('siblings_session'); showScreen('pickerScreen'); }
 
 // ── TABS ──
 function switchTab(name, btn) {
@@ -1523,6 +1563,7 @@ async function submitData() {
 
 
 async function parseAvailability() {
+  if (PREVIEW_MODE) { showToast('Deploy to use AI parsing'); return; }
   const text = document.getElementById('nlpInput').value.trim();
   if (!text) { toast('Type something first','error'); return; }
   const btn = document.getElementById('parseBtn');
@@ -1891,23 +1932,7 @@ function initCalendar() {
 }
 function calPrev() { if (--calMonth < 0) { calMonth=11; calYear--; } loadCalendarData(); }
 function calNext() { if (++calMonth > 11) { calMonth=0; calYear++; } loadCalendarData(); }
-async function loadCalendarData() {
-  const firstDay = new Date(calYear, calMonth, 1);
-  const lastDay = new Date(calYear, calMonth+1, 0);
-  const monthStart = firstDay.toISOString().split('T')[0];
-  const monthEnd = lastDay.toISOString().split('T')[0];
-  document.getElementById('calMonthLabel').textContent = firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  const [freeResp, busyResp] = await Promise.all([
-    db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart),
-    db.from('availability').select('*').eq('status','busy').lte('start_date',monthEnd).gte('end_date',monthStart),
-  ]);
-  const freeMap = buildFreeMap(freeResp.data||[], monthStart, monthEnd);
-  const busyMap = buildBusyMap(busyResp.data||[], monthStart, monthEnd);
-  storeDayData(freeMap, busyMap, monthStart, monthEnd);
-  renderCalendar(freeMap);
-  renderOverlapList(freeMap, monthStart, monthEnd);
-  renderMySchedule(monthStart, monthEnd);
-}
+
 function buildFreeMap(data, monthStart, monthEnd) {
   const m = {};
   data.forEach(row => {
@@ -2197,6 +2222,10 @@ function shortenNote(note) {
 async function loadAvailSynopsis() {
   const el = document.getElementById('availSynopsis');
   if (!el) return;
+  if (PREVIEW_MODE) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono);text-align:center;padding:12px 0">⚡ Deploy to see AI availability analysis</div>';
+    return;
+  }
   el.innerHTML = '<div class="empty-state" style="padding:12px 0"><span class="spinner"></span> Analyzing schedules...</div>';
 
   try {
@@ -2485,13 +2514,10 @@ function closeDayPopup() {
   if (p) p.classList.remove('open');
 }
 
-function renderCalendar(freeMap) {
+function renderCalendar(freeMap, tentMap) {
   const grid = document.getElementById('calGrid');
   if (!grid) return;
   grid.innerHTML = '';
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
-    const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
-  });
   const firstDay = new Date(calYear, calMonth, 1);
   const days = new Date(calYear, calMonth+1, 0).getDate();
   const tStr = todayStr();
@@ -2504,53 +2530,55 @@ function renderCalendar(freeMap) {
     const el = document.createElement('div');
     el.className = 'cal-day in-month';
     el.style.cursor = 'pointer';
-    el.addEventListener('click', () => openDayPopup(ds));
+    el.dataset.date = ds;
+    el.addEventListener('click', () => {
+      if (editMode) toggleEditDay(ds, el);
+      else openDayPopup(ds);
+    });
+    // Date number
     const numEl = document.createElement('div');
+    numEl.className = 'cal-day-num';
     numEl.textContent = d;
     if (ds === tStr) { numEl.style.color='var(--accent2)'; numEl.style.fontWeight='700'; }
     el.appendChild(numEl);
-    const freeEntries = freeMap[ds];
-    if (freeEntries) {
-      const people = [...new Set(freeEntries.map(e => e.person))];
-      const n = people.length;
-      if (n >= 4) el.classList.add('oall');
-      else if (n === 3) el.classList.add('o3');
-      else if (n === 2) el.classList.add('o2');
-    }
-    const busyEntries = busyMap ? busyMap[ds] : null;
-    const freeByPerson = {};
-    if (freeEntries) freeEntries.forEach(e => { freeByPerson[e.person] = e; });
-    const busyByPerson = {};
-    if (busyEntries) busyEntries.forEach(e => {
-      if (!busyByPerson[e.person] || (e.barH||0) > (busyByPerson[e.person].barH||0)) busyByPerson[e.person] = e;
+    // 4 dots - one per sibling
+    const dotsEl = document.createElement('div');
+    dotsEl.className = 'cal-dots';
+    let freeCount = 0;
+    siblings.forEach(name => {
+      const dot = document.createElement('div');
+      const color = SIBLING_COLORS[name] || '#888';
+      const hasFree = freeMap[ds] && freeMap[ds].some(e => e.person === name);
+      const hasTent = tentMap && tentMap[ds] && tentMap[ds].some(e => e.person === name);
+      dot.className = 'cal-dot';
+      if (hasFree) {
+        dot.style.background = color;
+        dot.style.opacity = '1';
+        freeCount++;
+      } else if (hasTent) {
+        dot.className = 'cal-dot tentative';
+        dot.style.borderColor = color;
+        dot.style.opacity = '1';
+      } else {
+        dot.style.background = color;
+        dot.style.opacity = '0.12';
+      }
+      dotsEl.appendChild(dot);
     });
-    if (Object.keys(freeByPerson).length || Object.keys(busyByPerson).length) {
-      const cols = document.createElement('div');
-      cols.className = 'cal-cols';
-      siblings.forEach(name => {
-        const col = document.createElement('div'); col.className = 'cal-col';
-        const color = SIBLING_COLORS[name]||'#888';
-        const busy = busyByPerson[name]; const free = freeByPerson[name];
-        if (busy) {
-          const seg = document.createElement('div'); seg.className = 'cal-seg busy';
-          seg.style.top = Math.round((busy.barTop||0.85)*100)+'%';
-          seg.style.height = Math.max(Math.round((busy.barH||0.06)*100),6)+'%';
-          seg.style.background = color;
-          seg.style.opacity = busy.barH >= 0.35 ? '0.85' : '0.6';
-          col.appendChild(seg);
-        } else if (free) {
-          const seg = document.createElement('div'); seg.className = 'cal-seg free';
-          seg.style.top = '0'; seg.style.height = '100%';
-          seg.style.background = 'linear-gradient(to bottom,'+color+'55,transparent)';
-          col.appendChild(seg);
-        }
-        cols.appendChild(col);
-      });
-      el.appendChild(cols);
+    if (freeCount >= 4) el.classList.add('oall');
+    else if (freeCount === 3) el.classList.add('o3');
+    else if (freeCount === 2) el.classList.add('o2');
+    el.appendChild(dotsEl);
+    // Edit mode: highlight selected range
+    if (editMode && editFromDate && editToDate) {
+      const d1 = editFromDate <= editToDate ? editFromDate : editToDate;
+      const d2 = editFromDate <= editToDate ? editToDate : editFromDate;
+      if (ds >= d1 && ds <= d2) el.classList.add('edit-selected');
     }
     grid.appendChild(el);
   }
 }
+
 
 async function renderWeekView() {
   const now = new Date();
@@ -2792,6 +2820,165 @@ function dateDiff(a,b) { return Math.round((new Date(b)-new Date(a))/86400000); 
 function esc(str) { return(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(str) { return(str||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
 function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
+
+
+// ── EDIT MODE ──────────────────────────────────────────────────────────────
+let editMode = false;
+let editFromDate = null;
+let editToDate = null;
+let editType = 'available';
+let busyMapCache = {};
+
+function enterEditMode() {
+  if (!currentUser) return;
+  editMode = true;
+  editFromDate = null;
+  editToDate = null;
+  document.getElementById('appScreen').classList.add('edit-mode');
+  document.getElementById('calAddBtn').style.display = 'none';
+  document.getElementById('editPanel').classList.add('open');
+  // Set default dates to today
+  const today = todayStr();
+  document.getElementById('editFromDate').value = today;
+  document.getElementById('editToDate').value = today;
+  editFromDate = today;
+  editToDate = today;
+  renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
+}
+
+function cancelEditMode() {
+  editMode = false;
+  editFromDate = null;
+  editToDate = null;
+  document.getElementById('appScreen').classList.remove('edit-mode');
+  document.getElementById('calAddBtn').style.display = '';
+  document.getElementById('editPanel').classList.remove('open');
+  renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
+}
+
+function setEditType(type) {
+  editType = type;
+  document.querySelectorAll('.avail-toggle-btn').forEach(btn => {
+    btn.classList.toggle('sel-avail', btn.dataset.type === 'available' && type === 'available');
+    btn.classList.toggle('sel-tent', btn.dataset.type === 'tentative' && type === 'tentative');
+    btn.classList.remove('sel-avail');
+    btn.classList.remove('sel-tent');
+  });
+  document.querySelector(`.avail-toggle-btn[data-type="${type}"]`).classList.add(type === 'available' ? 'sel-avail' : 'sel-tent');
+}
+
+function toggleEditDay(ds, el) {
+  // Clicking a date sets fromDate; clicking another sets toDate
+  if (!editFromDate || editToDate) {
+    editFromDate = ds;
+    editToDate = null;
+    document.getElementById('editFromDate').value = ds;
+    document.getElementById('editToDate').value = '';
+  } else {
+    editToDate = ds;
+    if (editToDate < editFromDate) { let t=editFromDate; editFromDate=editToDate; editToDate=t; }
+    document.getElementById('editFromDate').value = editFromDate;
+    document.getElementById('editToDate').value = editToDate;
+  }
+  renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
+}
+
+// Sync date inputs → editFrom/editTo
+document.addEventListener('DOMContentLoaded', () => {
+  const fromIn = document.getElementById('editFromDate');
+  const toIn = document.getElementById('editToDate');
+  if (fromIn) fromIn.addEventListener('change', e => { editFromDate = e.target.value; renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{}); });
+  if (toIn) toIn.addEventListener('change', e => { editToDate = e.target.value; renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{}); });
+});
+
+async function saveEditMode() {
+  if (!currentUser) return;
+  const from = document.getElementById('editFromDate').value;
+  const to = document.getElementById('editToDate').value || from;
+  if (!from) { showToast('Select a date range first'); return; }
+  const startDate = from <= to ? from : to;
+  const endDate = from <= to ? to : from;
+  const row = {
+    person: currentUser,
+    start_date: startDate,
+    end_date: endDate,
+    status: 'free',
+    type: editType,
+    rating: editType === 'available' ? 5 : 3,
+    source: 'manual',
+    notes: editType === 'tentative' ? 'Tentative' : 'Available'
+  };
+  const { error } = await db.from('availability').insert(row);
+  if (error) { showToast('Error saving: ' + error.message); return; }
+  showToast(editType === 'available' ? '✓ Availability saved' : '✓ Tentative saved');
+  cancelEditMode();
+  loadCalendarData();
+  refreshSynopsisIfVisible();
+}
+
+// ── SUMMARY POPUP ──────────────────────────────────────────────────────────
+async function openSummaryPopup() {
+  document.getElementById('summaryOverlay').classList.add('open');
+  document.getElementById('summaryPopup').classList.add('open');
+  if (PREVIEW_MODE) {
+    document.getElementById('summaryContent').innerHTML = '<div style="text-align:center;padding:20px 0;font-size:13px;color:var(--muted)">⚡ Deploy to see AI summary</div>';
+    return;
+  }
+  document.getElementById('summaryContent').innerHTML = '<div class="empty-state"><span class="spinner"></span> Asking Claude...</div>';
+
+  try {
+    const firstDay = new Date(calYear, calMonth, 1);
+    const lastDay = new Date(calYear, calMonth+1, 0);
+    const monthStart = firstDay.toISOString().split('T')[0];
+    const monthEnd = lastDay.toISOString().split('T')[0];
+    const { data } = await db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart);
+
+    const resp = await fetch(CONFIG.EDGE_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':CONFIG.SUPABASE_ANON_KEY,'Authorization':'Bearer '+CONFIG.SUPABASE_ANON_KEY},
+      body: JSON.stringify({ mode:'synopsis', data })
+    });
+    const json = await resp.json();
+    const text = json.synopsis || json.error || 'No response from AI';
+    document.getElementById('summaryContent').innerHTML = formatSynopsis(text);
+  } catch(e) {
+    document.getElementById('summaryContent').innerHTML = '<div style="color:var(--danger);font-size:12px">Error: '+e.message+'</div>';
+  }
+}
+
+function closeSummaryPopup() {
+  document.getElementById('summaryOverlay').classList.remove('open');
+  document.getElementById('summaryPopup').classList.remove('open');
+}
+
+async function loadCalendarData() {
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth+1, 0);
+  const monthStart = firstDay.toISOString().split('T')[0];
+  const monthEnd = lastDay.toISOString().split('T')[0];
+  document.getElementById('calMonthLabel').textContent = firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const [freeResp, busyResp, tentResp] = await Promise.all([
+    db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart),
+    db.from('availability').select('*').eq('status','busy').lte('start_date',monthEnd).gte('end_date',monthStart),
+    db.from('availability').select('*').eq('status','free').eq('type','tentative').lte('start_date',monthEnd).gte('end_date',monthStart),
+  ]);
+  const freeMap = buildFreeMap((freeResp.data||[]).filter(r => r.type !== 'tentative'), monthStart, monthEnd);
+  const tentMap = buildFreeMap(tentResp.data||[], monthStart, monthEnd);
+  window._lastFreeMap = freeMap;
+  window._lastTentMap = tentMap;
+  busyMapCache = buildBusyMap(busyResp.data||[], monthStart, monthEnd);
+  storeDayData(freeMap, busyMapCache, monthStart, monthEnd);
+  renderCalendar(freeMap, tentMap);
+  renderOverlapList(freeMap, monthStart, monthEnd);
+  renderMySchedule(monthStart, monthEnd);
+}
+
+// ── EDIT MODE DOT CSS fix: add edit-selected style ──
+(function() {
+  const st = document.createElement('style');
+  st.textContent = '.cal-day.edit-selected{background:rgba(200,240,96,0.15);border:1px solid rgba(200,240,96,0.5);border-radius:4px}.cal-day-num{font-size:11px;color:var(--muted);margin-bottom:2px}.cal-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap}.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}.cal-dot.tentative{background:transparent;border-width:1.5px;border-style:dashed}';
+  document.head.appendChild(st);
+})();
 </script>
 </body>
 </htmlfunction renderCalendar(freeMap) {
