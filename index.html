@@ -405,7 +405,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .summarize-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 /* SUMMARY POPUP */
-.summary-popup{position:fixed;bottom:0;left:0;right:0;max-width:540px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:20px 18px 32px;z-index:700;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto}
+.summary-popup{position:fixed;bottom:0;left:0;right:0;max-width:540px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:var(--r) var(--r) 0 0;padding:20px 20px 40px;z-index:700;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1);max-height:82vh;overflow-y:auto}
 .summary-popup.open{transform:translateY(0)}
 .summary-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:699;display:none;transition:background 0.2s}
 .summary-overlay.open{display:block;background:rgba(0,0,0,0.6)}
@@ -885,9 +885,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 <div class="summary-overlay" id="summaryOverlay" onclick="closeSummaryPopup()"></div>
 <div class="summary-popup" id="summaryPopup">
   <div class="edit-handle"></div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-    <div style="font-size:14px;font-weight:600;color:var(--text)">Availability Summary</div>
-    <button onclick="closeSummaryPopup()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">×</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <div style="font-size:11px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px">AI Summary</div>
+      <div style="font-size:17px;font-weight:700;color:var(--text)">When can we meet?</div>
+    </div>
+    <button onclick="closeSummaryPopup()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">×</button>
   </div>
   <div id="summaryContent">
     <div class="empty-state"><span class="spinner"></span> Asking Claude...</div>
@@ -2132,7 +2135,7 @@ function openDayPopup(ds) {
       freeList.forEach(n => {
         const color = SIBLING_COLORS[n]||'#888';
         const entry = freeMap[ds].find(e => e.person===n);
-        const note = entry?.note ? ' · ' + entry.note : '';
+        const note = entry?.note ? ' · ' + fmtNote(entry.note) : '';
         html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
           <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
           <div style="font-size:12px;color:var(--text)">${n}${note}</div></div>`;
@@ -2168,7 +2171,7 @@ async function renderMySchedule(monthStart, monthEnd) {
   if (!data || !data.length) { container.innerHTML = '<div class="empty-state">Nothing set for this month.</div>'; return; }
   container.innerHTML = data.map(r => {
     const dateStr = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
-    const noteStr = r.note ? shortenNote(r.note) : '';
+    const noteStr = r.note ? fmtNote(shortenNote(r.note)) : '';
     let out = '<div class="avail-item" id="myschedule-' + r.id + '">';
     out += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
     out += '<div class="avail-info"><div class="avail-dates">' + dateStr + '</div>';
@@ -2218,7 +2221,7 @@ function renderOverlapList(freeMap, monthStart, monthEnd) {
     const n = g.people.length;
     const cls = n >= 4 ? 'all' : 'two';
     const dl = g.start===g.end ? fmtFull(g.start) : fmtFull(g.start)+' -- '+fmtFull(g.end);
-    const timeNotes = [...new Set(g.entries.filter(e=>e.note).map(e=>e.person+': '+e.note))].join(' · ');
+    const timeNotes = [...new Set(g.entries.filter(e=>e.note).map(e=>e.person+': '+fmtNote(e.note)))].join(' · ');
     const [gy,gm,gd] = g.start.split('-');
     const dow = new Date(+gy,+gm-1,+gd).toLocaleDateString('en-US',{weekday:'long'});
     return '<div class="ol-card '+cls+'">' +
@@ -2330,6 +2333,22 @@ async function checkOverlapsAndNotify() {
 }
 
 // ── HELPERS ──
+function to12h(timeStr) {
+  // Convert "HH:MM" to "h:MMam/pm", or pass through if already 12h
+  if (!timeStr) return timeStr;
+  const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return timeStr;
+  let h = parseInt(m[1]), min = m[2];
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return min === '00' ? h + ampm : h + ':' + min + ampm;
+}
+function fmtNote(note) {
+  // Convert "HH:MM–HH:MM · type" → "h:MMam–h:MMpm · type"
+  if (!note) return '';
+  return note.replace(/(\d{1,2}:\d{2})–(\d{1,2}:\d{2})/g, (_, a, b) => to12h(a) + '–' + to12h(b));
+}
+
 function shortenNote(note) {
   if (!note) return '';
   // Shorten Clarkson Security entries
@@ -2405,32 +2424,32 @@ async function loadAvailSynopsis() {
     // Big availability indicator
     let html = '';
     if (hasAvailability || hasBestWindow) {
-      html += '<div style="background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.25);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px">';
-      html += '<div style="font-size:10px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px">Best window to meet</div>';
-      html += '<div style="font-size:15px;font-weight:700;color:var(--text)">' + esc(hasBestWindow ? bestWindow : whoFree) + '</div>';
+      html += '<div style="background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.3);border-radius:var(--r);padding:16px;margin-bottom:14px">';
+      html += '<div style="font-size:9px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">Best window to meet</div>';
+      html += '<div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.3">' + esc(hasBestWindow ? bestWindow : whoFree) + '</div>';
       html += '</div>';
     } else {
-      html += '<div style="background:rgba(240,96,96,0.06);border:1px solid rgba(240,96,96,0.2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px;text-align:center">';
-      html += '<div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:4px">No overlapping free time found</div>';
-      html += '<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">Import your calendars or add your availability below</div>';
+      html += '<div style="background:rgba(240,96,96,0.06);border:1px solid rgba(240,96,96,0.2);border-radius:var(--r);padding:16px;margin-bottom:14px;text-align:center">';
+      html += '<div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:6px">No overlap found yet</div>';
+      html += '<div style="font-size:12px;color:var(--muted)">Add your availability so Claude can find a window</div>';
       html += '</div>';
     }
 
     // Who is free pills
     if (whoFree && hasAvailability) {
       const names = whoFree.split(',').map(n => n.trim()).filter(Boolean);
-      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">';
       names.forEach(nameEntry => {
         const matchedName = Object.keys(SIBLING_COLORS).find(n => nameEntry.includes(n));
         const color = matchedName ? SIBLING_COLORS[matchedName] : 'var(--muted)';
-        html += '<div style="padding:4px 10px;border-radius:999px;font-size:11px;font-family:var(--font-mono);border:1px solid '+color+'40;background:'+color+'12;color:'+color+'">'+esc(nameEntry)+'</div>';
+        html += '<div style="padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;font-family:var(--font-mono);border:1px solid '+color+'50;background:'+color+'18;color:'+color+'">'+esc(nameEntry)+'</div>';
       });
       html += '</div>';
     }
 
     // Overview
     if (sections['OVERVIEW']) {
-      html += '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px">'+esc(sections['OVERVIEW'])+'</div>';
+      html += '<div style="font-size:14px;color:var(--text);line-height:1.7;margin-bottom:12px;padding:12px 14px;background:var(--surface2);border-radius:var(--r-sm)">'+esc(sections['OVERVIEW'])+'</div>';
     }
 
     // Blockers
@@ -2440,7 +2459,10 @@ async function loadAvailSynopsis() {
 
     // Next step
     if (sections['NEXT STEP']) {
-      html += '<div style="font-size:11px;color:var(--accent2);font-family:var(--font-mono);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">Next: '+esc(sections['NEXT STEP'])+'</div>';
+      html += '<div style="margin-top:12px;padding:12px 14px;background:rgba(96,200,240,0.06);border:1px solid rgba(96,200,240,0.2);border-radius:var(--r-sm)">';
+      html += '<div style="font-size:9px;font-family:var(--font-mono);color:var(--accent2);text-transform:uppercase;letter-spacing:2px;margin-bottom:5px">Next step</div>';
+      html += '<div style="font-size:13px;color:var(--text);line-height:1.5">'+esc(sections['NEXT STEP'])+'</div>';
+      html += '</div>';
     }
 
     el.innerHTML = html;
