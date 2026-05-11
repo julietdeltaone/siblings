@@ -623,6 +623,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 @media (hover:hover){
   .cal-day.in-month:hover{background:var(--surface2);cursor:pointer;transition:background 0.1s}
 }
+
+.switch-user-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:999px;color:var(--muted);font-size:10px;font-family:var(--font-mono);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all 0.15s;flex-shrink:0}
+.switch-user-btn:hover{border-color:var(--accent);color:var(--accent)}
+.switch-user-btn:active{transform:scale(0.95)}
 </style>
 </head>
 <body>
@@ -647,8 +651,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           <div class="header-who">Logged in as <span id="currentUserLabel">--</span></div>
         </div>
       </div>
-      <button class="icon-btn" id="switchBtn" title="Switch user">
-        <svg viewBox="0 0 24 24"><path d="M17 3l4 4-4 4"/><path d="M21 7H9"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h12"/></svg>
+      <button class="switch-user-btn" id="switchBtn" title="Switch user">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M17 3l4 4-4 4"/><path d="M21 7H9"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h12"/></svg>
+        Switch
       </button>
     </div>
 
@@ -868,36 +873,89 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <!-- GUIDE -->
       <div class="tab-pane" id="tab-guide">
         <div class="guide-callout">
-          <strong>Welcome to Siblings.</strong> This is our shared space &mdash; Catherine, Ellie, JD, and James. Share what you're into, update your schedule, and find time to actually get together. Everything saves instantly.
+          <strong>Welcome to Siblings.</strong> This is our shared space — Catherine, Ellie, JD, and James. Share what you're into, mark when you're free, and find time to actually get together. Everything saves instantly and is visible to everyone.
         </div>
+
         <div class="g-section">
-          <div class="g-title">Getting In</div>
-          <div class="g-item"><div class="g-item-title">PIN & Login</div><div class="g-item-body">Enter the 4-digit PIN (hint shown on screen), then tap your name. You can only add or edit your own entries. Hit the switch icon in the top right to change users.</div></div>
+          <div class="g-title">Switching Users</div>
+          <div class="g-item">
+            <div class="g-item-title">Who you are</div>
+            <div class="g-item-body">The app remembers who you are between visits. To switch to a different sibling, tap the <strong>Switch</strong> button in the top right corner of the header. You can only add or edit your own entries — you can always view everyone else's.</div>
+          </div>
         </div>
+
         <div class="g-section">
           <div class="g-title">Profiles</div>
-          <div class="g-item"><div class="g-item-title">Viewing a profile</div><div class="g-item-body">Tap any sibling's card to see everything they've shared &mdash; movies, music, places, books, ideas, and upcoming availability. A green dot on the card means they've added something recently.</div></div>
-          <div class="g-item"><div class="g-item-title">Editing your entries</div><div class="g-item-body">On your own profile, each entry has a pencil (edit) and trash (delete) icon. You can only edit your own stuff.</div></div>
+          <div class="g-item">
+            <div class="g-item-title">Viewing a profile</div>
+            <div class="g-item-body">Tap any sibling's card to see everything they've shared — movies, music, places, books, notes, and ideas. A green dot on the card means they've added something recently.</div>
+          </div>
+          <div class="g-item">
+            <div class="g-item-title">Editing your entries</div>
+            <div class="g-item-body">On your own profile, tap the pencil icon to edit or the trash icon to delete. You can only change your own entries.</div>
+          </div>
+          <div class="g-item">
+            <div class="g-item-title">Likes &amp; comments</div>
+            <div class="g-item-body">Tap the heart on any entry to like it. Tap "comment" to leave a note. The person who posted it gets a notification.</div>
+          </div>
         </div>
+
         <div class="g-section">
           <div class="g-title">Add Tab</div>
-          <div class="g-item"><div class="g-item-title">Categories</div><div class="g-item-body">Movie/Show, Music, Place/Restaurant, Thought/Note, Book, and Activity/Idea. For movies, music, and books you can also tap a quick rating. Keep it casual.</div></div>
-        </div>
-        <div class="g-section">
-          <div class="g-title">Schedule Tab</div>
-          <div class="g-item"><div class="g-item-title">Natural language</div><div class="g-item-body">Type when you're free or busy in plain English. Claude parses it and shows what it understood before you save. "Free the week of July 4th except Wednesday, mornings only Thursday" works great.</div></div>
-          <div class="g-item"><div class="g-item-title">Importing a calendar file</div><div class="g-item-body">Export your calendar as a .ics file and drag it into the import box (or tap to browse). Claude extracts all your events automatically.</div>
-            <div class="g-tip">iPhone: Calendar app &rarr; tap Calendars at the bottom &rarr; info icon next to a calendar &rarr; Share Link &rarr; save the .ics file &rarr; come back here and import it.</div>
-            <div class="g-tip">Mac: Calendar app &rarr; File &rarr; Export &rarr; Export as .ics</div>
+          <div class="g-item">
+            <div class="g-item-title">What you can add</div>
+            <div class="g-item-body">Movies &amp; shows, music, places, thoughts, books, and activities. For movies, music, and books you can tap a quick rating (Nope / Meh / Good / Fire). The app cleans up and enriches what you type before saving.</div>
           </div>
-          <div class="g-item"><div class="g-item-title">Undo / Redo</div><div class="g-item-body">After importing or saving availability, you can undo and redo using the buttons in the import section. Undo removes the last batch of entries. Redo puts them back.</div></div>
-          <div class="g-item"><div class="g-item-title">The calendar</div><div class="g-item-body">Yellow days = 2-3 siblings free. Green glowing = all 4 free. Blue dot = someone noted a time restriction (like "mornings only"). Navigate between months with the arrows.</div></div>
-          <div class="g-item"><div class="g-item-title">SMS alerts</div><div class="g-item-body">When all 4 siblings have overlapping free time, everyone gets a text automatically. No action needed.</div></div>
+          <div class="g-item">
+            <div class="g-item-title">Places</div>
+            <div class="g-item-body">When you select Place/Restaurant, an address field appears with autocomplete. Adding an address puts a pin on the Map tab so everyone can see where it is.</div>
+          </div>
         </div>
+
+        <div class="g-section">
+          <div class="g-title">Calendar Tab</div>
+          <div class="g-item">
+            <div class="g-item-title">Reading the calendar</div>
+            <div class="g-item-body">Each day shows up to 4 colored dots — one per sibling. A solid dot means they're available. A dashed ring means tentative. Tap any day to see a full breakdown of who's free and when, shown as a day-view timeline.</div>
+          </div>
+          <div class="g-item">
+            <div class="g-item-title">Adding your availability</div>
+            <div class="g-item-body">Tap the green <strong>+</strong> button to enter edit mode. A green dashed border appears around the screen. Tap a day, set your start and end time (or check All day), choose Available or Tentative, and tap Save. You can add multiple days before tapping the ✕ to exit.</div>
+          </div>
+          <div class="g-item">
+            <div class="g-item-title">Available vs Tentative</div>
+            <div class="g-item-body"><strong>Available</strong> means you're definitely free — solid colored dot on the calendar. <strong>Tentative</strong> means you might be free but it's not confirmed — dashed ring dot. Use tentative when you're not sure yet.</div>
+          </div>
+          <div class="g-item">
+            <div class="g-item-title">Editing or deleting your availability</div>
+            <div class="g-item-body">Tap a day where you've marked yourself free. Your entry shows at the bottom of the day popup with an Edit pill and a Delete pill. Edit re-opens the input pre-filled with your saved times. Delete removes it immediately.</div>
+          </div>
+          <div class="g-item">
+            <div class="g-item-title">Overlapping free time</div>
+            <div class="g-item-body">When multiple siblings are free on the same day, the day popup shows an overlap banner. If all 4 of us overlap, everyone gets an automatic text message.</div>
+          </div>
+        </div>
+
         <div class="g-section">
           <div class="g-title">Map Tab</div>
-          <div class="g-item"><div class="g-item-title">Locations</div><div class="g-item-body">Shows where each of us lives with approximate distances between homes. Good for planning a central meetup spot.</div></div>
+          <div class="g-item">
+            <div class="g-item-title">What's on the map</div>
+            <div class="g-item-body">Each sibling's home is pinned in their color. Any places added via the Add tab appear as smaller dots. Tap a dot to see who added it and what it is.</div>
+          </div>
         </div>
+
+        <div class="g-section">
+          <div class="g-title">Notifications</div>
+          <div class="g-item">
+            <div class="g-item-title">In-app</div>
+            <div class="g-item-body">The bell icon in the nav bar shows a badge when someone likes or comments on your entries. Tap it to see what's new — reading the tab clears the badge.</div>
+          </div>
+          <div class="g-item">
+            <div class="g-item-title">SMS</div>
+            <div class="g-item-body">When all 4 siblings have overlapping free time on the same day, everyone gets an automatic text. No setup needed — it just happens.</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -952,17 +1010,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <input type="checkbox" id="editAllDay" onchange="toggleEditTimes()">
       <label for="editAllDay" style="font-size:12px;color:var(--text)">All day</label>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1">
+        <label style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">End Date</label>
+        <input type="date" id="editEndDate" style="width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:12px">
+      </div>
+    </div>
     <div id="editTimeRow" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
       <div class="edit-date-row" style="margin-bottom:0">
         <label>Start</label>
-        <input type="time" id="editStartTime" value="09:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
+        <input type="time" id="editStartTime" value="09:00" oninput="onStartTimeChange()" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
       </div>
       <div class="edit-date-row" style="margin-bottom:0">
         <label>End</label>
-        <input type="time" id="editEndTime" value="17:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
+        <input type="time" id="editEndTime" value="17:00" oninput="onEndTimeChange()" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
       </div>
     </div>
-    <button class="btn" style="width:100%" onclick="saveEditMode()">Save</button>
+    <button class="btn" style="width:100%;margin-bottom:8px" onclick="saveEditMode()">Save</button>
+    <div style="display:flex;gap:8px">
+      <button onclick="markWholeWeek()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all 0.12s" title="Mark Mon-Sun of this week">Week</button>
+      <button onclick="copyLastTimes()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all 0.12s" title="Reuse last saved times">Repeat</button>
+      <button onclick="deleteFromEditMode()" style="flex:1;padding:9px;background:rgba(240,96,96,0.07);border:1px solid rgba(240,96,96,0.2);border-radius:var(--r-sm);color:var(--danger);font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all 0.12s" title="Delete this day">Delete</button>
+    </div>
   </div>
 </div>
 
@@ -1244,9 +1313,15 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProfilePreviews();
   // No PIN - restore session or show picker
   const savedSession = sessionStorage.getItem('siblings_session');
+  const everLoggedIn = localStorage.getItem('siblings_ever_logged_in');
   if (savedSession && CONFIG.SIBLINGS[savedSession]) {
+    // Active session — go straight in
     loginAs(savedSession);
+  } else if (everLoggedIn && CONFIG.SIBLINGS[everLoggedIn]) {
+    // Returning user — auto-login as last used person
+    loginAs(everLoggedIn);
   } else {
+    // First ever visit — show picker
     showScreen('pickerScreen');
   }
 });
@@ -1304,6 +1379,7 @@ function pinSubmit() {
 function loginAs(name) {
   currentUser = name;
   sessionStorage.setItem('siblings_session', name);
+  localStorage.setItem('siblings_ever_logged_in', name);
   document.getElementById('currentUserLabel').textContent = name;
   document.getElementById('addingAsLabel').textContent = 'Adding as ' + name;
   document.getElementById('headerAvatar').textContent = name === 'James' ? 'Jm' : name[0];
@@ -1318,6 +1394,7 @@ function loginAs(name) {
   loadUnreadCount();
   initPullToRefresh();
   initHowToUse();
+  initEditPanel();
   checkOnboarding();
   // Load recent entries when on add tab
   loadRecentEntries();
@@ -3202,6 +3279,8 @@ function toast(msg,type='') { const el=document.getElementById('toast'); el.text
 let editMode = false;
 let editType = 'available';
 let editCurrentDay = null;
+let editExistingId = null;
+let lastUsedStart = '09:00', lastUsedEnd = '17:00';
 let busyMapCache = {};
 
 function enterEditMode(date) {
@@ -3253,53 +3332,107 @@ function toggleEditTimes() {
   document.getElementById('editTimeRow').style.display = allDay ? 'none' : 'flex';
 }
 
-function tapEditDay(ds) {
+async function tapEditDay(ds) {
   if (!editMode) return;
   editCurrentDay = ds;
   const [y,m,d] = ds.split('-');
   const dateObj = new Date(+y,+m-1,+d);
   const label = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('editDayLabel').textContent = label;
-  // Reset allDay to unchecked, show time row
+
+  // Check if user already has an entry for this day (UX 9: pre-populate, UX 8: warn)
+  const { data: existing } = await db.from('availability').select('*')
+    .eq('person', currentUser).eq('start_date', ds).eq('end_date', ds).limit(1);
+  const existingEntry = existing && existing[0];
+
   const ad = document.getElementById('editAllDay');
-  if (ad) ad.checked = false;
+  const startEl = document.getElementById('editStartTime');
+  const endEl   = document.getElementById('editEndTime');
+
+  if (existingEntry) {
+    // Pre-populate with existing times (UX 9)
+    const note = existingEntry.note || '';
+    const isAllDay = /all.?day/i.test(note);
+    if (ad) ad.checked = isAllDay;
+    if (!isAllDay) {
+      const m2 = note.match(/(\d{1,2}):?(\d{2})?\s*([ap]m)?[^a-z]*(\d{1,2}):?(\d{2})?\s*([ap]m)?/i);
+      if (m2 && startEl && endEl) {
+        const toH24 = (h,min,ampm) => {
+          let hh=+h,mm=+(min||0);
+          if (/pm/i.test(ampm)&&hh<12) hh+=12;
+          if (/am/i.test(ampm)&&hh===12) hh=0;
+          return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+        };
+        startEl.value = toH24(m2[1],m2[2],m2[3]);
+        endEl.value   = toH24(m2[4],m2[5],m2[6]);
+      }
+    }
+    // Show existing time in label
+    const existNote = existingEntry.note ? ' · ' + fmtNote(existingEntry.note) : '';
+    document.getElementById('editDayLabel').textContent = label + existNote;
+    // Mark the entry id for potential replace
+    editExistingId = existingEntry.id;
+  } else {
+    // Fresh day — restore last used times or defaults
+    if (ad) ad.checked = false;
+    if (startEl && lastUsedStart) startEl.value = lastUsedStart;
+    if (endEl   && lastUsedEnd)   endEl.value   = lastUsedEnd;
+    editExistingId = null;
+  }
+
   document.getElementById('editTimeRow').style.display = 'flex';
-  // Expand the panel
   const panel = document.getElementById('editPanel');
   panel.classList.add('expanded');
   document.getElementById('editExpanded').style.display = 'block';
-  // More padding now that panel is taller
   const calTab = document.getElementById('tab-cal');
   if (calTab) calTab.style.paddingBottom = '260px';
-  // Highlight selected day
   document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('edit-selected'));
-  const dayEl = document.querySelector(`.cal-day[data-date="${ds}"]`);
+  const dayEl = document.querySelector('.cal-day[data-date="'+ds+'"]');
   if (dayEl) dayEl.classList.add('edit-selected');
-  // Scroll so selected day is visible above the panel
   if (dayEl) dayEl.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 async function saveEditMode() {
   if (!currentUser) { showToast('Select a profile first'); return; }
   if (!editCurrentDay) { showToast('Tap a day on the calendar first'); return; }
-  const allDay = document.getElementById('editAllDay')?.checked !== false;
+  const allDay = document.getElementById('editAllDay')?.checked;
   const startTime = allDay ? '00:00' : (document.getElementById('editStartTime')?.value || '09:00');
   const endTime   = allDay ? '23:59' : (document.getElementById('editEndTime')?.value   || '17:00');
+
+  // UX 8: if replacing existing entry, delete it first
+  if (editExistingId) {
+    await db.from('availability').delete().eq('id', editExistingId);
+    editExistingId = null;
+  }
+
+  // UX 2: merge overlapping entries
+  if (!allDay) {
+    const merged = await mergeOverlappingEntries(currentUser, editCurrentDay, startTime, endTime, editType);
+    if (merged) { startTime = merged.mergedStart; endTime = merged.mergedEnd; }
+  }
+
+  // UX 6: persist last used times
+  if (!allDay) {
+    lastUsedStart = startTime;
+    lastUsedEnd   = endTime;
+  }
+
+  const endDateEl = document.getElementById('editEndDate');
+  const endDateVal = endDateEl && endDateEl.value && endDateEl.value >= editCurrentDay ? endDateEl.value : editCurrentDay;
+  if (endDateEl) endDateEl.value = ''; // reset after use
   const row = {
     person: currentUser,
     start_date: editCurrentDay,
-    end_date: editCurrentDay,
+    end_date: endDateVal,
     status: 'free',
     type: editType,
     source: 'manual',
-    note: (allDay ? 'All day' : startTime + '–' + endTime) + ' · ' + editType
+    note: (allDay ? 'All day' : startTime + String.fromCharCode(8211) + endTime) + ' ' + String.fromCharCode(183) + ' ' + editType
   };
   const { error } = await db.from('availability').insert(row);
   if (error) { showToast('Error: ' + error.message); return; }
-  showToast(editType === 'available' ? '✓ Saved' : '✓ Tentative saved');
-  // Reset panel to waiting for next tap, don't exit edit mode
+  showToast(editType === 'available' ? String.fromCharCode(10003) + ' Saved' : String.fromCharCode(10003) + ' Tentative saved');
   editCurrentDay = null;
-  // Collapse panel back to strip
   const panel = document.getElementById('editPanel');
   panel.classList.remove('expanded');
   document.getElementById('editExpanded').style.display = 'none';
@@ -3432,6 +3565,8 @@ async function loadCalendarData() {
   storeDayData(freeMap, busyMapCache, monthStart, monthEnd);
   renderCalendar(freeMap, tentMap);
   // Overlap list and schedule removed — info available via day popup tap
+  // UX 10: in edit mode, highlight days user already has marked
+  if (editMode) highlightUserDaysInEditMode(freeMap, tentMap);
 }
 
 // Cal dot styles moved to <style> block
@@ -3475,6 +3610,176 @@ function initHowToUse() {
   }
   // Returning users: stays collapsed (display:none from HTML)
 }
+
+// ── CALENDAR INPUT UX HELPERS ──
+
+// UX 1: start time auto-advances end by 1hr
+function onStartTimeChange() {
+  const startEl = document.getElementById('editStartTime');
+  const endEl   = document.getElementById('editEndTime');
+  if (!startEl || !endEl) return;
+  const [h,m] = startEl.value.split(':').map(Number);
+  let endH = h + 1;
+  if (endH >= 24) endH = 23;
+  const newEnd = String(endH).padStart(2,'0') + ':' + String(m||0).padStart(2,'0');
+  // Only auto-advance if end is currently before or same as new start
+  if (!endEl.value || endEl.value <= startEl.value) {
+    endEl.value = newEnd;
+  }
+}
+
+// UX 5: end time validates — can't be before start
+function onEndTimeChange() {
+  const startEl = document.getElementById('editStartTime');
+  const endEl   = document.getElementById('editEndTime');
+  if (!startEl || !endEl) return;
+  if (endEl.value && startEl.value && endEl.value <= startEl.value) {
+    // Bump end to start + 1hr
+    const [h,m] = startEl.value.split(':').map(Number);
+    let endH = h + 1;
+    if (endH >= 24) endH = 23;
+    endEl.value = String(endH).padStart(2,'0') + ':' + String(m||0).padStart(2,'0');
+    // Visual shake
+    endEl.style.borderColor = 'var(--danger)';
+    setTimeout(() => { endEl.style.borderColor = ''; }, 600);
+  }
+}
+
+// UX 2: Merge overlapping entries on save
+async function mergeOverlappingEntries(person, ds, newStart, newEnd, type) {
+  // Fetch all existing entries for this person on this day
+  const { data } = await db.from('availability').select('*')
+    .eq('person', person).eq('start_date', ds).eq('end_date', ds);
+  if (!data || !data.length) return;
+
+  const toMins = (t) => { const [h,m] = t.split(':').map(Number); return h*60+(m||0); };
+  const toTime = (mins) => String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');
+
+  const newS = toMins(newStart), newE = toMins(newEnd);
+  const overlapping = data.filter(r => {
+    if (!r.note || /all.?day/i.test(r.note)) return false;
+    const m = r.note.match(/(\d{1,2}:\d{2})[^0-9]*(\d{1,2}:\d{2})/);
+    if (!m) return false;
+    const rS = toMins(m[1]), rE = toMins(m[2]);
+    return newS <= rE && newE >= rS; // overlap check
+  });
+
+  if (overlapping.length === 0) return;
+
+  // Merge all overlapping into one expanded range
+  let mergedS = newS, mergedE = newE;
+  const idsToDelete = [];
+  overlapping.forEach(r => {
+    const m = r.note.match(/(\d{1,2}:\d{2})[^0-9]*(\d{1,2}:\d{2})/);
+    if (m) {
+      mergedS = Math.min(mergedS, toMins(m[1]));
+      mergedE = Math.max(mergedE, toMins(m[2]));
+      idsToDelete.push(r.id);
+    }
+  });
+
+  // Delete overlapping entries
+  for (const id of idsToDelete) {
+    await db.from('availability').delete().eq('id', id);
+  }
+
+  return { mergedStart: toTime(mergedS), mergedEnd: toTime(mergedE) };
+}
+
+// UX 11: "Done" button exits edit mode after save
+function checkShowDoneHint() {
+  const hint = document.getElementById('editDoneHint');
+  if (hint) { hint.style.display = 'block'; }
+}
+
+// UX 12: Mark whole week
+async function markWholeWeek() {
+  if (!editMode || !editCurrentDay) return;
+  const startEl = document.getElementById('editStartTime');
+  const endEl   = document.getElementById('editEndTime');
+  const allDay  = document.getElementById('editAllDay')?.checked;
+  const st = allDay ? '00:00' : (startEl?.value || lastUsedStart);
+  const et = allDay ? '23:59' : (endEl?.value   || lastUsedEnd);
+
+  // Find Mon-Sun of the week containing editCurrentDay
+  const d = new Date(editCurrentDay + 'T12:00:00');
+  const dow = d.getDay(); // 0=Sun
+  const monday = new Date(d); monday.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(monday); day.setDate(monday.getDate() + i);
+    const ds = day.toISOString().split('T')[0];
+    rows.push({ person:currentUser, start_date:ds, end_date:ds, status:'free', type:editType, source:'manual',
+      note:(allDay ? 'All day' : st + String.fromCharCode(8211) + et) + ' ' + String.fromCharCode(183) + ' ' + editType });
+  }
+  const { error } = await db.from('availability').insert(rows);
+  if (error) { toast('Error saving week', 'error'); return; }
+  lastUsedStart = st; lastUsedEnd = et;
+  toast('Week marked ' + editType, 'success');
+  loadCalendarData();
+}
+
+// UX 14: Delete current day's entry from edit mode
+async function deleteFromEditMode() {
+  if (!editCurrentDay) return;
+  const { data } = await db.from('availability').select('id')
+    .eq('person', currentUser).eq('start_date', editCurrentDay).eq('end_date', editCurrentDay);
+  if (!data || !data.length) { toast('Nothing to delete here', 'info'); return; }
+  for (const r of data) await db.from('availability').delete().eq('id', r.id);
+  toast('Deleted', 'success');
+  editCurrentDay = null;
+  const panel = document.getElementById('editPanel');
+  panel.classList.remove('expanded');
+  document.getElementById('editExpanded').style.display = 'none';
+  const calTab = document.getElementById('tab-cal');
+  if (calTab) calTab.style.paddingBottom = '90px';
+  loadCalendarData();
+}
+
+
+// UX 10: highlight user's already-marked days in edit mode
+function highlightUserDaysInEditMode(freeMap, tentMap) {
+  const allDays = document.querySelectorAll('.cal-day.in-month');
+  let d = 1;
+  allDays.forEach(cell => {
+    const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const hasEntry = (freeMap[ds]||[]).some(e=>e.person===currentUser) ||
+                     (tentMap[ds]||[]).some(e=>e.person===currentUser);
+    if (hasEntry && !cell.classList.contains('edit-selected')) {
+      cell.style.outline = '2px solid ' + (SIBLING_COLORS[currentUser]||'var(--accent)') + '60';
+      cell.style.outlineOffset = '-2px';
+    } else if (!hasEntry) {
+      cell.style.outline = '';
+    }
+    d++;
+  });
+}
+
+// UX 13: copy last used times into inputs
+function copyLastTimes() {
+  const startEl = document.getElementById('editStartTime');
+  const endEl   = document.getElementById('editEndTime');
+  const adEl    = document.getElementById('editAllDay');
+  if (startEl) startEl.value = lastUsedStart;
+  if (endEl)   endEl.value   = lastUsedEnd;
+  if (adEl)    adEl.checked  = false;
+  const timeRow = document.getElementById('editTimeRow');
+  if (timeRow) timeRow.style.display = 'flex';
+  toast('Times copied', 'success');
+}
+
+// UX 15: iOS time picker — numeric input fallback hint
+// (native time input is used; this just improves the label)
+function initEditPanel() {
+  const startEl = document.getElementById('editStartTime');
+  const endEl   = document.getElementById('editEndTime');
+  // Set editEndDate min to today
+  const edEl = document.getElementById('editEndDate');
+  if (edEl) edEl.min = todayStr();
+}
+
 </script>
 </body>
 </html>
