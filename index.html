@@ -2125,33 +2125,11 @@ function buildFreeMap(data, monthStart, monthEnd) {
     while (cur <= end) {
       const k = cur.toISOString().split('T')[0];
       if (!m[k]) m[k] = [];
-      m[k].push({person:row.person, note:row.note});
+      m[k].push({person:row.person, note:row.note, type:row.type||'available', id:row.id});
       cur.setDate(cur.getDate()+1);
     }
   });
   return m;
-}
-function parseTimeRange(note) {
-  // Extract start/end hours from note like "(2p-12a)" or "(6:45pm)" or "(2pm-12am)"
-  if (!note) return null;
-  const m = note.match(/\((\d{1,2})(?::(\d{2}))?\s*(am|pm)\s*[-to]+\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)\)/i);
-  if (!m) {
-    // Single time "(6:45pm)"
-    const s = note.match(/\((\d{1,2})(?::(\d{2}))?\s*(am|pm)\)/i);
-    if (!s) return null;
-    let h = parseInt(s[1]);
-    if (s[3].toLowerCase()==='pm' && h<12) h+=12;
-    if (s[3].toLowerCase()==='am' && h===12) h=0;
-    return {startHour:h, endHour:h+1, overnight:false};
-  }
-  let sh = parseInt(m[1]);
-  if (m[3].toLowerCase()==='pm' && sh<12) sh+=12;
-  if (m[3].toLowerCase()==='am' && sh===12) sh=0;
-  let eh = parseInt(m[4]);
-  if (m[6].toLowerCase()==='pm' && eh<12) eh+=12;
-  if (m[6].toLowerCase()==='am' && eh===12) eh=0;
-  const overnight = eh <= sh; // e.g. 2pm(14) to 12am(0)
-  return {startHour:sh, endHour:eh, overnight};
 }
 
 function buildBusyMap(data, monthStart, monthEnd) {
@@ -2209,93 +2187,221 @@ function openDayPopup(ds) {
   const dateObj = new Date(+y,+m-1,+d);
   if (dateEl) dateEl.textContent = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-  const siblings = ['Catherine','Ellie','JD','James'];
-  const freeMap  = window._lastFreeMap  || {};
-  const tentMap  = window._lastTentMap  || {};
+  const siblings  = ['Catherine','Ellie','JD','James'];
+  const freeMap   = window._lastFreeMap  || {};
+  const tentMap   = window._lastTentMap  || {};
 
-  const freeList = siblings.filter(n => freeMap[ds]?.some(e => e.person===n));
-  const tentList = siblings.filter(n => tentMap[ds]?.some(e => e.person===n));
-  const freeSet  = new Set(freeList);
-  const tentSet  = new Set(tentList);
+  const freeSet = new Set(siblings.filter(n => freeMap[ds]?.some(e => e.person===n)));
+  const tentSet = new Set(siblings.filter(n => tentMap[ds]?.some(e => e.person===n)));
+  const overlapCount = freeSet.size;
 
-  let html = '';
+  // ── Parse time from note ──
+  function parseTimeRange(note) {
+    if (!note) return null;
+    if (/all.?day/i.test(note)) return {start:0, end:24, label:'All day'};
+    const m = note.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*[–\-to]+\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+    if (!m) return null;
+    let sh=+m[1], sm=+(m[2]||0), eampm=m[6]||m[3]||'';
+    let eh=+m[4], em2=+(m[5]||0), sampm=m[3]||'';
+    if (/pm/i.test(eampm) && eh<12) eh+=12;
+    if (/pm/i.test(sampm) && sh<12) sh+=12;
+    if (/am/i.test(eampm) && eh===12) eh=0;
+    if (/am/i.test(sampm) && sh===12) sh=0;
+    return {start:sh+sm/60, end:eh+em2/60, label:m[0]};
+  }
+
+  // Gather all entries for this day with time ranges
+  const allEntries = [];
+  siblings.forEach(name => {
+    const isFree = freeSet.has(name);
+    const isTent = tentSet.has(name);
+    if (!isFree && !isTent) return;
+    const entries = isFree ? (freeMap[ds]||[]).filter(e=>e.person===name)
+                           : (tentMap[ds]||[]).filter(e=>e.person===name);
+    entries.forEach(e => {
+      const tr = parseTimeRange(e.note);
+      allEntries.push({name, type:e.type||'available', note:e.note, tr});
+    });
+  });
+
+  // Figure out time window to display (min/max of all entries, pad by 1hr, snap to whole hours)
+  let minH = 24, maxH = 0;
+  allEntries.forEach(e => {
+    if (e.tr) { minH = Math.min(minH, e.tr.start); maxH = Math.max(maxH, e.tr.end); }
+  });
+  if (minH === 24) { minH = 6; maxH = 22; } // fallback if no timed entries
+  minH = Math.max(0, Math.floor(minH - 0.5));
+  maxH = Math.min(24, Math.ceil(maxH + 0.5));
+  const spanH = maxH - minH;
+  const PX_PER_HR = 52; // pixels per hour
+  const totalPx = spanH * PX_PER_HR;
+
+  // ── Build hour labels ──
+  let hourLabels = '';
+  for (let h = minH; h <= maxH; h++) {
+    const top = (h - minH) * PX_PER_HR;
+    const label = h === 0 ? '12am' : h < 12 ? h+'am' : h === 12 ? '12pm' : (h-12)+'pm';
+    hourLabels += '<div style="position:absolute;top:'+(top-8)+'px;left:0;font-size:9px;font-family:var(--font-mono);color:var(--muted2);line-height:1;white-space:nowrap">' + label + '</div>';
+    if (h < maxH) {
+      hourLabels += '<div style="position:absolute;top:'+top+'px;left:30px;right:0;height:1px;background:var(--border);opacity:0.5"></div>';
+    }
+  }
+
+  // ── Build sibling columns ──
+  const colWidth = 'calc((100% - 38px) / ' + siblings.length + ')';
+  let colsHtml = '';
+  siblings.forEach((name, colIdx) => {
+    const color   = SIBLING_COLORS[name] || '#888';
+    const isFree  = freeSet.has(name);
+    const isTent  = tentSet.has(name);
+    const init    = name === 'James' ? 'Jm' : name[0];
+    const myEntries = allEntries.filter(e => e.name === name);
+
+    let blocksHtml = '';
+    if (myEntries.length === 0) {
+      // No availability — show faint column
+      blocksHtml = '<div style="position:absolute;inset:0;background:var(--surface);border-radius:6px;opacity:0.3"></div>';
+    } else {
+      myEntries.forEach(e => {
+        const isTentEntry = e.type === 'tentative';
+        const tr = e.tr;
+        let topPct, heightPct;
+        if (tr) {
+          topPct    = ((tr.start - minH) / spanH) * 100;
+          heightPct = ((tr.end - tr.start) / spanH) * 100;
+        } else {
+          topPct = 0; heightPct = 100;
+        }
+        const bgColor   = isTentEntry ? 'transparent' : color + '22';
+        const border    = isTentEntry
+          ? '2px dashed ' + color + '80'
+          : '1px solid '  + color + '50';
+        const textColor = isTentEntry ? color + 'aa' : color;
+        const minHpx    = Math.max(heightPct * totalPx / 100, 20);
+
+        blocksHtml += '<div style="position:absolute;left:0;right:0;top:'+topPct+'%;height:'+heightPct+'%;min-height:'+minHpx+'px;background:'+bgColor+';border:'+border+';border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px 2px;overflow:hidden">';
+        if (tr && tr.end - tr.start >= 1) {
+          blocksHtml += '<div style="font-size:8px;font-family:var(--font-mono);color:'+textColor+';text-align:center;line-height:1.3;font-weight:600">' + (isTentEntry?'~':'') + fmtHour(tr.start) + '</div>';
+          blocksHtml += '<div style="font-size:7px;font-family:var(--font-mono);color:'+textColor+'80;text-align:center">to</div>';
+          blocksHtml += '<div style="font-size:8px;font-family:var(--font-mono);color:'+textColor+';text-align:center;line-height:1.3">' + fmtHour(tr.end) + '</div>';
+        } else if (tr) {
+          blocksHtml += '<div style="font-size:7px;font-family:var(--font-mono);color:'+textColor+';text-align:center">' + fmtHour(tr.start) + '</div>';
+        }
+        blocksHtml += '</div>';
+      });
+    }
+
+    colsHtml += '<div style="display:flex;flex-direction:column;gap:4px">';
+    // Avatar header
+    const avatarBorder = isFree ? '2px solid '+color : isTent ? '2px dashed '+color+'80' : '1px solid var(--border)';
+    const avatarBg     = isFree || isTent ? color+'18' : 'var(--surface2)';
+    colsHtml += '<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:3px;margin-bottom:6px">';
+    colsHtml += '<div style="width:32px;height:32px;border-radius:50%;background:'+avatarBg+';border:'+avatarBorder+';display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:12px;font-weight:700;color:'+(isFree?color:isTent?color+'aa':'var(--muted)')+'">'+init+'</div>';
+    colsHtml += '<div style="font-size:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.5px;color:'+(isFree?color:isTent?color+'88':'var(--muted2)')+'">'+name+'</div>';
+    colsHtml += '</div>';
+    // Timeline column
+    colsHtml += '<div style="position:relative;height:'+totalPx+'px">'+blocksHtml+'</div>';
+    colsHtml += '</div>';
+  });
 
   // ── Overlap banner ──
-  const overlapCount = freeList.length;
+  let banner = '';
+  const freePeople = [...freeSet];
   if (overlapCount >= 4) {
-    html += '<div class="day-overlap-banner" style="background:rgba(200,240,96,0.1);border:1px solid rgba(200,240,96,0.3)">';
-    html += '<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--accent);fill:none;stroke-width:2.5;stroke-linecap:round;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>';
-    html += '<span style="font-size:13px;font-weight:700;color:var(--accent)">Everyone is free — great day to meet!</span></div>';
+    banner = '<div style="background:rgba(200,240,96,0.1);border:1px solid rgba(200,240,96,0.3);border-radius:var(--r-sm);padding:9px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent);fill:none;stroke-width:2.5;stroke-linecap:round;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:700;color:var(--accent)">Everyone is free!</span></div>';
   } else if (overlapCount >= 2) {
-    const dots = freeList.map(n => `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${SIBLING_COLORS[n]};margin-right:2px"></span>`).join('');
-    html += '<div class="day-overlap-banner" style="background:rgba(240,200,96,0.07);border:1px solid rgba(240,200,96,0.2)">';
-    html += dots;
-    html += `<span style="font-size:12px;color:var(--muted)">${freeList.join(' & ')} overlap</span></div>`;
+    const dots = freePeople.map(n=>'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+SIBLING_COLORS[n]+';margin-right:2px;vertical-align:middle"></span>').join('');
+    banner = '<div style="background:rgba(240,200,96,0.07);border:1px solid rgba(240,200,96,0.2);border-radius:var(--r-sm);padding:9px 14px;margin-bottom:12px;display:flex;align-items:center;gap:6px">'+dots+'<span style="font-size:12px;color:var(--muted)">'+freePeople.join(' & ')+' overlap</span></div>';
   }
 
-  // ── 4-column sibling day view ──
-  html += '<div class="day-col-grid">';
-  siblings.forEach(name => {
-    const color  = SIBLING_COLORS[name] || '#888';
-    const isFree = freeSet.has(name);
-    const isTent = !isFree && tentSet.has(name);
-    const init   = name === 'James' ? 'Jm' : name[0];
-
-    // Get note if any
-    let noteStr = '';
-    if (isFree) {
-      const entry = (freeMap[ds] || []).find(e => e.person === name);
-      if (entry?.note) noteStr = fmtNote(entry.note);
-    } else if (isTent) {
-      const entry = (tentMap[ds] || []).find(e => e.person === name);
-      if (entry?.note) noteStr = fmtNote(entry.note);
+  // ── My status footer ──
+  const myEntry = allEntries.find(e => e.name === currentUser);
+  let footer = '';
+  if (myEntry) {
+    const myColor = SIBLING_COLORS[currentUser]||'var(--accent)';
+    const isTentMe = myEntry.type === 'tentative';
+    footer += '<div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">';
+    footer += '<span style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">You\'re '+( isTentMe?'tentative':'free')+(myEntry.note?' · '+fmtNote(myEntry.note):'')+' ·</span>';
+    // Edit pill — opens edit mode pre-filled with this entry's times
+    const editDs = ds;
+    const editNote = (myEntry.note||'').replace(/'/g,"\\'");
+    const editIsTent = isTentMe ? 'true' : 'false';
+    footer += '<button onclick="closeDayPopup();openEditForEntry(\''+editDs+'\',\''+editNote+'\','+editIsTent+')" style="background:var(--surface2);border:1px solid var(--border2);border-radius:999px;color:var(--text);font-size:11px;font-family:var(--font-mono);padding:4px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>';
+    // Delete pill
+    const rowId = ((freeMap[ds]||[]).find(e=>e.person===currentUser) || (tentMap[ds]||[]).find(e=>e.person===currentUser)||{}).id || '';
+    if (rowId) {
+      footer += '<button onclick="delAvailFromPopup(\''+rowId+'\',\''+editDs+'\')" style="background:rgba(240,96,96,0.08);border:1px solid rgba(240,96,96,0.25);border-radius:999px;color:var(--danger);font-size:11px;font-family:var(--font-mono);padding:4px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Delete</button>';
     }
-
-    html += '<div class="day-col">';
-
-    // Avatar
-    html += `<div class="day-col-avatar" style="background:${color}20;border:2px solid ${isFree ? color : isTent ? color+'80' : 'var(--border)'};color:${isFree ? color : isTent ? color+'cc' : 'var(--muted)'}">`;
-    html += init + '</div>';
-
-    // Name
-    html += `<div class="day-col-name" style="color:${isFree ? color : isTent ? color+'99' : 'var(--muted)'}">${name}</div>`;
-
-    // Status block
-    if (isFree) {
-      html += `<div class="day-col-block avail" style="background:${color}18">`;
-      html += `<div class="day-col-status" style="color:${color}">Free</div>`;
-      if (noteStr) html += `<div class="day-col-note" style="color:${color}cc">${esc(noteStr)}</div>`;
-      html += '</div>';
-    } else if (isTent) {
-      html += `<div class="day-col-block tent" style="border-color:${color}60;background:${color}08">`;
-      html += `<div class="day-col-status" style="color:${color}99">Maybe</div>`;
-      if (noteStr) html += `<div class="day-col-note" style="color:${color}66">${esc(noteStr)}</div>`;
-      html += '</div>';
-    } else {
-      html += '<div class="day-col-block empty">';
-      html += '<div class="day-col-status" style="color:var(--muted2)">—</div>';
-      html += '</div>';
-    }
-
-    html += '</div>'; // end day-col
-  });
-  html += '</div>'; // end day-col-grid
-
-  // ── Add availability button (for current user) ──
-  const myStatus = freeSet.has(currentUser) ? 'free' : tentSet.has(currentUser) ? 'tentative' : null;
-  if (!myStatus) {
-    html += `<button class="day-add-btn" onclick="closeDayPopup();enterEditMode('${ds}')">`;
-    html += '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-    html += 'Mark yourself free</button>';
+    footer += '</div>';
   } else {
-    html += `<div style="text-align:center;font-size:11px;font-family:var(--font-mono);color:var(--muted);padding:8px 0">You're marked as ${myStatus} · <button onclick="closeDayPopup();enterEditMode('${ds}')" style="background:none;border:none;color:var(--accent);font-size:11px;font-family:var(--font-mono);cursor:pointer;text-decoration:underline">Edit</button></div>`;
+    footer = '<button onclick="closeDayPopup();openEditForEntry(\''+ds+'\',\'\',false)" style="width:100%;margin-top:14px;padding:11px;background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--r-sm);color:var(--accent);font-size:12px;font-family:var(--font-mono);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:1px;text-transform:uppercase"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Mark yourself free</button>';
   }
+
+  // ── Assemble ──
+  const html = banner +
+    '<div style="display:grid;grid-template-columns:30px repeat('+siblings.length+',1fr);gap:0;position:relative">' +
+      '<div style="position:relative">' + hourLabels + '</div>' +
+      colsHtml +
+    '</div>' +
+    footer;
 
   if (bodyEl) bodyEl.innerHTML = html;
   popup.classList.add('open');
   popup.onclick = (e) => { if (e.target === popup) closeDayPopup(); };
 }
 
+function fmtHour(h) {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  const ampm = hh < 12 ? 'am' : 'pm';
+  const h12 = hh % 12 || 12;
+  return h12 + (mm ? ':' + String(mm).padStart(2,'0') : '') + ampm;
+}
+
+// Open edit mode pre-filled with existing entry's times
+function openEditForEntry(ds, note, isTentative) {
+  enterEditMode(ds);
+  // Set the type
+  editType = isTentative ? 'tentative' : 'available';
+  document.querySelectorAll('.edit-type-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === editType);
+  });
+  // Parse times from note and populate inputs
+  if (note && !/all.?day/i.test(note)) {
+    const m = note.match(/(\d{1,2}(?::\d{2})?)\s*(am|pm)?\s*[–\-]+\s*(\d{1,2}(?::\d{2})?)\s*(am|pm)?/i);
+    if (m) {
+      const toTime24 = (tStr, ampm) => {
+        const [hh,mm] = tStr.split(':').map(Number);
+        let h = hh||0, min = mm||0;
+        if (/pm/i.test(ampm) && h<12) h+=12;
+        if (/am/i.test(ampm) && h===12) h=0;
+        return String(h).padStart(2,'0')+':'+String(min||0).padStart(2,'0');
+      };
+      const startEl = document.getElementById('editStartTime');
+      const endEl   = document.getElementById('editEndTime');
+      const adEl    = document.getElementById('editAllDay');
+      if (startEl) startEl.value = toTime24(m[1], m[2]||'');
+      if (endEl)   endEl.value   = toTime24(m[3], m[4]||'');
+      if (adEl)    adEl.checked  = false;
+      const timeRow = document.getElementById('editTimeRow');
+      if (timeRow) timeRow.style.display = 'flex';
+    }
+  } else if (/all.?day/i.test(note)) {
+    const adEl = document.getElementById('editAllDay');
+    if (adEl) { adEl.checked = true; adEl.dispatchEvent(new Event('change')); }
+  }
+}
+
+// Delete from day popup and reopen
+async function delAvailFromPopup(rowId, ds) {
+  if (!await showConfirm('Delete this?', '', 'Delete', true)) return;
+  await db.from('availability').delete().eq('id', rowId);
+  toast('Deleted','success');
+  closeDayPopup();
+  await loadCalendarData();
+  // Reopen popup with fresh data
+  openDayPopup(ds);
+}
 
 
 async function renderMySchedule(monthStart, monthEnd) {
