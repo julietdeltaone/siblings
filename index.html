@@ -1642,7 +1642,6 @@ async function parseAvailability() {
         end_date:   p.end_date || p.start_date,
         status:     'free',
         type:       type,
-        rating:     type === 'available' ? 5 : 3,
         source:     'nlp',
         note:       noteStr + ' · ' + type
       };
@@ -2152,7 +2151,7 @@ function openDayPopup(ds) {
       html += '</div>';
     }
   } else {
-    html += '<div class="day-popup-empty" style="padding:16px 0;text-align:center;color:var(--muted);font-size:12px">No availability marked for this day.</div>';
+    html += '<div style="padding:16px 0;text-align:center"><div style="color:var(--muted);font-size:12px;margin-bottom:12px">No availability marked for this day.</div><button onclick="closeDayPopup();enterEditMode();" style="padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:var(--r-sm);font-size:12px;font-family:var(--font-mono);font-weight:600;cursor:pointer">+ Mark yourself free</button></div>';
   }
 
   if (bodyEl) bodyEl.innerHTML = html;
@@ -2609,34 +2608,7 @@ function storeDayData(freeMap, busyMap, monthStart, monthEnd) {
   });
 }
 
-function openDayPopup(ds) {
-  const popup = document.getElementById('dayPopup');
-  if (!popup) return;
-  const dateEl = document.getElementById('dayPopupDate');
-  const bodyEl = document.getElementById('dayPopupBody');
-  const [y,m,d] = ds.split('-');
-  dateEl.textContent = new Date(+y,+m-1,+d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  const events = calDayData[ds] || [];
-  if (!events.length) {
-    bodyEl.innerHTML = '<div class="day-popup-empty" style="padding:20px 0"><div style="margin-bottom:12px">Nothing logged for this day.</div><button class="btn btn-sec" style="width:auto;padding:8px 16px;font-size:11px" data-goto-avail="1"">Mark yourself free or busy</button></div>';
-  } else {
-    const seen = new Set();
-    const deduped = [...events].sort((a,b) => a.status==='free'?-1:1).filter(e => {
-      const k = e.person+'|'+e.status+'|'+(e.note||'');
-      if (seen.has(k)) return false; seen.add(k); return true;
-    });
-    bodyEl.innerHTML = deduped.map(e => {
-      const color = SIBLING_COLORS[e.person]||'var(--muted)';
-      const note = e.note||'';
-      const timeMatch = note.match(/\(([^)]+(?:am|pm)[^)]*)\)/i);
-      const timeStr = timeMatch ? timeMatch[1] : '';
-      const noteName = note.replace(/\s*\([^)]+(?:am|pm)[^)]*\)/i,'').trim();
-      return '<div class="day-event"><span class="day-event-badge '+e.status+'">'+e.status+'</span><div class="day-event-info"><div class="day-event-who" style="color:'+color+'">'+esc(e.person)+(timeStr?' <span style="font-size:10px;color:var(--muted);font-family:var(--font-mono)">'+esc(timeStr)+'</span>':'')+'</div>'+(noteName?'<div class="day-event-note">'+esc(noteName)+'</div>':'')+'</div></div>';
-    }).join('');
-  }
-  popup.classList.add('open');
-  popup.onclick = (ev) => { if (ev.target === popup) closeDayPopup(); };
-}
+
 
 function closeDayPopup() {
   const p = document.getElementById('dayPopup');
@@ -2970,6 +2942,8 @@ function enterEditMode() {
   const calTab = document.getElementById('tab-cal');
   if (calTab) calTab.style.paddingBottom = '90px';
   renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
+  // Auto-populate today's date
+  tapEditDay(todayStr());
 }
 
 function cancelEditMode() {
@@ -3038,7 +3012,6 @@ async function saveEditMode() {
     end_date: editCurrentDay,
     status: 'free',
     type: editType,
-    rating: editType === 'available' ? 5 : 3,
     source: 'manual',
     note: (allDay ? 'All day' : startTime + '–' + endTime) + ' · ' + editType
   };
