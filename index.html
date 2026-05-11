@@ -377,6 +377,69 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .notif-unread-badge.show{display:block}
 .nav-btn{position:relative}
 
+/* IMPROVED NAV - label only on active */
+.nav-btn span.nav-label{font-size:9px;transition:all 0.15s;opacity:0.7}
+.nav-btn.active span.nav-label{opacity:1;color:var(--accent)}
+
+/* LOADING SKELETONS */
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:var(--r-sm);height:14px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* CUSTOM CONFIRM DIALOG */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:24px}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;width:100%;max-width:340px}
+.confirm-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns .btn{font-size:11px;padding:11px}
+.confirm-danger{background:var(--danger)}
+
+/* HERO AVAILABILITY BANNER */
+.avail-hero{border-radius:var(--r);padding:18px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden}
+.avail-hero.has-avail{background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.3)}
+.avail-hero.no-avail{background:rgba(240,96,96,0.06);border:1px solid rgba(240,96,96,0.2)}
+.avail-hero-label{font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;opacity:0.7}
+.avail-hero-date{font-family:var(--font-head);font-size:clamp(20px,5vw,28px);line-height:1.1;margin-bottom:6px}
+.avail-hero-who{font-size:11px;font-family:var(--font-mono);opacity:0.8}
+.avail-hero.has-avail .avail-hero-label{color:var(--accent)}
+.avail-hero.has-avail .avail-hero-date{color:var(--text)}
+.avail-hero.no-avail .avail-hero-label{color:var(--danger)}
+.avail-hero.no-avail .avail-hero-date{color:var(--danger);font-size:20px}
+
+/* ADD TAB TYPE SELECTOR - icon grid */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.type-btn{padding:12px 8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;text-align:center;transition:all 0.12s}
+.type-btn:active,.type-btn.sel{border-color:var(--accent);background:rgba(200,240,96,0.07)}
+.type-btn svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block;margin:0 auto 5px}
+.type-btn.sel svg{stroke:var(--accent)}
+.type-btn-label{font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.type-btn.sel .type-btn-label{color:var(--accent)}
+
+/* RECENT ENTRIES PREVIEW */
+.recent-entries{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.recent-entry-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.recent-entry-item:last-child{border-bottom:none}
+.recent-entry-type{font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;min-width:44px}
+.recent-entry-text{font-size:12px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* PROFILE GRID - status line */
+.q-next-free{font-size:9px;color:var(--accent);font-family:var(--font-mono);margin-top:4px;min-height:12px}
+.q-entry-count{font-size:9px;color:var(--muted2);font-family:var(--font-mono);margin-top:2px}
+
+/* OVERLAP CARDS - day of week */
+.ol-dow{font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+
+/* SMOOTH TAB TRANSITIONS */
+.tab-pane{animation:none}
+.tab-pane.active{animation:tabIn 0.18s cubic-bezier(0.22,1,0.36,1)}
+@keyframes tabIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ONBOARDING HINT */
+.hint-bubble{position:absolute;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--r-sm);padding:8px 12px;font-size:11px;font-family:var(--font-mono);color:var(--text);z-index:100;max-width:200px;line-height:1.4;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.hint-bubble::before{content:'';position:absolute;border:6px solid transparent}
+.hint-close{float:right;cursor:pointer;color:var(--muted);margin-left:8px;font-size:14px;line-height:1}
+
 /* GUIDED EMPTY STATES */
 .guided-empty{text-align:center;padding:24px 16px;color:var(--muted)}
 .guided-empty-icon{margin-bottom:10px;opacity:0.4}
@@ -482,6 +545,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <div class="q-name">Catherine</div>
             <div class="q-sub">Green &middot; Massena</div>
             <div class="q-stat" id="stat-Catherine"></div>
+            <div class="q-next-free" id="nextfree-Catherine"></div>
+            <div class="q-entry-count" id="ecount-Catherine"></div>
             <div class="q-preview" id="prev-Catherine"></div>
           </div>
           <div class="q-card" data-person="Ellie">
@@ -489,6 +554,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <div class="q-name">Ellie</div>
             <div class="q-sub">Criscitello &middot; Potsdam</div>
             <div class="q-stat" id="stat-Ellie"></div>
+            <div class="q-next-free" id="nextfree-Ellie"></div>
+            <div class="q-entry-count" id="ecount-Ellie"></div>
             <div class="q-preview" id="prev-Ellie"></div>
           </div>
           <div class="q-card" data-person="JD">
@@ -496,6 +563,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <div class="q-name">JD</div>
             <div class="q-sub">Meyers &middot; Potsdam</div>
             <div class="q-stat" id="stat-JD"></div>
+            <div class="q-next-free" id="nextfree-JD"></div>
+            <div class="q-entry-count" id="ecount-JD"></div>
             <div class="q-preview" id="prev-JD"></div>
           </div>
           <div class="q-card" data-person="James">
@@ -503,6 +572,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <div class="q-name">James</div>
             <div class="q-sub">Meyers &middot; Potsdam</div>
             <div class="q-stat" id="stat-James"></div>
+            <div class="q-next-free" id="nextfree-James"></div>
+            <div class="q-entry-count" id="ecount-James"></div>
             <div class="q-preview" id="prev-James"></div>
           </div>
         </div>
@@ -521,16 +592,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <!-- ADD -->
       <div class="tab-pane" id="tab-add">
         <div class="who-badge"><div class="who-dot"></div><span id="addingAsLabel">Adding as --</span></div>
-        <div class="form-group">
-          <label class="label">Category</label>
-          <select class="select" id="dataTypeSelect">
-            <option value="movie">Movie / Show</option>
-            <option value="music">Music</option>
-            <option value="place">Place / Restaurant</option>
-            <option value="note">Thought / Note</option>
-            <option value="book">Book</option>
-            <option value="activity">Activity / Idea</option>
-          </select>
+        <!-- Hidden select for JS compatibility -->
+        <select id="dataTypeSelect" style="display:none">
+          <option value="movie">Movie / Show</option>
+          <option value="music">Music</option>
+          <option value="place">Place / Restaurant</option>
+          <option value="note">Thought / Note</option>
+          <option value="book">Book</option>
+          <option value="activity">Activity / Idea</option>
+        </select>
+        <div class="type-grid">
+          <button class="type-btn sel" data-type="movie">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+            <div class="type-btn-label">Movie</div>
+          </button>
+          <button class="type-btn" data-type="music">
+            <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <div class="type-btn-label">Music</div>
+          </button>
+          <button class="type-btn" data-type="place">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/></svg>
+            <div class="type-btn-label">Place</div>
+          </button>
+          <button class="type-btn" data-type="note">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div class="type-btn-label">Note</div>
+          </button>
+          <button class="type-btn" data-type="book">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <div class="type-btn-label">Book</div>
+          </button>
+          <button class="type-btn" data-type="activity">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <div class="type-btn-label">Activity</div>
+          </button>
         </div>
         <div class="form-group">
           <label class="label">Details</label>
@@ -552,6 +647,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           </div>
         </div>
         <button class="btn" id="submitDataBtn">Save Entry</button>
+        <div class="recent-entries">
+          <div class="sec-head" style="border:none;margin-bottom:8px;font-size:9px">Your Recent Entries</div>
+          <div id="recentEntriesList"><div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">Loading...</div></div>
+        </div>
       </div>
 
       <!-- AVAILABILITY TAB - Claude synopsis + free/busy input only -->
@@ -768,7 +867,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <button class="nav-btn" data-tab="notif">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Notifs
-        <div class="notif-unread-badge" id="notifBadge"></div>
+        <div class="notif-unread-badge" id="notifBadge" style="display:none;position:absolute;top:4px;right:12px;min-width:16px;height:16px;border-radius:8px;background:var(--danger);color:#fff;font-size:9px;font-family:var(--font-mono);display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg)">0</div>
       </button>
       <button class="nav-btn" data-tab="guide">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Guide
@@ -786,6 +885,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <button class="day-popup-close" onclick="closeDayPopup()">&times;</button>
     </div>
     <div class="day-popup-body" id="dayPopupBody"></div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-sec" id="confirmCancel">Cancel</button>
+      <button class="btn confirm-danger" id="confirmOk">Delete</button>
+    </div>
   </div>
 </div>
 
@@ -872,6 +983,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('viewWeek').addEventListener('click', () => setCalView('week'));
   document.getElementById('refreshAvailBtn')?.addEventListener('click', loadAvailSynopsis);
 
+  // Confirm dialog
+  document.getElementById('confirmCancel').addEventListener('click', () => closeConfirm(false));
+  document.getElementById('confirmOk').addEventListener('click', () => closeConfirm(true));
+
+  // Type grid
+  initTypeGrid();
+
   document.getElementById('markAllReadBtn').addEventListener('click', async () => {
     await db.from('notifications').update({read:true}).eq('for_person', currentUser);
     document.getElementById('notifBadge').classList.remove('show');
@@ -938,11 +1056,25 @@ document.addEventListener('DOMContentLoaded', () => {
     delEntry(btn.dataset.delId);
   });
 
-  // Delete availability buttons
+  // Goto avail tab from popup
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-goto-avail]')) {
+      closeDayPopup();
+      switchTab('avail', document.querySelector('[data-tab="avail"]'));
+    }
+  });
+
+  // Delete availability buttons (profile view)
   document.addEventListener('click', e => {
     const btn = e.target.closest('[data-del-avail]');
     if (!btn) return;
     delAvail(btn.dataset.delAvail);
+  });
+  // Delete my schedule items
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-del-my]');
+    if (!btn) return;
+    delMyAvail(btn.dataset.delMy);
   });
   initIcsDrop();
   document.getElementById('saveIcsBtn').addEventListener('click', saveIcsEvents);
@@ -1016,8 +1148,13 @@ function loginAs(name) {
   if (ac) ac.style.overflowY = 'hidden';
   initCalendar();
   loadProfilePreviews();
+  loadProfileNextFree();
   initPlacesAutocomplete();
   loadUnreadCount();
+  initPullToRefresh();
+  checkOnboarding();
+  // Load recent entries when on add tab
+  loadRecentEntries();
 }
 
 let placesAutocomplete = null;
@@ -1078,6 +1215,7 @@ function switchTab(name, btn) {
     else loadCalendarData();
   }
   if (name === 'notif') loadNotifications();
+  if (name === 'add') loadRecentEntries();
   if (name === 'avail') { loadAvailSynopsis(); loadCalendarData(); }
   if (name === 'map') initMap();
   if (name === 'profiles') { backToProfiles(); loadProfilePreviews(); }
@@ -1311,13 +1449,13 @@ async function saveEdit() {
   toast('Updated','success');
 }
 async function delEntry(id) {
-  if (!confirm('Delete this entry?')) return;
+  if (!await showConfirm('Delete Entry', 'Remove this entry permanently?')) return;
   await db.from('entries').delete().eq('id', id);
   document.getElementById('entry-' + id)?.remove();
   toast('Deleted','success');
 }
 async function delAvail(id) {
-  if (!confirm('Delete this?')) return;
+  if (!await showConfirm('Delete Availability', 'Remove this availability entry?')) return;
   const { data } = await db.from('availability').select('*').eq('id', id);
   if (data && data.length) pushHistory({action:'delete', rows:data});
   await db.from('availability').delete().eq('id', id);
@@ -1430,6 +1568,7 @@ async function saveAvailability() {
   toast('Availability saved!','success');
   loadCalendarData();
   checkOverlapsAndNotify();
+  refreshSynopsisIfVisible();
 }
 
 // ── ICS DROP ──
@@ -1699,6 +1838,7 @@ async function saveIcsEvents() {
   toast('Saved ' + rows.length + ' events','success');
   loadCalendarData();
   checkOverlapsAndNotify();
+  refreshSynopsisIfVisible();
   btn.disabled = false; btn.textContent = 'Save to Schedule';
 }
 
@@ -1886,6 +2026,28 @@ function openDayPopup(ds) {
   popup.onclick = (e) => { if (e.target === popup) closeDayPopup(); };
 }
 
+async function renderMySchedule(monthStart, monthEnd) {
+  const container = document.getElementById('myScheduleList');
+  if (!container) return;
+  container.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
+  const { data } = await db.from('availability').select('*').eq('person',currentUser).lte('start_date',monthEnd).gte('end_date',monthStart).order('start_date',{ascending:true});
+  if (!data || !data.length) { container.innerHTML = '<div class="empty-state">Nothing set for this month.</div>'; return; }
+  container.innerHTML = data.map(r => {
+    const dateStr = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
+    const noteStr = r.note ? shortenNote(r.note) : '';
+    let out = '<div class="avail-item" id="myschedule-' + r.id + '">';
+    out += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
+    out += '<div class="avail-info"><div class="avail-dates">' + dateStr + '</div>';
+    if (noteStr) out += '<div class="avail-note">' + esc(noteStr) + '</div>';
+    if (r.source) out += '<div class="avail-src">via ' + r.source + '</div>';
+    out += '</div>';
+    out += '<button class="avail-del" data-del-my="' + r.id + '">';
+    out += '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+    out += '</button></div>';
+    return out;
+  }).join('');
+}
+
 async function delMyAvail(id) {
   const { data } = await db.from('availability').select('*').eq('id', id);
   if (data && data.length) pushHistory({action:'delete', rows:data});
@@ -1895,7 +2057,7 @@ async function delMyAvail(id) {
   toast('Deleted','success');
 }
 async function clearMonthSchedule() {
-  if (!confirm('Delete all your availability for this month?')) return;
+  if (!await showConfirm('Clear Month', 'Delete all your availability for this month?', 'Clear', true)) return;
   const firstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
   const lastDay = new Date(calYear, calMonth+1, 0).toISOString().split('T')[0];
   const { data } = await db.from('availability').select('*').eq('person',currentUser).lte('start_date',lastDay).gte('end_date',firstDay);
@@ -1923,7 +2085,15 @@ function renderOverlapList(freeMap, monthStart, monthEnd) {
     const cls = n >= 4 ? 'all' : 'two';
     const dl = g.start===g.end ? fmtFull(g.start) : fmtFull(g.start)+' -- '+fmtFull(g.end);
     const timeNotes = [...new Set(g.entries.filter(e=>e.note).map(e=>e.person+': '+e.note))].join(' · ');
-    return '<div class="ol-card '+cls+'">'+(n>=4?'<div class="ol-all-badge">All 4 free</div>':'')+'<div class="ol-date">'+dl+'</div><div class="ol-who">'+g.people.join(', ')+' are free</div>'+(timeNotes?'<div class="ol-times">'+esc(timeNotes)+'</div>':'')+'</div>';
+    const [gy,gm,gd] = g.start.split('-');
+    const dow = new Date(+gy,+gm-1,+gd).toLocaleDateString('en-US',{weekday:'long'});
+    return '<div class="ol-card '+cls+'">' +
+      (n>=4?'<div class="ol-all-badge">All 4 free</div>':'') +
+      '<div class="ol-dow">'+dow+'</div>' +
+      '<div class="ol-date">'+dl+'</div>' +
+      '<div class="ol-who">'+g.people.join(', ')+' free</div>' +
+      (timeNotes?'<div class="ol-times">'+esc(timeNotes)+'</div>':'') +
+      '</div>';
   }).join('');
 }
 
@@ -2230,7 +2400,13 @@ async function createNotification(forPerson, fromPerson, type, entryId, message)
 async function loadUnreadCount() {
   const {count} = await db.from('notifications').select('*', {count:'exact',head:true}).eq('for_person', currentUser).eq('read', false);
   const badge = document.getElementById('notifBadge');
-  if (badge) badge.classList.toggle('show', (count||0) > 0);
+  if (!badge) return;
+  if ((count||0) > 0) {
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 async function loadNotifications() {
@@ -2254,7 +2430,7 @@ async function loadNotifications() {
   // Mark all as read
   await db.from('notifications').update({read:true}).eq('for_person', currentUser).eq('read', false);
   const badge = document.getElementById('notifBadge');
-  if (badge) badge.classList.remove('show');
+  if (badge) badge.style.display = 'none';
 }
 
 // ── CALENDAR VIEW TOGGLE ──
@@ -2298,7 +2474,7 @@ function openDayPopup(ds) {
   dateEl.textContent = new Date(+y,+m-1,+d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   const events = calDayData[ds] || [];
   if (!events.length) {
-    bodyEl.innerHTML = '<div class="day-popup-empty" style="padding:20px 0"><div style="margin-bottom:12px">Nothing logged for this day.</div><button class="btn btn-sec" style="width:auto;padding:8px 16px;font-size:11px" onclick="closeDayPopup();switchTab(\'avail\',document.querySelector(\'[data-tab=avail]\'))">Mark yourself free or busy</button></div>';
+    bodyEl.innerHTML = '<div class="day-popup-empty" style="padding:20px 0"><div style="margin-bottom:12px">Nothing logged for this day.</div><button class="btn btn-sec" style="width:auto;padding:8px 16px;font-size:11px" data-goto-avail="1"">Mark yourself free or busy</button></div>';
   } else {
     const seen = new Set();
     const deduped = [...events].sort((a,b) => a.status==='free'?-1:1).filter(e => {
@@ -2498,12 +2674,129 @@ async function renderWeekView() {
 
 // ── CLEAR ICS IMPORTS ──
 async function clearAllIcs() {
-  if (!confirm('Delete ALL your imported calendar (ICS) events? This cannot be undone.')) return;
+  if (!await showConfirm('Clear All Imports', 'Delete all imported calendar events? This cannot be undone.', 'Clear All', true)) return;
   const { error } = await db.from('availability').delete().eq('person', currentUser).eq('source', 'ics');
   if (error) { toast('Error clearing', 'error'); return; }
   toast('All ICS imports cleared', 'success');
   loadCalendarData();
   if (calView === 'week') renderWeekView();
+}
+
+// ── CUSTOM CONFIRM DIALOG ──
+let confirmResolve = null;
+function showConfirm(title, msg, okLabel='Delete', danger=true) {
+  return new Promise(resolve => {
+    confirmResolve = resolve;
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMsg').textContent = msg;
+    document.getElementById('confirmOk').textContent = okLabel;
+    document.getElementById('confirmOk').className = 'btn ' + (danger ? 'confirm-danger' : '');
+    document.getElementById('confirmDialog').classList.add('open');
+  });
+}
+function closeConfirm(result) {
+  document.getElementById('confirmDialog').classList.remove('open');
+  if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+}
+
+// ── TYPE GRID FOR ADD TAB ──
+function initTypeGrid() {
+  document.querySelectorAll('.type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      document.getElementById('dataTypeSelect').value = btn.dataset.type;
+      onTypeChange();
+    });
+  });
+}
+
+// ── RECENT ENTRIES (shown on add tab) ──
+async function loadRecentEntries() {
+  const container = document.getElementById('recentEntriesList');
+  if (!container) return;
+  const { data } = await db.from('entries').select('type,content,created_at').eq('person',currentUser).order('created_at',{ascending:false}).limit(5);
+  if (!data || !data.length) { container.innerHTML = '<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">Nothing yet. Add something above.</div>'; return; }
+  const icons = {movie:'film',music:'music',place:'map-pin',note:'file-text',book:'book',activity:'zap'};
+  container.innerHTML = data.map(r =>
+    '<div class="recent-entry-item">' +
+    '<div class="recent-entry-type">' + (r.type||'') + '</div>' +
+    '<div class="recent-entry-text">' + esc(r.content.substring(0,40)) + '</div>' +
+    '<div style="font-size:9px;color:var(--muted2);font-family:var(--font-mono);flex-shrink:0">' + fmt(r.created_at) + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+// ── PROFILE GRID ENHANCEMENTS ──
+async function loadProfileNextFree() {
+  const tStr = todayStr();
+  const { data } = await db.from('availability').select('person,start_date').eq('status','free').gte('start_date',tStr).order('start_date',{ascending:true}).limit(20);
+  const nextFree = {};
+  (data||[]).forEach(r => { if (!nextFree[r.person]) nextFree[r.person] = r.start_date; });
+  Object.entries(nextFree).forEach(([name, date]) => {
+    const el = document.getElementById('nextfree-' + name);
+    if (el) el.textContent = 'Free ' + fmtFull(date);
+  });
+  const { data: counts } = await db.from('entries').select('person').eq('person', Object.keys(CONFIG.SIBLINGS).join(','));
+  // Count per person
+  const personCounts = {};
+  for (const name of Object.keys(CONFIG.SIBLINGS)) {
+    const { count } = await db.from('entries').select('*',{count:'exact',head:true}).eq('person',name);
+    const el = document.getElementById('ecount-' + name);
+    if (el && count) el.textContent = count + ' ' + (count===1?'entry':'entries');
+  }
+}
+
+// ── SYNOPSIS AUTO-REFRESH AFTER SAVE ──
+function refreshSynopsisIfVisible() {
+  const availTab = document.getElementById('tab-avail');
+  if (availTab && availTab.classList.contains('active')) {
+    setTimeout(loadAvailSynopsis, 1500);
+  }
+}
+
+// ── PULL TO REFRESH ──
+function initPullToRefresh() {
+  let startY = 0, pulling = false;
+  const content = document.querySelector('.app-content');
+  if (!content) return;
+  content.addEventListener('touchstart', e => {
+    if (content.scrollTop === 0) { startY = e.touches[0].clientY; pulling = true; }
+  }, {passive:true});
+  content.addEventListener('touchend', e => {
+    if (!pulling) return;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dy > 80) {
+      const active = document.querySelector('.tab-pane.active');
+      if (active) {
+        const tab = active.id.replace('tab-','');
+        if (tab === 'avail') { loadAvailSynopsis(); loadCalendarData(); }
+        else if (tab === 'schedule') loadCalendarData();
+        else if (tab === 'profiles') loadProfilePreviews();
+        else if (tab === 'notif') loadNotifications();
+        toast('Refreshed', 'success');
+      }
+    }
+    pulling = false;
+  }, {passive:true});
+}
+
+// ── ONBOARDING (shown once) ──
+function checkOnboarding() {
+  if (localStorage.getItem('siblings_onboarded')) return;
+  // Show a brief hint on the avail tab after first login
+  setTimeout(() => {
+    const el = document.getElementById('availSynopsis');
+    if (!el) return;
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--accent);border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--text);z-index:500;max-width:280px;text-align:center;line-height:1.5;box-shadow:0 4px 20px rgba(0,0,0,0.5)';
+    bubble.innerHTML = '<strong style="color:var(--accent)">Welcome!</strong><br>Import a .ics calendar file or type your availability to get started.<br><br><button style="background:var(--accent);border:none;color:var(--bg);padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer" id="dismissOnboard">Got it</button>';
+    document.body.appendChild(bubble);
+    document.getElementById('dismissOnboard').addEventListener('click', () => {
+      bubble.remove();
+      localStorage.setItem('siblings_onboarded', '1');
+    });
+  }, 800);
 }
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
