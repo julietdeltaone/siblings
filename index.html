@@ -818,23 +818,27 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           <div id="weekGrid"></div>
         </div>
 
-        <!-- HOW TO USE HINT -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:14px">
-          <div style="font-size:9px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px">How to use</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
+        <!-- HOW TO USE — collapsible, collapsed by default -->
+        <div id="howToUseBox" style="margin-bottom:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+          <button onclick="toggleHowToUse()" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;padding:11px 14px;cursor:pointer;gap:8px">
+            <span style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:2px">How to use</span>
+            <svg id="howToUseChevron" viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="howToUseBody" style="display:none;padding:0 14px 14px;flex-direction:column;gap:8px">
+            <div style="height:1px;background:var(--border);margin-bottom:10px"></div>
             <div style="display:flex;align-items:center;gap:10px">
-              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="6" x2="12" y2="6.01"/><line x1="12" y1="10" x2="12" y2="18"/></svg>
+              <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="10" x2="12" y2="18"/></svg>
               <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap a day</strong> to see who is free</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
-              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
               <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap +</strong> to mark your availability</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
-              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><polyline points="15 18 9 12 15 6"/></svg>
-              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Swipe or tap ‹ ›</strong> to change months</span>
+              <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap ‹ ›</strong> to navigate months</span>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;padding-top:6px;border-top:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:10px;padding-top:8px;border-top:1px solid var(--border)">
               <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
                 <div style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
                 <div style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--accent2)"></div>
@@ -843,15 +847,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             </div>
           </div>
         </div>
-
-        <!-- SUMMARIZE BUTTON -->
-        
-
-        <!-- OVERLAP LIST -->
-        <div id="overlapList" style="margin-bottom:16px"></div>
-
-        <!-- MY SCHEDULE -->
-        <div id="myScheduleList" style="margin-bottom:80px"></div>
 
       </div>
       <!-- MAP -->
@@ -1322,6 +1317,7 @@ function loginAs(name) {
   initPlacesAutocomplete();
   loadUnreadCount();
   initPullToRefresh();
+  initHowToUse();
   checkOnboarding();
   // Load recent entries when on add tab
   loadRecentEntries();
@@ -2198,7 +2194,7 @@ function openDayPopup(ds) {
   // ── Parse time from note ──
   function parseTimeRange(note) {
     if (!note) return null;
-    if (/all.?day/i.test(note)) return {start:0, end:24, label:'All day'};
+    if (/all.?day/i.test(note)) return {start:0, end:24, label:'All day', allDay:true};
     const m = note.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*[–\-to]+\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
     if (!m) return null;
     let sh=+m[1], sm=+(m[2]||0), eampm=m[6]||m[3]||'';
@@ -2227,9 +2223,9 @@ function openDayPopup(ds) {
   // Figure out time window to display (min/max of all entries, pad by 1hr, snap to whole hours)
   let minH = 24, maxH = 0;
   allEntries.forEach(e => {
-    if (e.tr) { minH = Math.min(minH, e.tr.start); maxH = Math.max(maxH, e.tr.end); }
+    if (e.tr && !e.tr.allDay) { minH = Math.min(minH, e.tr.start); maxH = Math.max(maxH, e.tr.end); }
   });
-  if (minH === 24) { minH = 6; maxH = 22; } // fallback if no timed entries
+  if (minH === 24) { minH = 9; maxH = 22; } // fallback if no timed entries — default 9am
   minH = Math.max(0, Math.floor(minH - 0.5));
   maxH = Math.min(24, Math.ceil(maxH + 0.5));
   const spanH = maxH - minH;
@@ -2265,6 +2261,19 @@ function openDayPopup(ds) {
       myEntries.forEach(e => {
         const isTentEntry = e.type === 'tentative';
         const tr = e.tr;
+        const isAllDay = tr && tr.allDay;
+
+        if (isAllDay) {
+          const stripe = isTentEntry
+            ? 'repeating-linear-gradient(45deg,'+color+'08,'+color+'08 4px,'+color+'15 4px,'+color+'15 8px)'
+            : 'repeating-linear-gradient(45deg,'+color+'10,'+color+'10 4px,'+color+'20 4px,'+color+'20 8px)';
+          const border = isTentEntry ? '2px dashed '+color+'60' : '1px solid '+color+'40';
+          blocksHtml += '<div style="position:absolute;inset:0;background:'+stripe+';border:'+border+';border-radius:6px;display:flex;align-items:center;justify-content:center">';
+          blocksHtml += '<div style="font-size:8px;font-family:var(--font-mono);color:'+color+(isTentEntry?'88':'cc')+';font-weight:700;text-transform:uppercase;letter-spacing:1px">'+(isTentEntry?'~':'')+'All day</div>';
+          blocksHtml += '</div>';
+          return;
+        }
+
         let topPct, heightPct;
         if (tr) {
           topPct    = ((tr.start - minH) / spanH) * 100;
@@ -2273,12 +2282,9 @@ function openDayPopup(ds) {
           topPct = 0; heightPct = 100;
         }
         const bgColor   = isTentEntry ? 'transparent' : color + '22';
-        const border    = isTentEntry
-          ? '2px dashed ' + color + '80'
-          : '1px solid '  + color + '50';
+        const border    = isTentEntry ? '2px dashed ' + color + '80' : '1px solid ' + color + '50';
         const textColor = isTentEntry ? color + 'aa' : color;
         const minHpx    = Math.max(heightPct * totalPx / 100, 20);
-
         blocksHtml += '<div style="position:absolute;left:0;right:0;top:'+topPct+'%;height:'+heightPct+'%;min-height:'+minHpx+'px;background:'+bgColor+';border:'+border+';border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px 2px;overflow:hidden">';
         if (tr && tr.end - tr.start >= 1) {
           blocksHtml += '<div style="font-size:8px;font-family:var(--font-mono);color:'+textColor+';text-align:center;line-height:1.3;font-weight:600">' + (isTentEntry?'~':'') + fmtHour(tr.start) + '</div>';
@@ -2348,6 +2354,13 @@ function openDayPopup(ds) {
   if (bodyEl) bodyEl.innerHTML = html;
   popup.classList.add('open');
   popup.onclick = (e) => { if (e.target === popup) closeDayPopup(); };
+  // Scroll to 9am position by default
+  requestAnimationFrame(() => {
+    const body = document.getElementById('dayPopupBody');
+    if (!body) return;
+    const nineAmPx = Math.max(0, (9 - minH) * PX_PER_HR - 20);
+    body.scrollTop = nineAmPx;
+  });
 }
 
 function fmtHour(h) {
@@ -3418,8 +3431,7 @@ async function loadCalendarData() {
   busyMapCache = buildBusyMap(busyResp.data||[], monthStart, monthEnd);
   storeDayData(freeMap, busyMapCache, monthStart, monthEnd);
   renderCalendar(freeMap, tentMap);
-  renderOverlapList(freeMap, monthStart, monthEnd);
-  renderMySchedule(monthStart, monthEnd);
+  // Overlap list and schedule removed — info available via day popup tap
 }
 
 // Cal dot styles moved to <style> block
@@ -3433,6 +3445,35 @@ function updateSwipeDot() {
     d.classList.toggle('active', i === idx);
     d.style.width = i === idx ? '12px' : '4px';
   });
+}
+
+// ── HOW TO USE TOGGLE ──
+function toggleHowToUse() {
+  const body    = document.getElementById('howToUseBody');
+  const chevron = document.getElementById('howToUseChevron');
+  if (!body) return;
+  const isOpen = body.style.display === 'flex';
+  body.style.display = isOpen ? 'none' : 'flex';
+  body.style.flexDirection = 'column';
+  body.style.gap = '8px';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+  localStorage.setItem('howToUseSeen', '1');
+}
+
+// On first visit, show how-to-use open; after that, collapsed
+function initHowToUse() {
+  // Always start collapsed — body display:none is already set in HTML
+  // First visit: auto-open once then mark seen
+  const seen = localStorage.getItem('howToUseSeen');
+  if (!seen) {
+    // Open it on first visit so new users see it
+    const body = document.getElementById('howToUseBody');
+    const chevron = document.getElementById('howToUseChevron');
+    if (body) { body.style.display = 'flex'; body.style.flexDirection = 'column'; body.style.gap = '8px'; }
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+    localStorage.setItem('howToUseSeen', '1');
+  }
+  // Returning users: stays collapsed (display:none from HTML)
 }
 </script>
 </body>
