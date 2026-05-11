@@ -627,6 +627,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .switch-user-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:999px;color:var(--muted);font-size:10px;font-family:var(--font-mono);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all 0.15s;flex-shrink:0}
 .switch-user-btn:hover{border-color:var(--accent);color:var(--accent)}
 .switch-user-btn:active{transform:scale(0.95)}
+
+.app-nav .nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -1010,12 +1012,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <input type="checkbox" id="editAllDay" onchange="toggleEditTimes()">
       <label for="editAllDay" style="font-size:12px;color:var(--text)">All day</label>
     </div>
-    <div style="margin-bottom:10px;overflow:hidden">
+    <div style="margin-bottom:10px">
       <label style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">End Date <span style="color:var(--muted2)">(optional)</span></label>
-      <div style="position:relative;width:100%;box-sizing:border-box">
-        <input type="date" id="editEndDate" style="width:100%;box-sizing:border-box;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px;display:block;min-width:0;-webkit-appearance:none" oninput="onEndDateChange(this)">
-        <div id="editEndDatePlaceholder" style="position:absolute;inset:0;padding:8px 10px;font-size:13px;color:var(--muted2);font-family:var(--font-mono);pointer-events:none;display:flex;align-items:center">Optional — for multi-day ranges</div>
-      </div>
+      <button id="editEndDateBtn" onclick="showEndDatePicker()" style="width:100%;box-sizing:border-box;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--muted2);font-family:var(--font-mono);font-size:13px;text-align:left;cursor:pointer;display:block">Optional — for multi-day ranges</button>
+      <input type="date" id="editEndDate" style="display:none;width:100%;box-sizing:border-box;padding:9px 12px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px;margin-top:4px" oninput="onEndDateChange(this)">
     </div>
     <div id="editTimeRow" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
       <div class="edit-date-row" style="margin-bottom:0">
@@ -3350,8 +3350,9 @@ async function tapEditDay(ds) {
   if (endDateEl) {
     endDateEl.value = '';
     endDateEl.min = ds;
-    const ph = document.getElementById('editEndDatePlaceholder');
-    if (ph) ph.style.display = 'flex'; // show placeholder on reset
+    endDateEl.style.display = 'none';
+    const btn = document.getElementById('editEndDateBtn');
+    if (btn) { btn.textContent = 'Optional — for multi-day ranges'; btn.style.color = 'var(--muted2)'; btn.style.borderColor = 'var(--border)'; btn.style.display = 'block'; }
   }
 
   // Check if user already has an entry for this day (UX 9: pre-populate, UX 8: warn)
@@ -3794,21 +3795,40 @@ function initEditPanel() {
   const startEl = document.getElementById('editStartTime');
   const endEl   = document.getElementById('editEndTime');
   // editEndDate min is set dynamically per tap in tapEditDay
-  const edInput = document.getElementById('editEndDate');
-  const edPh = document.getElementById('editEndDatePlaceholder');
-  if (edInput && edPh) {
-    edInput.addEventListener('focus', () => { edPh.style.display = 'none'; });
-    edInput.addEventListener('blur', () => { if (!edInput.value) edPh.style.display = 'flex'; });
-    edInput.addEventListener('input', () => { edPh.style.display = edInput.value ? 'none' : 'flex'; });
-  }
+  // End date uses button/input toggle — wired in showEndDatePicker()
 }
 
 
-// End date placeholder visibility
+// End date picker logic
+function showEndDatePicker() {
+  const btn   = document.getElementById('editEndDateBtn');
+  const input = document.getElementById('editEndDate');
+  if (!btn || !input) return;
+  btn.style.display   = 'none';
+  input.style.display = 'block';
+  input.focus();
+  // On blur with no value, go back to button
+  input.addEventListener('blur', function onBlur() {
+    if (!input.value) {
+      input.style.display = 'none';
+      btn.style.display   = 'block';
+    }
+    input.removeEventListener('blur', onBlur);
+  });
+}
+
 function onEndDateChange(input) {
-  const ph = document.getElementById('editEndDatePlaceholder');
-  if (!ph) return;
-  ph.style.display = input.value ? 'none' : 'flex';
+  const btn = document.getElementById('editEndDateBtn');
+  if (input.value && btn) {
+    // Format the chosen date for display
+    const [y,m,d] = input.value.split('-');
+    const dateObj = new Date(+y,+m-1,+d);
+    btn.textContent = dateObj.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    btn.style.color = 'var(--text)';
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.display = 'block';
+    input.style.display = 'none';
+  }
 }
 </script>
 </body>
