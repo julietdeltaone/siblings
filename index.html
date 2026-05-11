@@ -520,6 +520,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .cal-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;width:100%}
 .cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:block}
 .cal-dot.tentative{background:transparent !important;border-width:1.5px;border-style:dashed;opacity:1 !important}
+
+/* Cal header */
+.cal-month-label{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-0.3px}
+.cal-view-toggle{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all 0.12s}
+.cal-view-toggle.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted);border-radius:var(--r-sm);padding:8px 14px;font-size:12px;cursor:pointer;font-family:var(--font-mono);transition:all 0.12s}
+.btn-ghost:active{border-color:var(--danger);color:var(--danger)}
+.swipe-hint{display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 0 2px;opacity:0.4}
+.swipe-hint-dot{width:4px;height:4px;border-radius:50%;background:var(--muted)}
+.swipe-hint-dot.active{background:var(--accent);width:12px;border-radius:2px}
 </style>
 </head>
 <body>
@@ -674,12 +684,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <div class="edit-mode-banner" id="editBanner">✦ EDIT MODE — tap a date to mark availability ✦</div>
 
         <!-- CALENDAR HEADER -->
-        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
+        <!-- Row 1: month navigation -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
           <button class="cal-nav-btn" id="calPrevBtn">&#8249;</button>
-          <div class="cal-month-label" id="calMonthLabel" style="min-width:110px;text-align:center">May 2026</div>
+          <div class="cal-month-label" id="calMonthLabel" style="min-width:120px;text-align:center">May 2026</div>
           <button class="cal-nav-btn" id="calNextBtn">&#8250;</button>
-          <button class="cal-view-toggle" id="calViewToggle" onclick="toggleCalView()" style="margin-left:8px">Week</button>
-          <button onclick="enterEditMode()" id="calAddBtn" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">+</button>
+        </div>
+        <!-- Row 2: view toggle + add button -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+          <button class="cal-view-toggle" id="calViewToggle" onclick="toggleCalView()">Month</button>
+          <button onclick="enterEditMode()" id="calAddBtn" style="width:30px;height:30px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0">+</button>
         </div>
 
         <!-- MONTH GRID -->
@@ -694,6 +708,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">S</div>
           </div>
           <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;width:100%"></div>
+          <div class="swipe-hint" id="swipeHint">
+            <div class="swipe-hint-dot"></div>
+            <div class="swipe-hint-dot active" id="swipeDotCur"></div>
+            <div class="swipe-hint-dot"></div>
+          </div>
         </div>
 
         <!-- WEEK VIEW -->
@@ -817,16 +836,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
   <div class="edit-handle"></div>
 
   <!-- STRIP ROW: always visible when panel open -->
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:0" id="editStripRow">
-    <div class="avail-toggle" id="availToggle" style="flex:1;margin-bottom:0">
-      <button class="avail-toggle-btn sel-avail" data-type="available" onclick="setEditType('available')">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:0;overflow:hidden" id="editStripRow">
+    <div style="display:flex;gap:6px;flex:1;min-width:0">
+      <button class="avail-toggle-btn sel-avail" data-type="available" onclick="setEditType('available')" style="flex:1;padding:8px 6px;font-size:10px;min-width:0">
         <span class="avail-dot-preview"></span> Available
       </button>
-      <button class="avail-toggle-btn" data-type="tentative" onclick="setEditType('tentative')">
+      <button class="avail-toggle-btn" data-type="tentative" onclick="setEditType('tentative')" style="flex:1;padding:8px 6px;font-size:10px;min-width:0">
         <span class="avail-dot-preview"></span> Tentative
       </button>
     </div>
-    <button class="btn btn-ghost" style="flex-shrink:0;padding:8px 14px;font-size:11px" onclick="cancelEditMode()">✕</button>
+    <button class="btn-ghost" style="flex-shrink:0;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:14px" onclick="cancelEditMode()">✕</button>
   </div>
 
   <!-- EXPANDED SECTION: shown after day is tapped -->
@@ -2552,7 +2571,7 @@ function setCalView(view) {
   if (monthEl) monthEl.style.display = view === 'month' ? 'block' : 'none';
   if (weekEl)  weekEl.style.display  = view === 'week'  ? 'block' : 'none';
   const toggle = document.getElementById('calViewToggle');
-  if (toggle) toggle.textContent = view === 'month' ? 'Week' : 'Month';
+  if (toggle) { toggle.textContent = view === 'month' ? 'Week' : 'Month'; toggle.classList.toggle('active', view === 'week'); }
   if (view === 'week') { weekOffset = 0; renderWeekView(); }
   else loadCalendarData();
 }
@@ -3086,6 +3105,17 @@ async function loadCalendarData() {
 }
 
 // Cal dot styles moved to <style> block
+
+function updateSwipeDot() {
+  // Cycle the active dot to hint at swipeable months
+  const dots = document.querySelectorAll('.swipe-hint-dot');
+  if (!dots.length) return;
+  const idx = ((calMonth % 3) + 3) % 3;
+  dots.forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+    d.style.width = i === idx ? '12px' : '4px';
+  });
+}
 </script>
 </body>
 </html>
