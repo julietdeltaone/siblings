@@ -71,7 +71,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .app-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
 
 /* TABS */
-.tab-pane{display:none;padding:18px 18px 100px;max-width:540px;margin:0 auto}
+.tab-pane{display:none;padding:18px 20px 100px;max-width:540px;margin:0 auto}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
@@ -377,7 +377,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 @keyframes editBorder{0%{border-color:var(--accent)}50%{border-color:rgba(200,240,96,0.4)}100%{border-color:var(--accent)}}
 .edit-mode-banner{display:none;position:fixed;top:0;left:0;right:0;background:rgba(200,240,96,0.12);border-bottom:2px dashed var(--accent);padding:8px 16px;z-index:600;font-size:11px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;text-align:center}
 #appScreen.edit-mode .edit-mode-banner{display:block}
-.edit-panel{position:fixed;bottom:0;left:0;right:0;max-width:540px;margin:0 auto;background:var(--surface);border-top:2px solid var(--accent);border-radius:var(--r) var(--r) 0 0;padding:10px 16px 28px;z-index:600;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)}
+.edit-panel{position:fixed;bottom:0;left:0;right:0;max-width:540px;margin:0 auto;background:var(--surface);border-top:2px solid var(--accent);border-radius:var(--r) var(--r) 0 0;padding:10px 16px 28px;z-index:600;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);padding-bottom:max(28px,env(safe-area-inset-bottom))}
 .edit-panel.open{transform:translateY(0)}.edit-panel.expanded{padding-bottom:36px}
 .edit-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 14px}
 .edit-panel-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
@@ -610,7 +610,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 @keyframes colPopIn{from{opacity:0;transform:translateY(10px) scale(0.9)}to{opacity:1;transform:translateY(0) scale(1)}}
 
 /* Edit mode border pulse */
-#appScreen.edit-mode::after{content:'';position:fixed;inset:0;border:3px dashed var(--accent);pointer-events:none;z-index:999;border-radius:0;animation:editPulse 2s ease-in-out infinite}
+#appScreen.edit-mode::after{content:'';position:fixed;top:58px;left:0;right:0;bottom:0;border:3px dashed var(--accent);border-top:none;pointer-events:none;z-index:500;animation:editPulse 2s ease-in-out infinite}
 @keyframes editPulse{0%,100%{opacity:0.6}50%{opacity:1}}
 
 /* Avail item appear */
@@ -1012,7 +1012,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
     </div>
     <div style="margin-bottom:10px;overflow:hidden">
       <label style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">End Date <span style="color:var(--muted2)">(optional)</span></label>
-      <input type="date" id="editEndDate" style="width:calc(100% - 2px);box-sizing:border-box;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px;display:block;min-width:0">
+      <div style="position:relative;width:100%;box-sizing:border-box">
+        <input type="date" id="editEndDate" style="width:100%;box-sizing:border-box;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px;display:block;min-width:0;-webkit-appearance:none" oninput="onEndDateChange(this)">
+        <div id="editEndDatePlaceholder" style="position:absolute;inset:0;padding:8px 10px;font-size:13px;color:var(--muted2);font-family:var(--font-mono);pointer-events:none;display:flex;align-items:center">Optional — for multi-day ranges</div>
+      </div>
     </div>
     <div id="editTimeRow" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
       <div class="edit-date-row" style="margin-bottom:0">
@@ -3342,11 +3345,14 @@ async function tapEditDay(ds) {
   const dateObj = new Date(+y,+m-1,+d);
   const label = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('editDayLabel').textContent = label;
-  // Default end date to day+1 (suggests a range but doesn't force one)
-  const nextDay = new Date(dateObj); nextDay.setDate(dateObj.getDate() + 1);
-  const nextDayStr = nextDay.toISOString().split('T')[0];
+  // Set end date min to selected day, leave empty unless user picks one
   const endDateEl = document.getElementById('editEndDate');
-  if (endDateEl) { endDateEl.value = nextDayStr; endDateEl.min = ds; }
+  if (endDateEl) {
+    endDateEl.value = '';
+    endDateEl.min = ds;
+    const ph = document.getElementById('editEndDatePlaceholder');
+    if (ph) ph.style.display = 'flex'; // show placeholder on reset
+  }
 
   // Check if user already has an entry for this day (UX 9: pre-populate, UX 8: warn)
   const { data: existing } = await db.from('availability').select('*')
@@ -3788,8 +3794,22 @@ function initEditPanel() {
   const startEl = document.getElementById('editStartTime');
   const endEl   = document.getElementById('editEndTime');
   // editEndDate min is set dynamically per tap in tapEditDay
+  const edInput = document.getElementById('editEndDate');
+  const edPh = document.getElementById('editEndDatePlaceholder');
+  if (edInput && edPh) {
+    edInput.addEventListener('focus', () => { edPh.style.display = 'none'; });
+    edInput.addEventListener('blur', () => { if (!edInput.value) edPh.style.display = 'flex'; });
+    edInput.addEventListener('input', () => { edPh.style.display = edInput.value ? 'none' : 'flex'; });
+  }
 }
 
+
+// End date placeholder visibility
+function onEndDateChange(input) {
+  const ph = document.getElementById('editEndDatePlaceholder');
+  if (!ph) return;
+  ph.style.display = input.value ? 'none' : 'flex';
+}
 </script>
 </body>
 </html>
