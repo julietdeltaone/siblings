@@ -161,9 +161,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .cal-nav-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:var(--r-sm);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.1s}
 .cal-nav-btn:active{border-color:var(--accent)}
 .cal-month{font-family:var(--font-head);font-size:20px;color:var(--text)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
+.cal-dow-header{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px}
 .cal-dow{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;padding:5px 0}
-.cal-day{aspect-ratio:1;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;border-radius:6px;font-size:11px;font-family:var(--font-mono);color:var(--muted);position:relative;overflow:hidden}
+
 .cal-day.in-month{color:var(--text)}
 .cal-day.today{border:1px solid var(--border2);color:var(--accent2)}
 .cal-day.o2{background:rgba(240,200,96,0.15);color:var(--overlap)}
@@ -259,7 +259,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .step.done + .step-line{background:var(--accent)}
 
 /* CALENDAR DAY CELLS - sibling timeline columns */
-.cal-day{position:relative;overflow:hidden;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 3px 5px;border-radius:var(--r-sm);font-size:12px;font-family:var(--font-mono);color:var(--muted);cursor:pointer;transition:all 0.12s;border:1px solid transparent}.cal-day:active,.cal-day:hover{background:var(--surface2)}.cal-day.has-all{border-color:rgba(200,240,96,0.35);background:rgba(200,240,96,0.05)}.cal-day-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;width:100%}.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:transform 0.1s}.cal-dot.free{opacity:1}.cal-dot.absent{opacity:0.12;background:var(--border2) !important}
+.cal-day{position:relative;overflow:hidden;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 3px 4px;border-radius:var(--r-sm);font-size:11px;font-family:var(--font-mono);color:var(--muted);cursor:pointer;transition:all 0.12s;border:1px solid transparent}.cal-day:active,.cal-day:hover{background:var(--surface2)}.cal-day.has-all{border-color:rgba(200,240,96,0.35);background:rgba(200,240,96,0.05)}.cal-day-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;width:100%}.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:transform 0.1s}.cal-dot.free{opacity:1}.cal-dot.absent{opacity:0.12;background:var(--border2) !important}
 /* cal-cols replaced by dot system */
 
 /* PROFILE QUADRANTS */
@@ -513,6 +513,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .avail-collapse-hdr.open .avail-chevron{transform:rotate(180deg)}
 .avail-collapse-body{display:none}
 .avail-collapse-body.open{display:block}
+
+/* Calendar dot styles */
+.cal-day.edit-selected{background:rgba(200,240,96,0.15);border:1px solid rgba(200,240,96,0.5) !important}
+.cal-day-num{font-size:11px;color:var(--muted);margin-bottom:2px;line-height:1}
+.cal-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;width:100%}
+.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:block}
+.cal-dot.tentative{background:transparent !important;border-width:1.5px;border-style:dashed;opacity:1 !important}
 </style>
 </head>
 <body>
@@ -664,9 +671,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <div class="tab-pane" id="tab-cal">
 
         <!-- EDIT MODE BANNER -->
-        <div class="edit-mode-banner" id="editBanner">✦ EDIT MODE — tap dates to mark availability ✦</div>
+        <div class="edit-mode-banner" id="editBanner">✦ EDIT MODE — tap a date to mark availability ✦</div>
 
-        <!-- AI SYNOPSIS (collapsed by default) -->
+        <!-- AI SYNOPSIS -->
         <div id="availSynopsis" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;min-height:72px;position:relative">
           <div style="position:absolute;top:10px;right:12px;font-size:8px;font-family:var(--font-mono);color:var(--accent);background:rgba(200,240,96,0.1);border:1px solid rgba(200,240,96,0.2);border-radius:4px;padding:1px 5px;letter-spacing:1px">AI</div>
           <div class="empty-state" style="padding:8px 0"><span class="spinner"></span> Analyzing schedules...</div>
@@ -676,12 +683,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <div id="overlapList" style="margin-bottom:14px"></div>
 
         <!-- NLP INPUT (collapsed) -->
-        <details style="margin-bottom:14px">
+        <details style="margin-bottom:8px">
           <summary style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;cursor:pointer;padding:6px 0;list-style:none;display:flex;align-items:center;gap:6px">
             <span style="font-size:12px">＋</span> Type availability in plain text
           </summary>
           <div style="margin-top:10px">
-            <textarea id="availInput" placeholder='e.g. "I'm free next weekend and Tuesday afternoon"' style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;resize:none;min-height:72px;box-sizing:border-box"></textarea>
+            <textarea id="availInput" placeholder='e.g. "I am free next weekend and Tuesday afternoon"' style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;resize:none;min-height:72px;box-sizing:border-box"></textarea>
             <button onclick="parseAvailability()" class="btn" style="width:100%;margin-top:8px">Parse with AI</button>
           </div>
         </details>
@@ -691,12 +698,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           <summary style="font-size:10px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;cursor:pointer;padding:6px 0;list-style:none;display:flex;align-items:center;gap:6px">
             <span style="font-size:12px">📅</span> Import calendar (.ics)
           </summary>
-          <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-            <input type="file" id="icsFile" accept=".ics" style="flex:1;font-size:12px;color:var(--text)">
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="icsFile" accept=".ics" style="flex:1;min-width:0;font-size:12px;color:var(--text)">
             <button onclick="importIcs()" class="btn btn-sm">Import</button>
           </div>
           <div id="icsStatus" style="margin-top:8px;font-size:11px;font-family:var(--font-mono);color:var(--muted)"></div>
-          <button onclick="clearAllIcs()" style="margin-top:8px;font-size:10px;font-family:var(--font-mono);color:var(--danger);background:none;border:none;cursor:pointer;padding:0">Clear imported events</button>
+          <button onclick="clearAllIcs()" style="margin-top:6px;font-size:10px;font-family:var(--font-mono);color:var(--danger);background:none;border:none;cursor:pointer;padding:0">Clear imported events</button>
         </details>
 
         <!-- MY SCHEDULE -->
@@ -708,7 +715,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 10px">
           <div style="display:flex;align-items:center;gap:6px">
             <button class="cal-nav-btn" id="calPrevBtn">&#8249;</button>
-            <div class="cal-month-label" id="calMonthLabel"></div>
+            <div class="cal-month-label" id="calMonthLabel">May 2026</div>
             <button class="cal-nav-btn" id="calNextBtn">&#8250;</button>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
@@ -718,15 +725,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         </div>
 
         <!-- MONTH GRID -->
-        <div id="calMonthView">
-          <div class="cal-dow-header">
-            <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+        <div id="calMonthView" style="width:100%">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px">
+            <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">S</div>
+            <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">M</div>
+            <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">T</div>
+            <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">W</div>
+            <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">T</div>
+            <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">F</div>
+            <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--muted);padding:4px 0">S</div>
           </div>
-          <div id="calGrid"></div>
+          <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;width:100%"></div>
         </div>
 
         <!-- WEEK VIEW -->
-        <div id="calWeekView" style="display:none">
+        <div id="calWeekView" style="display:none;width:100%">
           <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px">
             <button class="cal-nav-btn" id="weekPrevBtn">&#8249;</button>
             <div class="week-label" id="weekLabel"></div>
@@ -736,8 +749,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
         </div>
 
         <!-- SUMMARIZE BUTTON -->
-        <button class="summarize-btn" onclick="openSummaryPopup()">
-          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <button class="summarize-btn" onclick="openSummaryPopup()" style="margin-top:16px">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           Summarize availability
         </button>
 
@@ -835,17 +848,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
     </button>
   </div>
 
-  <div class="edit-date-row">
-    <label>From</label>
-    <input type="date" id="editFromDate">
+  <div id="editDayLabel" style="font-size:13px;color:var(--text);margin-bottom:12px;text-align:center;font-family:var(--font-mono)">Tap a day on the calendar</div>
+  <div class="allday-row" id="editAllDayRow" style="display:none">
+    <input type="checkbox" id="editAllDay" checked onchange="toggleEditTimes()">
+    <label for="editAllDay" style="font-size:12px;color:var(--text)">All day</label>
   </div>
-  <div class="edit-date-row">
-    <label>To</label>
-    <input type="date" id="editToDate">
-  </div>
-  <div class="allday-row">
-    <input type="checkbox" id="editAllDay" checked>
-    <label for="editAllDay">All day</label>
+  <div id="editTimeRow" style="display:none;gap:8px;margin-bottom:14px">
+    <div class="edit-date-row" style="margin-bottom:8px">
+      <label>Start</label>
+      <input type="time" id="editStartTime" value="09:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
+    </div>
+    <div class="edit-date-row" style="margin-bottom:0">
+      <label>End</label>
+      <input type="time" id="editEndTime" value="17:00" style="flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-mono);font-size:13px">
+    </div>
   </div>
 
   <div class="edit-actions">
@@ -2043,26 +2059,58 @@ function buildBusyMap(data, monthStart, monthEnd) {
 let calDayData = {};
 
 function openDayPopup(ds) {
+  if (editMode) { tapEditDay(ds); return; }
   const popup = document.getElementById('dayPopup');
   if (!popup) return;
   const dateEl = document.getElementById('dayPopupDate');
   const bodyEl = document.getElementById('dayPopupBody');
   const [y,m,d] = ds.split('-');
   const dateObj = new Date(+y,+m-1,+d);
-  dateEl.textContent = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  if (dateEl) dateEl.textContent = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-  const events = calDayData[ds] || [];
-  if (!events.length) {
-    const [py,pm,pd] = ds.split('-');
-    const displayDate = new Date(+py,+pm-1,+pd).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    bodyEl.innerHTML = '<div class="day-popup-empty" style="padding:20px 0">' +
-      '<div style="margin-bottom:12px">Nothing logged for ' + displayDate + '.</div>' +
-      '</div>';
+  const siblings = ['Catherine','Ellie','JD','James'];
+  const freeMap  = window._lastFreeMap  || {};
+  const tentMap  = window._lastTentMap  || {};
+  let html = '';
+
+  // Who's free/tentative
+  const freeList = siblings.filter(n => freeMap[ds]?.some(e => e.person===n));
+  const tentList = siblings.filter(n => tentMap[ds]?.some(e => e.person===n));
+
+  if (freeList.length || tentList.length) {
+    if (freeList.length) {
+      html += '<div style="margin-bottom:10px">';
+      html += '<div style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Available</div>';
+      freeList.forEach(n => {
+        const color = SIBLING_COLORS[n]||'#888';
+        const entry = freeMap[ds].find(e => e.person===n);
+        const note = entry?.notes ? ' · ' + entry.notes : '';
+        html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)">${n}${note}</div></div>`;
+      });
+      html += '</div>';
+    }
+    if (tentList.length) {
+      html += '<div style="margin-bottom:10px">';
+      html += '<div style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Tentative</div>';
+      tentList.forEach(n => {
+        const color = SIBLING_COLORS[n]||'#888';
+        html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <div style="width:8px;height:8px;border-radius:50%;background:transparent;border:1.5px dashed ${color};flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)">${n}</div></div>`;
+      });
+      html += '</div>';
+    }
+  } else {
+    html += '<div class="day-popup-empty" style="padding:16px 0;text-align:center;color:var(--muted);font-size:12px">No availability marked for this day.</div>';
   }
 
+  if (bodyEl) bodyEl.innerHTML = html;
   popup.classList.add('open');
   popup.onclick = (e) => { if (e.target === popup) closeDayPopup(); };
 }
+
 
 async function renderMySchedule(monthStart, monthEnd) {
   const container = document.getElementById('myScheduleList');
@@ -2564,7 +2612,7 @@ function renderCalendar(freeMap, tentMap) {
     el.style.cursor = 'pointer';
     el.dataset.date = ds;
     el.addEventListener('click', () => {
-      if (editMode) toggleEditDay(ds, el);
+      if (editMode) tapEditDay(ds);
       else openDayPopup(ds);
     });
     // Date number
@@ -2601,12 +2649,8 @@ function renderCalendar(freeMap, tentMap) {
     else if (freeCount === 3) el.classList.add('o3');
     else if (freeCount === 2) el.classList.add('o2');
     el.appendChild(dotsEl);
-    // Edit mode: highlight selected range
-    if (editMode && editFromDate && editToDate) {
-      const d1 = editFromDate <= editToDate ? editFromDate : editToDate;
-      const d2 = editFromDate <= editToDate ? editToDate : editFromDate;
-      if (ds >= d1 && ds <= d2) el.classList.add('edit-selected');
-    }
+    // Edit mode: highlight tapped day
+    if (editMode && editCurrentDay === ds) el.classList.add('edit-selected');
     grid.appendChild(el);
   }
 }
@@ -2795,8 +2839,8 @@ async function loadProfileNextFree() {
 
 // ── SYNOPSIS AUTO-REFRESH AFTER SAVE ──
 function refreshSynopsisIfVisible() {
-  const availTab = document.getElementById('tab-cal-avail');
-  if (availTab && availTab.classList.contains('active')) {
+  const calTab = document.getElementById('tab-cal');
+  if (calTab && calTab.classList.contains('active')) {
     setTimeout(loadAvailSynopsis, 1500);
   }
 }
@@ -2851,37 +2895,34 @@ function fmtFull(str) { if(!str)return''; const[y,m,d]=str.split('-'); return ne
 function dateDiff(a,b) { return Math.round((new Date(b)-new Date(a))/86400000); }
 function esc(str) { return(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(str) { return(str||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+function showToast(msg, type) { toast(msg, type); }
+
 function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
 
 
 // ── EDIT MODE ──────────────────────────────────────────────────────────────
 let editMode = false;
-let editFromDate = null;
-let editToDate = null;
 let editType = 'available';
+let editCurrentDay = null;
 let busyMapCache = {};
 
 function enterEditMode() {
   if (!currentUser) return;
   editMode = true;
-  editFromDate = null;
-  editToDate = null;
+  editCurrentDay = null;
   document.getElementById('appScreen').classList.add('edit-mode');
   document.getElementById('calAddBtn').style.display = 'none';
+  // Show panel but in "waiting" state
   document.getElementById('editPanel').classList.add('open');
-  // Set default dates to today
-  const today = todayStr();
-  document.getElementById('editFromDate').value = today;
-  document.getElementById('editToDate').value = today;
-  editFromDate = today;
-  editToDate = today;
+  document.getElementById('editDayLabel').textContent = 'Tap a day on the calendar ↑';
+  document.getElementById('editAllDayRow').style.display = 'none';
+  document.getElementById('editTimeRow').style.display = 'none';
   renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
 }
 
 function cancelEditMode() {
   editMode = false;
-  editFromDate = null;
-  editToDate = null;
+  editCurrentDay = null;
   document.getElementById('appScreen').classList.remove('edit-mode');
   document.getElementById('calAddBtn').style.display = '';
   document.getElementById('editPanel').classList.remove('open');
@@ -2891,62 +2932,62 @@ function cancelEditMode() {
 function setEditType(type) {
   editType = type;
   document.querySelectorAll('.avail-toggle-btn').forEach(btn => {
-    btn.classList.toggle('sel-avail', btn.dataset.type === 'available' && type === 'available');
-    btn.classList.toggle('sel-tent', btn.dataset.type === 'tentative' && type === 'tentative');
-    btn.classList.remove('sel-avail');
-    btn.classList.remove('sel-tent');
+    btn.classList.remove('sel-avail','sel-tent');
   });
-  document.querySelector(`.avail-toggle-btn[data-type="${type}"]`).classList.add(type === 'available' ? 'sel-avail' : 'sel-tent');
+  const sel = document.querySelector(`.avail-toggle-btn[data-type="${type}"]`);
+  if (sel) sel.classList.add(type === 'available' ? 'sel-avail' : 'sel-tent');
 }
 
-function toggleEditDay(ds, el) {
-  // Clicking a date sets fromDate; clicking another sets toDate
-  if (!editFromDate || editToDate) {
-    editFromDate = ds;
-    editToDate = null;
-    document.getElementById('editFromDate').value = ds;
-    document.getElementById('editToDate').value = '';
-  } else {
-    editToDate = ds;
-    if (editToDate < editFromDate) { let t=editFromDate; editFromDate=editToDate; editToDate=t; }
-    document.getElementById('editFromDate').value = editFromDate;
-    document.getElementById('editToDate').value = editToDate;
-  }
-  renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{});
+function toggleEditTimes() {
+  const allDay = document.getElementById('editAllDay')?.checked;
+  document.getElementById('editTimeRow').style.display = allDay ? 'none' : 'flex';
 }
 
-// Sync date inputs → editFrom/editTo
-document.addEventListener('DOMContentLoaded', () => {
-  const fromIn = document.getElementById('editFromDate');
-  const toIn = document.getElementById('editToDate');
-  if (fromIn) fromIn.addEventListener('change', e => { editFromDate = e.target.value; renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{}); });
-  if (toIn) toIn.addEventListener('change', e => { editToDate = e.target.value; renderCalendar(window._lastFreeMap||{}, window._lastTentMap||{}); });
-});
+function tapEditDay(ds) {
+  if (!editMode) return;
+  editCurrentDay = ds;
+  const [y,m,d] = ds.split('-');
+  const dateObj = new Date(+y,+m-1,+d);
+  const label = dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('editDayLabel').textContent = label;
+  document.getElementById('editAllDayRow').style.display = 'flex';
+  const allDay = document.getElementById('editAllDay')?.checked;
+  document.getElementById('editTimeRow').style.display = allDay ? 'none' : 'flex';
+  // Highlight selected day
+  document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('edit-selected'));
+  const dayEl = document.querySelector(`.cal-day[data-date="${ds}"]`);
+  if (dayEl) dayEl.classList.add('edit-selected');
+}
 
 async function saveEditMode() {
-  if (!currentUser) return;
-  const from = document.getElementById('editFromDate').value;
-  const to = document.getElementById('editToDate').value || from;
-  if (!from) { showToast('Select a date range first'); return; }
-  const startDate = from <= to ? from : to;
-  const endDate = from <= to ? to : from;
+  if (!currentUser) { showToast('Select a profile first'); return; }
+  if (!editCurrentDay) { showToast('Tap a day on the calendar first'); return; }
+  const allDay = document.getElementById('editAllDay')?.checked !== false;
+  const startTime = allDay ? '00:00' : (document.getElementById('editStartTime')?.value || '09:00');
+  const endTime   = allDay ? '23:59' : (document.getElementById('editEndTime')?.value   || '17:00');
   const row = {
     person: currentUser,
-    start_date: startDate,
-    end_date: endDate,
+    start_date: editCurrentDay,
+    end_date: editCurrentDay,
     status: 'free',
     type: editType,
     rating: editType === 'available' ? 5 : 3,
     source: 'manual',
-    notes: editType === 'tentative' ? 'Tentative' : 'Available'
+    notes: (allDay ? 'All day' : startTime + '–' + endTime) + ' · ' + editType
   };
   const { error } = await db.from('availability').insert(row);
-  if (error) { showToast('Error saving: ' + error.message); return; }
-  showToast(editType === 'available' ? '✓ Availability saved' : '✓ Tentative saved');
-  cancelEditMode();
+  if (error) { showToast('Error: ' + error.message); return; }
+  showToast(editType === 'available' ? '✓ Saved' : '✓ Tentative saved');
+  // Reset panel to waiting for next tap, don't exit edit mode
+  editCurrentDay = null;
+  document.getElementById('editDayLabel').textContent = 'Tap another day, or Save ↑';
+  document.getElementById('editAllDayRow').style.display = 'none';
+  document.getElementById('editTimeRow').style.display = 'none';
+  document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('edit-selected'));
   loadCalendarData();
   refreshSynopsisIfVisible();
 }
+
 
 // ── SUMMARY POPUP ──────────────────────────────────────────────────────────
 async function openSummaryPopup() {
@@ -3005,12 +3046,7 @@ async function loadCalendarData() {
   renderMySchedule(monthStart, monthEnd);
 }
 
-// ── EDIT MODE DOT CSS fix: add edit-selected style ──
-(function() {
-  const st = document.createElement('style');
-  st.textContent = '.cal-day.edit-selected{background:rgba(200,240,96,0.15);border:1px solid rgba(200,240,96,0.5);border-radius:4px}.cal-day-num{font-size:11px;color:var(--muted);margin-bottom:2px}.cal-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap}.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}.cal-dot.tentative{background:transparent;border-width:1.5px;border-style:dashed}';
-  document.head.appendChild(st);
-})();
+// Cal dot styles moved to <style> block
 </script>
 </body>
 </html>
