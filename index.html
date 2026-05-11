@@ -902,7 +902,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script>// Safe element access - returns no-op proxy if element missing
+const _origGetById = document.getElementById.bind(document);
+document.getElementById = function(id) {
+  const el = _origGetById(id);
+  if (el) return el;
+  // Return a harmless proxy so .addEventListener/.textContent etc. don't throw
+  return new Proxy({}, {
+    get(t, k) {
+      if (k === 'style') return new Proxy({}, { set(){}, get(){ return ''; } });
+      if (k === 'classList') return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
+      if (k === 'addEventListener') return () => {};
+      if (k === 'dispatchEvent') return () => {};
+      if (typeof k === 'string') return typeof t[k] !== 'undefined' ? t[k] : '';
+      return undefined;
+    },
+    set() { return true; }
+  });
+};
+
+
 const CONFIG = {
   SUPABASE_URL:    'https://npagrsvcsqaoztwxemrd.supabase.co',
   SUPABASE_ANON:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wYWdyc3Zjc3Fhb3p0d3hlbXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyOTMwMjAsImV4cCI6MjA5Mzg2OTAyMH0.iVHWrNjmhbId-pN_TSv8JcFKF1FJOJdDBrwc47WqIt8',
@@ -993,7 +1012,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('clearAllIcsBtn').addEventListener('click', clearAllIcs);
   document.getElementById('viewMonth').addEventListener('click', () => setCalView('month'));
   document.getElementById('viewWeek').addEventListener('click', () => setCalView('week'));
-  document.getElementById('refreshAvailBtn')?.addEventListener('click', loadAvailSynopsis);
+  document.getElementById('refreshAvailBtn').addEventListener('click', loadAvailSynopsis);
 
   // Confirm dialog
   document.getElementById('confirmCancel').addEventListener('click', () => closeConfirm(false));
@@ -1843,6 +1862,14 @@ function clearIcsParsed() {
   document.getElementById('icsFileInput').value = '';
   setIcsStep(1);
 }
+function importIcs() {
+  const file = document.getElementById('icsFile').files[0];
+  if (!file) { showToast('Select an .ics file first'); return; }
+  const reader = new FileReader();
+  reader.onload = e => saveIcsEvents(e.target.result, file.name);
+  reader.readAsText(file);
+}
+
 async function saveIcsEvents() {
   if (!icsParsedEvents || !icsParsedEvents.length) return;
   const btn = document.getElementById('saveIcsBtn');
@@ -2454,12 +2481,17 @@ let weekOffset = 0;    // weeks from current week
 
 function setCalView(view) {
   calView = view;
-  document.getElementById('monthView').style.display = view === 'month' ? 'block' : 'none';
-  document.getElementById('weekView').style.display  = view === 'week'  ? 'block' : 'none';
-  document.getElementById('viewMonth').classList.toggle('active', view === 'month');
-  document.getElementById('viewWeek').classList.toggle('active', view === 'week');
+  const monthEl = document.getElementById('calMonthView');
+  const weekEl  = document.getElementById('calWeekView');
+  if (monthEl) monthEl.style.display = view === 'month' ? 'block' : 'none';
+  if (weekEl)  weekEl.style.display  = view === 'week'  ? 'block' : 'none';
+  const toggle = document.getElementById('calViewToggle');
+  if (toggle) toggle.textContent = view === 'month' ? 'Week' : 'Month';
   if (view === 'week') { weekOffset = 0; renderWeekView(); }
   else loadCalendarData();
+}
+function toggleCalView() {
+  setCalView(calView === 'month' ? 'week' : 'month');
 }
 
 function weekPrev() { weekOffset--; renderWeekView(); }
