@@ -679,7 +679,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             </div>
             <div class="collapse-body">
               <div class="avail-hint" style="margin-bottom:10px">Type naturally — <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August"</div>
-              <textarea class="textarea" id="nlpInput" placeholder="When are you free or busy?" style="min-height:64px"></textarea>
+              <textarea class="textarea" id="nlpInput" placeholder="e.g. Free May 23rd, available weekends in June..." style="min-height:64px"></textarea>
               <div class="parsed-preview" id="nlpParsed" style="margin-top:10px">
                 <div class="parsed-label">Parsed as:</div>
                 <div class="parsed-body" id="nlpParsedContent"></div>
@@ -692,41 +692,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           </div>
 
           <!-- ICS IMPORT -->
-          <div class="collapse-panel" id="icsPanel">
-            <div class="collapse-header" id="icsPanelHeader">
-              <div>
-                <div class="collapse-title">Import Calendar File (.ics)</div>
-                <div class="collapse-preview" id="icsPreviewText">Apple Cal, Google, Outlook</div>
-              </div>
-              <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
-            </div>
-            <div class="collapse-body">
-              <div class="avail-hint">Drop a <strong>.ics file</strong> or tap to browse.</div>
-              <div class="ics-drop" id="icsDropZone" style="margin-top:8px">
-                <input type="file" id="icsFileInput" accept=".ics,text/calendar"/>
-                <svg style="width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:4px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <div class="ics-drop-title" id="icsDropTitle">Drop .ics file here</div>
-                <div class="ics-drop-sub" id="icsDropSub">or tap to browse</div>
-              </div>
-              <div id="icsParsed" style="display:none;margin-top:10px">
-                <div class="history-bar">
-                  <div class="history-label" id="historyStatus">No history</div>
-                  <div class="history-btns">
-                    <button class="h-btn" id="undoBtn" disabled><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>Undo</button>
-                    <button class="h-btn" id="redoBtn" disabled>Redo<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4"/></svg></button>
-                  </div>
-                </div>
-                <div class="parsed-preview" style="display:block;margin-bottom:10px">
-                  <div class="parsed-label" id="icsEventCount"></div>
-                  <div class="parsed-body" id="icsParsedContent"></div>
-                </div>
-                <div class="btn-row">
-                  <button class="btn btn-sec" id="clearIcsBtn">Clear</button>
-                  <button class="btn" id="saveIcsBtn">Save</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          
 
           <!-- YOUR SCHEDULE -->
           <div class="sec-head" style="margin:16px 0 10px">
@@ -746,7 +712,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
             <button class="view-btn active" id="viewMonth">Month</button>
             <button class="view-btn" id="viewWeek">Week</button>
           </div>
-          <button class="sec-action" id="clearAllIcsBtn" style="color:var(--danger)">Clear imports</button>
+          
         </div>
 
         <!-- SIBLING DOT LEGEND -->
@@ -920,8 +886,7 @@ const db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON);
 let currentUser = null, pinBuffer = '', parsedAvailability = null;
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
 let toastTimer = null, editingEntryId = null, mapInstance = null;
-let selectedRating = null, icsParsedEvents = null;
-let availHistory = [], availHistoryIdx = -1;
+let selectedRating = null;
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -966,7 +931,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('clearMonthBtn').addEventListener('click', clearMonthSchedule);
   document.getElementById('weekPrevBtn').addEventListener('click', weekPrev);
   document.getElementById('weekNextBtn').addEventListener('click', weekNext);
-  document.getElementById('clearAllIcsBtn').addEventListener('click', clearAllIcs);
   document.getElementById('viewMonth').addEventListener('click', () => setCalView('month'));
   document.getElementById('viewWeek').addEventListener('click', () => setCalView('week'));
   document.getElementById('refreshAvailBtn')?.addEventListener('click', loadAvailSynopsis);
@@ -1064,8 +1028,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!btn) return;
     delMyAvail(btn.dataset.delMy);
   });
-  initIcsDrop();
-  document.getElementById('saveIcsBtn').addEventListener('click', saveIcsEvents);
   document.getElementById('clearIcsBtn').addEventListener('click', clearIcsParsed);
   document.getElementById('undoBtn').addEventListener('click', undoAvail);
   document.getElementById('redoBtn').addEventListener('click', redoAvail);
@@ -1074,7 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Collapsible panels
   document.getElementById('nlpPanelHeader').addEventListener('click', () => togglePanel('nlpPanel'));
-  document.getElementById('icsPanelHeader').addEventListener('click', () => togglePanel('icsPanel'));
 
   updatePlaceholder();
   loadProfilePreviews();
@@ -1090,18 +1051,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function togglePanel(id) {
   const panel = document.getElementById(id);
   panel.classList.toggle('open');
-}
-
-function setIcsStep(n) {
-  for (let i = 1; i <= 4; i++) {
-    const s = document.getElementById('step' + i);
-    if (!s) continue;
-    s.classList.remove('active','done');
-    if (i < n) s.classList.add('done');
-    else if (i === n) s.classList.add('active');
-    const line = document.getElementById('step-line-' + i);
-    if (line) line.style.background = i < n ? 'var(--accent)' : 'var(--border)';
-  }
 }
 
 // ── SCREENS ──
@@ -1445,7 +1394,6 @@ async function delEntry(id) {
 async function delAvail(id) {
   if (!await showConfirm('Delete Availability', 'Remove this availability entry?')) return;
   const { data } = await db.from('availability').select('*').eq('id', id);
-  if (data && data.length) pushHistory({action:'delete', rows:data});
   await db.from('availability').delete().eq('id', id);
   document.getElementById('avail-' + id)?.remove();
   toast('Deleted','success');
@@ -1530,7 +1478,8 @@ async function parseAvailability() {
   const btn = document.getElementById('parseBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Parsing';
   try {
-    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, today:todayStr()})});
+    const freeOnlyText = 'Parse this as FREE availability only (status must always be "free"): ' + text;
+    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:freeOnlyText, today:todayStr()})});
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
     parsedAvailability = data.parsed;
@@ -1544,11 +1493,11 @@ async function saveAvailability() {
   if (!parsedAvailability || !parsedAvailability.length) return;
   const btn = document.getElementById('saveAvailBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving';
-  const rows = parsedAvailability.map(p => ({person:currentUser, start_date:p.start_date, end_date:p.end_date, status:p.status, note:p.note||null}));
+  const rows = parsedAvailability.filter(p => p.status === 'free').map(p => ({person:currentUser, start_date:p.start_date, end_date:p.end_date, status:'free', note:p.note||null}));
+  if (!rows.length) { toast('Only free availability is tracked','info'); btn.disabled=false; btn.textContent='Save'; return; }
   const { data, error } = await db.from('availability').insert(rows).select();
   btn.disabled = false; btn.textContent = 'Save';
   if (error) { toast('Error saving','error'); return; }
-  if (data) pushHistory({action:'insert', rows:data});
   document.getElementById('nlpInput').value = '';
   document.getElementById('nlpParsed').style.display = 'none';
   document.getElementById('saveAvailBtn').style.display = 'none';
@@ -1560,103 +1509,6 @@ async function saveAvailability() {
 }
 
 // ── ICS DROP ──
-function initIcsDrop() {
-  const zone = document.getElementById('icsDropZone');
-  const input = document.getElementById('icsFileInput');
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
-  zone.addEventListener('dragleave', () => zone.classList.remove('over'));
-  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) handleIcsFile(f); });
-  input.addEventListener('change', e => { const f = e.target.files[0]; if (f) handleIcsFile(f); });
-}
-async function handleIcsFile(file) {
-  if (!file.name.endsWith('.ics') && file.type !== 'text/calendar') { toast('Please use a .ics calendar file','error'); return; }
-  // Truncate long filenames
-  const shortName = file.name.length > 30 ? file.name.substring(0,27) + '...' : file.name;
-  document.getElementById('icsDropTitle').textContent = shortName;
-  document.getElementById('icsDropSub').textContent = (file.size / 1024).toFixed(0) + ' KB';
-  document.getElementById('icsDropZone').classList.add('loaded');
-  // Open panel if collapsed
-  document.getElementById('icsPanel').classList.add('open');
-  setIcsStep(2);
-  const text = await file.text();
-  await parseIcsContent(text);
-}
-// Parse ICS locally in the browser — extract event data before sending to Claude
-function parseIcsLocally(icsText) {
-  // Unfold lines (ICS folds long lines with CRLF + whitespace)
-  const unfolded = icsText
-    .replace(/\r\n/g, '\n')
-    .replace(/\n[ \t]/g, '');
-
-  const events = [];
-  const blocks = unfolded.split('BEGIN:VEVENT');
-
-  for (let i = 1; i < blocks.length; i++) {
-    const block = blocks[i].split('END:VEVENT')[0];
-
-    const get = (keyPrefix) => {
-      const re = new RegExp('(?:^|\n)' + keyPrefix + '(?:;[^:\n]*)?:([^\n]*)', 'im');
-      const m = block.match(re);
-      return m ? m[1].trim() : null;
-    };
-
-    const dtstart = get('DTSTART');
-    const dtend   = get('DTEND');
-    const summary = (get('SUMMARY') || '(No title)').replace(/\\n/g,' ').replace(/\\,/g,',').trim();
-    const transp  = get('TRANSP');
-    const status  = get('STATUS');
-    const rrule   = get('RRULE');
-
-    if (transp === 'TRANSPARENT') continue;
-    if (status === 'CANCELLED') continue;
-    if (!dtstart) continue;
-
-    const toDate = (s) => {
-      if (!s) return null;
-      const clean = s.replace(/Z$/,'').replace(/[+-]\d{4}$/,'').replace(/[+-]\d{2}:\d{2}$/,'');
-      const dateOnly = clean.replace(/T.*/,'');
-      if (dateOnly.length === 8) return dateOnly.slice(0,4)+'-'+dateOnly.slice(4,6)+'-'+dateOnly.slice(6,8);
-      return null;
-    };
-
-    const start = toDate(dtstart);
-    let end = toDate(dtend);
-    if (!start) continue;
-    if (!end || end < start) end = start;
-
-    // All-day: Google DTEND is exclusive
-    if (end && !dtstart.includes('T') && end > start) {
-      const ed = new Date(end + 'T12:00:00');
-      ed.setDate(ed.getDate() - 1);
-      end = ed.toISOString().split('T')[0];
-    }
-
-    // Extract time for timed events
-    let timeNote = null;
-    if (dtstart.includes('T')) {
-      const tPart = dtstart.replace(/Z$/,'').replace(/[+-]\d{4}$/,'');
-      const hh = parseInt(tPart.slice(9,11));
-      const mm = parseInt(tPart.slice(11,13));
-      if (!isNaN(hh)) {
-        const ampm = hh >= 12 ? 'pm' : 'am';
-        const h12 = hh % 12 || 12;
-        timeNote = h12 + (mm ? ':' + String(mm).padStart(2,'0') : '') + ampm;
-      }
-    }
-
-    const cleanSummary = summary.substring(0,80);
-
-    if (rrule) {
-      // Expand recurring events
-      const expanded = expandRRule(start, rrule, cleanSummary, timeNote);
-      events.push(...expanded);
-    } else {
-      events.push({ start, end, summary: cleanSummary, timeNote });
-    }
-  }
-  return events;
-}
-
 function expandRRule(startDate, rrule, summary, timeNote) {
   const results = [];
   const params = {};
@@ -1730,150 +1582,7 @@ function expandRRule(startDate, rrule, summary, timeNote) {
 
 
 
-async function parseIcsContent(icsText) {
-  setIcsStep(2);
-  const btn = document.getElementById('saveIcsBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Parsing...';
-  try {
-    // Pre-parse locally to extract clean event list
-    const localEvents = parseIcsLocally(icsText);
-    if (!localEvents.length) { toast('No events found in file','error'); btn.disabled=false; btn.textContent='Save to Schedule'; return; }
-
-    // Build a compact text summary for Claude instead of sending raw ICS
-    const today = todayStr();
-    const future = localEvents.filter(e => e.end >= today);
-    if (!future.length) { toast('No upcoming events found','error'); btn.disabled=false; btn.textContent='Save to Schedule'; return; }
-
-    // Cap at 150 events to avoid token limits
-    const capped = future.slice(0, 150);
-    const eventText = capped.map(e => e.start + ' to ' + e.end + ': ' + (e.summary||'Event') + (e.timeNote ? ' (' + e.timeNote + ')' : '')).join('\n');
-    const prompt = 'Here is a list of calendar events (start date, end date, title). Convert them into a JSON array where each item has: start_date (YYYY-MM-DD), end_date (YYYY-MM-DD), status ("busy"), note (event title, optional). Skip personal events like birthdays/holidays if you can tell. Return ONLY the JSON array.\n\n' + eventText;
-
-    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({text: prompt, today})
-    });
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    icsParsedEvents = data.parsed;
-
-    if (!icsParsedEvents || !icsParsedEvents.length) {
-      // Fall back: use local parse directly without Claude
-      icsParsedEvents = future.slice(0, 200).map(e => ({
-        start_date: e.start, end_date: e.end, status: 'busy',
-        note: e.summary ? (e.timeNote ? e.summary + ' (' + e.timeNote + ')' : e.summary) : null
-      }));
-    }
-
-    document.getElementById('icsEventCount').textContent = icsParsedEvents.length + ' events found:';
-    document.getElementById('icsParsedContent').textContent = icsParsedEvents.map(p =>
-      (p.status||'busy').toUpperCase() + ': ' + p.start_date + ' to ' + p.end_date + (p.note ? ' -- ' + p.note : '')
-    ).join('\n');
-    document.getElementById('icsParsed').style.display = 'block';
-    setIcsStep(3);
-    const pastCount = localEvents.length - future.length;
-    const msg = icsParsedEvents.length + ' events ready' + (pastCount > 0 ? ' (' + pastCount + ' past events skipped)' : '');
-    toast(msg, 'success');
-  } catch(err) {
-    // Last resort: use purely local parse
-    const localEvents = parseIcsLocally(icsText);
-    const today = todayStr();
-    const future = localEvents.filter(e => e.end >= today).slice(0, 200);
-    if (future.length) {
-      icsParsedEvents = future.map(e => ({start_date:e.start, end_date:e.end, status:'busy', note:e.summary||null}));
-      document.getElementById('icsEventCount').textContent = icsParsedEvents.length + ' events (local parse):';
-      document.getElementById('icsParsedContent').textContent = icsParsedEvents.map(p =>
-        'BUSY: ' + p.start_date + ' to ' + p.end_date + (p.note ? ' -- ' + p.note : '')
-      ).join('\n');
-      document.getElementById('icsParsed').style.display = 'block';
-      toast(icsParsedEvents.length + ' events loaded (offline mode)','info');
-    } else {
-      toast('Could not parse file','error');
-      console.error(err);
-    }
-  }
-  btn.disabled = false; btn.textContent = 'Save to Schedule';
-}
-function clearIcsParsed() {
-  icsParsedEvents = null;
-  document.getElementById('icsParsed').style.display = 'none';
-  document.getElementById('icsDropZone').classList.remove('loaded');
-  document.getElementById('icsDropTitle').textContent = 'Drop .ics file here';
-  document.getElementById('icsDropSub').textContent = 'or tap to browse';
-  document.getElementById('icsFileInput').value = '';
-  setIcsStep(1);
-}
-async function saveIcsEvents() {
-  if (!icsParsedEvents || !icsParsedEvents.length) return;
-  const btn = document.getElementById('saveIcsBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving...';
-  // Accumulate calendars: fetch existing to skip duplicates
-  const { data: existing } = await db.from('availability').select('start_date,end_date,note').eq('person',currentUser).eq('source','ics');
-  const existKeys = new Set((existing||[]).map(r => r.start_date+'|'+r.end_date+'|'+(r.note||'')));
-  const allRows = icsParsedEvents.map(p => ({person:currentUser,start_date:p.start_date,end_date:p.end_date,status:p.status||'busy',note:p.note||null,source:'ics'}));
-  const rows = allRows.filter(r => !existKeys.has(r.start_date+'|'+r.end_date+'|'+(r.note||'')));
-  if (!rows.length) {
-    toast('Already imported -- nothing new','info');
-    clearIcsParsed(); btn.disabled=false; btn.textContent='Save to Schedule'; return;
-  }
-  const { data, error } = await db.from('availability').insert(rows).select();
-  if (error) { toast('Error saving','error'); console.error(error); btn.disabled=false; btn.textContent='Save to Schedule'; return; }
-  if (data) pushHistory({action:'insert', rows:data});
-  clearIcsParsed();
-  setIcsStep(4);
-  setTimeout(() => setIcsStep(1), 2000);
-  toast('Saved ' + rows.length + ' events','success');
-  loadCalendarData();
-  checkOverlapsAndNotify();
-  refreshSynopsisIfVisible();
-  btn.disabled = false; btn.textContent = 'Save to Schedule';
-}
-
 // ── UNDO/REDO ──
-function pushHistory(entry) {
-  availHistory = availHistory.slice(0, availHistoryIdx + 1);
-  availHistory.push(entry);
-  availHistoryIdx = availHistory.length - 1;
-  updateHistoryUI();
-}
-function updateHistoryUI() {
-  document.getElementById('undoBtn').disabled = availHistoryIdx < 0;
-  document.getElementById('redoBtn').disabled = availHistoryIdx >= availHistory.length - 1;
-  const count = availHistory.length;
-  document.getElementById('historyStatus').textContent = count === 0 ? 'No history' : (availHistoryIdx + 1) + ' of ' + count + ' action' + (count > 1 ? 's' : '');
-}
-async function undoAvail() {
-  if (availHistoryIdx < 0) return;
-  const entry = availHistory[availHistoryIdx];
-  if (entry.action === 'insert') {
-    const ids = entry.rows.map(r => r.id);
-    await db.from('availability').delete().in('id', ids);
-    toast('Undone -- ' + ids.length + ' entr' + (ids.length === 1 ? 'y' : 'ies') + ' removed','info');
-  } else if (entry.action === 'delete') {
-    await db.from('availability').insert(entry.rows.map(r => ({person:r.person,start_date:r.start_date,end_date:r.end_date,status:r.status,note:r.note,source:r.source})));
-    toast('Undone -- entries restored','info');
-  }
-  availHistoryIdx--;
-  updateHistoryUI();
-  loadCalendarData();
-}
-async function redoAvail() {
-  if (availHistoryIdx >= availHistory.length - 1) return;
-  availHistoryIdx++;
-  const entry = availHistory[availHistoryIdx];
-  if (entry.action === 'insert') {
-    const { data } = await db.from('availability').insert(entry.rows.map(r => ({person:r.person,start_date:r.start_date,end_date:r.end_date,status:r.status,note:r.note,source:r.source}))).select();
-    if (data) entry.rows = data;
-    toast('Redone','info');
-  } else if (entry.action === 'delete') {
-    await db.from('availability').delete().in('id', entry.rows.map(r => r.id));
-    toast('Redone','info');
-  }
-  updateHistoryUI();
-  loadCalendarData();
-}
-
 // ── CALENDAR ──
 function initCalendar() {
   calYear = new Date().getFullYear();
@@ -1899,13 +1608,9 @@ async function loadCalendarData() {
   const monthStart = firstDay.toISOString().split('T')[0];
   const monthEnd = lastDay.toISOString().split('T')[0];
   document.getElementById('calMonthLabel').textContent = firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  const [freeResp, busyResp] = await Promise.all([
-    db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart),
-    db.from('availability').select('*').eq('status','busy').lte('start_date',monthEnd).gte('end_date',monthStart),
-  ]);
-  const freeMap = buildFreeMap(freeResp.data||[], monthStart, monthEnd);
-  const busyMap = buildBusyMap(busyResp.data||[], monthStart, monthEnd);
-  storeDayData(freeMap, busyMap, monthStart, monthEnd);
+  const { data: freeData } = await db.from('availability').select('*').eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart);
+  const freeMap = buildFreeMap(freeData||[], monthStart, monthEnd);
+  storeDayData(freeMap, {}, monthStart, monthEnd);
   renderCalendar(freeMap);
   renderOverlapList(freeMap, monthStart, monthEnd);
   renderMySchedule(monthStart, monthEnd);
@@ -1924,71 +1629,7 @@ function buildFreeMap(data, monthStart, monthEnd) {
   });
   return m;
 }
-function parseTimeRange(note) {
-  // Extract start/end hours from note like "(2p-12a)" or "(6:45pm)" or "(2pm-12am)"
-  if (!note) return null;
-  const m = note.match(/\((\d{1,2})(?::(\d{2}))?\s*(am|pm)\s*[-to]+\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)\)/i);
-  if (!m) {
-    // Single time "(6:45pm)"
-    const s = note.match(/\((\d{1,2})(?::(\d{2}))?\s*(am|pm)\)/i);
-    if (!s) return null;
-    let h = parseInt(s[1]);
-    if (s[3].toLowerCase()==='pm' && h<12) h+=12;
-    if (s[3].toLowerCase()==='am' && h===12) h=0;
-    return {startHour:h, endHour:h+1, overnight:false};
-  }
-  let sh = parseInt(m[1]);
-  if (m[3].toLowerCase()==='pm' && sh<12) sh+=12;
-  if (m[3].toLowerCase()==='am' && sh===12) sh=0;
-  let eh = parseInt(m[4]);
-  if (m[6].toLowerCase()==='pm' && eh<12) eh+=12;
-  if (m[6].toLowerCase()==='am' && eh===12) eh=0;
-  const overnight = eh <= sh; // e.g. 2pm(14) to 12am(0)
-  return {startHour:sh, endHour:eh, overnight};
-}
 
-function buildBusyMap(data, monthStart, monthEnd) {
-  const m = {};
-  data.forEach(row => {
-    const totalDays = dateDiff(row.start_date, row.end_date) + 1;
-    const timeInfo = parseTimeRange(row.note);
-    let cur = new Date(Math.max(new Date(row.start_date+'T12:00:00'), new Date(monthStart+'T12:00:00')));
-    const end = new Date(Math.min(new Date(row.end_date+'T12:00:00'), new Date(monthEnd+'T12:00:00')));
-    const startDs = row.start_date;
-    const endDs = row.end_date;
-    while (cur <= end) {
-      const k = cur.toISOString().split('T')[0];
-      if (!m[k]) m[k] = [];
-      // Determine bar position for this specific day
-      let barTop = 0, barH = 1; // fraction of 24h (0-1)
-      if (timeInfo) {
-        const isFirst = k === startDs;
-        const isLast  = k === endDs;
-        const isMid   = !isFirst && !isLast;
-        if (totalDays === 1) {
-          // Single day event
-          barTop = timeInfo.startHour / 24;
-          barH   = Math.max((timeInfo.endHour - timeInfo.startHour) / 24, 1/24);
-          if (timeInfo.overnight) barH = (24 - timeInfo.startHour) / 24;
-        } else if (isFirst) {
-          barTop = timeInfo.startHour / 24;
-          barH   = (24 - timeInfo.startHour) / 24;
-        } else if (isLast) {
-          barTop = 0;
-          barH   = timeInfo.overnight ? timeInfo.endHour / 24 : 1;
-        } else {
-          barTop = 0; barH = 1; // full day for middle days
-        }
-      } else {
-        // No time info: show a tiny dot at bottom of cell
-        barTop = 0.85; barH = 0.06;
-      }
-      m[k].push({person:row.person, note:row.note, duration:totalDays, barTop, barH});
-      cur.setDate(cur.getDate()+1);
-    }
-  });
-  return m;
-}
 // Day popup data store
 let calDayData = {};
 
@@ -2018,7 +1659,7 @@ async function renderMySchedule(monthStart, monthEnd) {
   const container = document.getElementById('myScheduleList');
   if (!container) return;
   container.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
-  const { data } = await db.from('availability').select('*').eq('person',currentUser).lte('start_date',monthEnd).gte('end_date',monthStart).order('start_date',{ascending:true});
+  const { data } = await db.from('availability').select('*').eq('person',currentUser).eq('status','free').lte('start_date',monthEnd).gte('end_date',monthStart).order('start_date',{ascending:true});
   if (!data || !data.length) { container.innerHTML = '<div class="empty-state">Nothing set for this month.</div>'; return; }
   container.innerHTML = data.map(r => {
     const dateStr = r.start_date === r.end_date ? fmtFull(r.start_date) : fmtFull(r.start_date) + ' -- ' + fmtFull(r.end_date);
@@ -2027,7 +1668,6 @@ async function renderMySchedule(monthStart, monthEnd) {
     out += '<span class="avail-badge ' + r.status + '">' + r.status + '</span>';
     out += '<div class="avail-info"><div class="avail-dates">' + dateStr + '</div>';
     if (noteStr) out += '<div class="avail-note">' + esc(noteStr) + '</div>';
-    if (r.source) out += '<div class="avail-src">via ' + r.source + '</div>';
     out += '</div>';
     out += '<button class="avail-del" data-del-my="' + r.id + '">';
     out += '<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
@@ -2038,7 +1678,6 @@ async function renderMySchedule(monthStart, monthEnd) {
 
 async function delMyAvail(id) {
   const { data } = await db.from('availability').select('*').eq('id', id);
-  if (data && data.length) pushHistory({action:'delete', rows:data});
   await db.from('availability').delete().eq('id', id);
   document.getElementById('myschedule-' + id)?.remove();
   loadCalendarData();
@@ -2048,10 +1687,9 @@ async function clearMonthSchedule() {
   if (!await showConfirm('Clear Month', 'Delete all your availability for this month?', 'Clear', true)) return;
   const firstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
   const lastDay = new Date(calYear, calMonth+1, 0).toISOString().split('T')[0];
-  const { data } = await db.from('availability').select('*').eq('person',currentUser).lte('start_date',lastDay).gte('end_date',firstDay);
+  const { data } = await db.from('availability').select('*').eq('person',currentUser).eq('status','free').lte('start_date',lastDay).gte('end_date',firstDay);
   if (data && data.length) {
-    pushHistory({action:'delete', rows:data});
-    await db.from('availability').delete().eq('person',currentUser).lte('start_date',lastDay).gte('end_date',firstDay);
+    await db.from('availability').delete().eq('person',currentUser).eq('status','free').lte('start_date',lastDay).gte('end_date',firstDay);
     toast('Cleared '+data.length+' entr'+(data.length===1?'y':'ies'),'success');
   } else { toast('Nothing to clear','info'); }
   loadCalendarData();
@@ -2223,7 +1861,7 @@ async function loadAvailSynopsis() {
       name + ':' + ' | ' + entries.slice(0,30).join(' | ')
     ).join(' || ');
 
-    const prompt = 'You help 4 siblings (Catherine=blue, Ellie=pink, JD=green, James=yellow) find time to get together. Today is ' + tStr + '. Their availability data: ' + summaryText + '. Respond with EXACTLY this format - no other text:\nOVERVIEW: [one sentence, direct]\nBEST WINDOW: [specific date range or dates when 2+ are free, or "None found yet"]\nWHO IS FREE: [comma list of names with free dates, or "No one has marked free time yet"]\nBLOCKERS: [key conflicts in 10 words max, or "None"]\nNEXT STEP: [one action item for the siblings]';
+    const prompt = 'You help 4 siblings find time to get together. Today is ' + tStr + '. Their FREE availability: ' + summaryText + '. Respond with EXACTLY this structure, no other text:\nWINDOW: [The single best date or date range when 2+ siblings are free. Be specific. If none, say "None yet"]\nWHO: [First name only, comma separated, of siblings who have added free time]\nSTATUS: [One plain sentence. Example: Ellie and JD overlap June 14-16.]';
 
     const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
       method: 'POST',
@@ -2240,57 +1878,48 @@ async function loadAvailSynopsis() {
     // we need raw text. Extract from parsed notes or use fallback.
     const synopsis = d.synopsis || d.parsed?.[0]?.note || 'Add your availability and import calendars. Claude will find the best windows to meet.';
 
-    // Parse structured synopsis response
+    // Parse clean 3-line response
     const sections = {};
     synopsis.split('\n').forEach(line => {
-      const m = line.match(/^([A-Z ]+):\s*(.+)/);
+      const m = line.match(/^([A-Z]+):\s*(.+)/);
       if (m) sections[m[1].trim()] = m[2].trim();
     });
 
-    const whoFree = sections['WHO IS FREE'] || '';
-    const bestWindow = sections['BEST WINDOW'] || '';
-    const hasAvailability = whoFree && !/no one|none/i.test(whoFree);
-    const hasBestWindow = bestWindow && !/none/i.test(bestWindow);
+    const window_ = sections['WINDOW'] || '';
+    const who = sections['WHO'] || '';
+    const status = sections['STATUS'] || '';
+    const noData = /none yet|none/i.test(window_) || !window_;
 
-    // Big availability indicator
     let html = '';
-    if (hasAvailability || hasBestWindow) {
-      html += '<div style="background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.25);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px">';
-      html += '<div style="font-size:10px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px">Best window to meet</div>';
-      html += '<div style="font-size:15px;font-weight:700;color:var(--text)">' + esc(hasBestWindow ? bestWindow : whoFree) + '</div>';
+
+    // Hero: best window
+    if (!noData) {
+      html += '<div style="border-left:3px solid var(--accent);padding:10px 14px;margin-bottom:16px;background:rgba(200,240,96,0.04);border-radius:0 var(--r-sm) var(--r-sm) 0">';
+      html += '<div style="font-size:10px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Best window</div>';
+      html += '<div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.3">' + esc(window_) + '</div>';
       html += '</div>';
     } else {
-      html += '<div style="background:rgba(240,96,96,0.06);border:1px solid rgba(240,96,96,0.2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px;text-align:center">';
-      html += '<div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:4px">No overlapping free time found</div>';
-      html += '<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">Import your calendars or add your availability below</div>';
+      html += '<div style="border-left:3px solid var(--muted);padding:10px 14px;margin-bottom:16px;border-radius:0 var(--r-sm) var(--r-sm) 0">';
+      html += '<div style="font-size:13px;color:var(--muted)">No overlapping free time yet.</div>';
+      html += '<div style="font-size:11px;color:var(--muted2);font-family:var(--font-mono);margin-top:2px">Add your availability below.</div>';
       html += '</div>';
     }
 
-    // Who is free pills
-    if (whoFree && hasAvailability) {
-      const names = whoFree.split(',').map(n => n.trim()).filter(Boolean);
-      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">';
-      names.forEach(nameEntry => {
-        const matchedName = Object.keys(SIBLING_COLORS).find(n => nameEntry.includes(n));
-        const color = matchedName ? SIBLING_COLORS[matchedName] : 'var(--muted)';
-        html += '<div style="padding:4px 10px;border-radius:999px;font-size:11px;font-family:var(--font-mono);border:1px solid '+color+'40;background:'+color+'12;color:'+color+'">'+esc(nameEntry)+'</div>';
+    // Who has added free time — sibling color pills, compact
+    if (who) {
+      const names = who.split(',').map(n => n.trim()).filter(Boolean);
+      html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
+      names.forEach(n => {
+        const matched = Object.keys(SIBLING_COLORS).find(s => n.includes(s));
+        const color = matched ? SIBLING_COLORS[matched] : 'var(--muted)';
+        html += '<span style="font-size:11px;font-family:var(--font-mono);color:'+color+';padding:2px 0">' + esc(n) + '</span>';
       });
       html += '</div>';
     }
 
-    // Overview
-    if (sections['OVERVIEW']) {
-      html += '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px">'+esc(sections['OVERVIEW'])+'</div>';
-    }
-
-    // Blockers
-    if (sections['BLOCKERS'] && !/none/i.test(sections['BLOCKERS'])) {
-      html += '<div style="font-size:11px;color:var(--danger);font-family:var(--font-mono);opacity:0.8">Conflicts: '+esc(sections['BLOCKERS'])+'</div>';
-    }
-
-    // Next step
-    if (sections['NEXT STEP']) {
-      html += '<div style="font-size:11px;color:var(--accent2);font-family:var(--font-mono);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">Next: '+esc(sections['NEXT STEP'])+'</div>';
+    // One sentence status
+    if (status) {
+      html += '<div style="font-size:12px;color:var(--muted);line-height:1.6">' + esc(status) + '</div>';
     }
 
     el.innerHTML = html;
@@ -2447,10 +2076,7 @@ function storeDayData(freeMap, busyMap, monthStart, monthEnd) {
     if (!calDayData[date]) calDayData[date] = [];
     entries.forEach(e => calDayData[date].push({...e, status:'free'}));
   });
-  Object.entries(busyMap||{}).forEach(([date, entries]) => {
-    if (!calDayData[date]) calDayData[date] = [];
-    entries.forEach(e => calDayData[date].push({...e, status:'busy'}));
-  });
+  // busyMap removed - only free availability tracked
 }
 
 function openDayPopup(ds) {
@@ -2651,15 +2277,6 @@ async function renderWeekView() {
 }
 
 
-// ── CLEAR ICS IMPORTS ──
-async function clearAllIcs() {
-  if (!await showConfirm('Clear All Imports', 'Delete all imported calendar events? This cannot be undone.', 'Clear All', true)) return;
-  const { error } = await db.from('availability').delete().eq('person', currentUser).eq('source', 'ics');
-  if (error) { toast('Error clearing', 'error'); return; }
-  toast('All ICS imports cleared', 'success');
-  loadCalendarData();
-  if (calView === 'week') renderWeekView();
-}
 
 // ── CUSTOM CONFIRM DIALOG ──
 let confirmResolve = null;
