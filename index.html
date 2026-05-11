@@ -2491,65 +2491,56 @@ function renderCalendar(freeMap) {
   const grid = document.getElementById('calGrid');
   if (!grid) return;
   grid.innerHTML = '';
+
   ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
-    const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
+    const el = document.createElement('div');
+    el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
   });
+
   const firstDay = new Date(calYear, calMonth, 1);
   const days = new Date(calYear, calMonth+1, 0).getDate();
   const tStr = todayStr();
   const siblings = ['Catherine','Ellie','JD','James'];
+
   for (let i=0; i<firstDay.getDay(); i++) {
-    const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el);
+    const el = document.createElement('div'); el.className = 'cal-day'; grid.appendChild(el);
   }
+
   for (let d=1; d<=days; d++) {
     const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const el = document.createElement('div');
     el.className = 'cal-day in-month';
     el.style.cursor = 'pointer';
     el.addEventListener('click', () => openDayPopup(ds));
-    const numEl = document.createElement('div');
+
+    const numEl = document.createElement('span');
     numEl.textContent = d;
-    if (ds === tStr) { numEl.style.color='var(--accent2)'; numEl.style.fontWeight='700'; }
+    numEl.style.fontFamily = 'var(--font-mono)';
+    numEl.style.fontSize = '11px';
+    if (ds === tStr) {
+      numEl.style.color = 'var(--accent2)';
+      numEl.style.fontWeight = '700';
+    }
     el.appendChild(numEl);
+
     const freeEntries = freeMap[ds];
-    if (freeEntries) {
-      const people = [...new Set(freeEntries.map(e => e.person))];
-      const n = people.length;
-      if (n >= 4) el.classList.add('oall');
-      else if (n === 3) el.classList.add('o3');
-      else if (n === 2) el.classList.add('o2');
-    }
-    const busyEntries = busyMap ? busyMap[ds] : null;
-    const freeByPerson = {};
-    if (freeEntries) freeEntries.forEach(e => { freeByPerson[e.person] = e; });
-    const busyByPerson = {};
-    if (busyEntries) busyEntries.forEach(e => {
-      if (!busyByPerson[e.person] || (e.barH||0) > (busyByPerson[e.person].barH||0)) busyByPerson[e.person] = e;
-    });
-    if (Object.keys(freeByPerson).length || Object.keys(busyByPerson).length) {
-      const cols = document.createElement('div');
-      cols.className = 'cal-cols';
+    const freeSet = new Set((freeEntries||[]).map(e => e.person));
+    const allFree = siblings.every(s => freeSet.has(s));
+    if (allFree) el.classList.add('has-all');
+
+    if (freeEntries && freeEntries.length) {
+      const dots = document.createElement('div');
+      dots.className = 'cal-day-dots';
       siblings.forEach(name => {
-        const col = document.createElement('div'); col.className = 'cal-col';
-        const color = SIBLING_COLORS[name]||'#888';
-        const busy = busyByPerson[name]; const free = freeByPerson[name];
-        if (busy) {
-          const seg = document.createElement('div'); seg.className = 'cal-seg busy';
-          seg.style.top = Math.round((busy.barTop||0.85)*100)+'%';
-          seg.style.height = Math.max(Math.round((busy.barH||0.06)*100),6)+'%';
-          seg.style.background = color;
-          seg.style.opacity = busy.barH >= 0.35 ? '0.85' : '0.6';
-          col.appendChild(seg);
-        } else if (free) {
-          const seg = document.createElement('div'); seg.className = 'cal-seg free';
-          seg.style.top = '0'; seg.style.height = '100%';
-          seg.style.background = 'linear-gradient(to bottom,'+color+'55,transparent)';
-          col.appendChild(seg);
-        }
-        cols.appendChild(col);
+        const dot = document.createElement('div');
+        dot.className = 'cal-dot ' + (freeSet.has(name) ? 'free' : 'absent');
+        dot.style.background = SIBLING_COLORS[name] || '#888';
+        dot.title = name + (freeSet.has(name) ? ' free' : ' busy');
+        dots.appendChild(dot);
       });
-      el.appendChild(cols);
+      el.appendChild(dots);
     }
+
     grid.appendChild(el);
   }
 }
@@ -2796,65 +2787,4 @@ function escAttr(str) { return(str||'').replace(/'/g,'&#39;').replace(/"/g,'&quo
 function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
 </script>
 </body>
-</htmlfunction renderCalendar(freeMap) {
-  const grid = document.getElementById('calGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
-  });
-
-  const firstDay = new Date(calYear, calMonth, 1);
-  const days = new Date(calYear, calMonth+1, 0).getDate();
-  const tStr = todayStr();
-  const siblings = ['Catherine','Ellie','JD','James'];
-
-  // Blank cells before month starts
-  for (let i=0; i<firstDay.getDay(); i++) {
-    const el = document.createElement('div'); el.className = 'cal-day'; grid.appendChild(el);
-  }
-
-  for (let d=1; d<=days; d++) {
-    const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const el = document.createElement('div');
-    el.className = 'cal-day in-month';
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', () => openDayPopup(ds));
-
-    // Day number
-    const numEl = document.createElement('span');
-    numEl.textContent = d;
-    numEl.style.fontFamily = 'var(--font-mono)';
-    numEl.style.fontSize = '11px';
-    if (ds === tStr) {
-      numEl.style.color = 'var(--accent2)';
-      numEl.style.fontWeight = '700';
-    }
-    el.appendChild(numEl);
-
-    // Sibling dots
-    const freeEntries = freeMap[ds];
-    const freeSet = new Set((freeEntries||[]).map(e => e.person));
-    const allFree = siblings.every(s => freeSet.has(s));
-    if (allFree) el.classList.add('has-all');
-
-    if (freeEntries && freeEntries.length) {
-      const dots = document.createElement('div');
-      dots.className = 'cal-day-dots';
-      siblings.forEach(name => {
-        const dot = document.createElement('div');
-        dot.className = 'cal-dot ' + (freeSet.has(name) ? 'free' : 'absent');
-        dot.style.background = SIBLING_COLORS[name] || '#888';
-        dot.title = name + (freeSet.has(name) ? ' free' : ' busy');
-        dots.appendChild(dot);
-      });
-      el.appendChild(dots);
-    }
-
-    grid.appendChild(el);
-  }
-}
-
->
+</html>
