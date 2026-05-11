@@ -652,43 +652,34 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
       <!-- AVAILABILITY TAB - Claude synopsis + free/busy input only -->
       <div class="tab-pane" id="tab-avail">
 
-        <!-- AI SYNOPSIS -->
-        <div id="availSynopsis" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;min-height:72px;position:relative">
-          <div style="position:absolute;top:10px;right:12px;font-size:8px;font-family:var(--font-mono);color:var(--accent);background:rgba(200,240,96,0.1);border:1px solid rgba(200,240,96,0.2);border-radius:4px;padding:1px 5px;letter-spacing:1px">AI</div>
-          <div class="empty-state" style="padding:8px 0"><span class="spinner"></span> Analyzing schedules...</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div style="font-size:9px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:2px" id="synopsisAge"></div>
-          <button class="sec-action" id="refreshAvailBtn">Refresh analysis</button>
+        <!-- AVAILABILITY OVERVIEW -->
+        <div id="availSynopsis" style="margin-bottom:20px">
+          <div class="empty-state" style="padding:8px 0"><span class="spinner"></span></div>
         </div>
 
-        <!-- OVERLAPPING FREE DAYS -->
-        <div class="sec-head" style="margin-bottom:10px">Best times to meet</div>
+        <div class="sec-head" style="margin-bottom:10px">Overlapping free days</div>
         <div id="overlapList"><div class="empty-state">Loading...</div></div>
 
         <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
 
-          <!-- NLP INPUT -->
-          <div class="collapse-panel" id="nlpPanel">
-            <div class="collapse-header" id="nlpPanelHeader">
+          <!-- DATE RANGE PICKER -->
+          <div style="margin-bottom:4px">
+            <div style="font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px">Add Free Time</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
               <div>
-                <div class="collapse-title">Update Your Availability</div>
-                <div class="collapse-preview" id="nlpPreviewText">Tap to type when you are free or busy</div>
+                <label style="font-size:10px;font-family:var(--font-mono);color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">From</label>
+                <input type="date" id="availFrom" class="input" style="font-size:14px;padding:10px 12px"/>
               </div>
-              <div class="collapse-chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
-            </div>
-            <div class="collapse-body">
-              <div class="avail-hint" style="margin-bottom:10px">Type naturally — <strong>e.g.</strong> "Free July 4th week except Wednesday" or "Busy all of August"</div>
-              <textarea class="textarea" id="nlpInput" placeholder="e.g. Free May 23rd, available weekends in June..." style="min-height:64px"></textarea>
-              <div class="parsed-preview" id="nlpParsed" style="margin-top:10px">
-                <div class="parsed-label">Parsed as:</div>
-                <div class="parsed-body" id="nlpParsedContent"></div>
-              </div>
-              <div class="btn-row" style="margin-top:10px">
-                <button class="btn btn-sec" id="parseBtn">Parse</button>
-                <button class="btn" id="saveAvailBtn" style="display:none">Save</button>
+              <div>
+                <label style="font-size:10px;font-family:var(--font-mono);color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">To</label>
+                <input type="date" id="availTo" class="input" style="font-size:14px;padding:10px 12px"/>
               </div>
             </div>
+            <div style="margin-bottom:10px">
+              <label style="font-size:10px;font-family:var(--font-mono);color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Time (optional)</label>
+              <input type="text" id="availNote" class="input" placeholder="e.g. mornings only, after 3pm, all day" style="font-size:14px;padding:10px 12px"/>
+            </div>
+            <button class="btn" id="saveAvailBtn">Add</button>
           </div>
 
           <!-- ICS IMPORT -->
@@ -883,7 +874,7 @@ const CONFIG = {
 const { createClient } = supabase;
 const db = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON);
 
-let currentUser = null, pinBuffer = '', parsedAvailability = null;
+let currentUser = null, pinBuffer = '';
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
 let toastTimer = null, editingEntryId = null, mapInstance = null;
 let selectedRating = null;
@@ -924,7 +915,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   document.getElementById('submitDataBtn').addEventListener('click', submitData);
-  document.getElementById('parseBtn').addEventListener('click', parseAvailability);
   document.getElementById('saveAvailBtn').addEventListener('click', saveAvailability);
   document.getElementById('calPrevBtn').addEventListener('click', calPrev);
   document.getElementById('calNextBtn').addEventListener('click', calNext);
@@ -1035,7 +1025,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('editModalSave').addEventListener('click', saveEdit);
 
   // Collapsible panels
-  document.getElementById('nlpPanelHeader').addEventListener('click', () => togglePanel('nlpPanel'));
 
   updatePlaceholder();
   loadProfilePreviews();
@@ -1472,40 +1461,32 @@ async function submitData() {
 }
 
 
-async function parseAvailability() {
-  const text = document.getElementById('nlpInput').value.trim();
-  if (!text) { toast('Type something first','error'); return; }
-  const btn = document.getElementById('parseBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Parsing';
-  try {
-    const freeOnlyText = 'Parse this as FREE availability only (status must always be "free"): ' + text;
-    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:freeOnlyText, today:todayStr()})});
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    parsedAvailability = data.parsed;
-    document.getElementById('nlpParsedContent').textContent = parsedAvailability.map(p => p.status.toUpperCase() + ': ' + p.start_date + ' to ' + p.end_date + (p.note ? ' (' + p.note + ')' : '')).join('\n');
-    document.getElementById('nlpParsed').style.display = 'block';
-    document.getElementById('saveAvailBtn').style.display = 'block';
-  } catch(err) { toast('Parse failed','error'); }
-  btn.disabled = false; btn.textContent = 'Parse';
-}
 async function saveAvailability() {
-  if (!parsedAvailability || !parsedAvailability.length) return;
+  const fromEl = document.getElementById('availFrom');
+  const toEl   = document.getElementById('availTo');
+  const noteEl = document.getElementById('availNote');
+  if (!fromEl || !fromEl.value) { toast('Select a start date','error'); return; }
+  const startDate = fromEl.value;
+  const endDate   = toEl && toEl.value ? toEl.value : startDate;
+  if (endDate < startDate) { toast('End date must be after start date','error'); return; }
+  const note = noteEl ? noteEl.value.trim() || null : null;
+
   const btn = document.getElementById('saveAvailBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving';
-  const rows = parsedAvailability.filter(p => p.status === 'free').map(p => ({person:currentUser, start_date:p.start_date, end_date:p.end_date, status:'free', note:p.note||null}));
-  if (!rows.length) { toast('Only free availability is tracked','info'); btn.disabled=false; btn.textContent='Save'; return; }
-  const { data, error } = await db.from('availability').insert(rows).select();
-  btn.disabled = false; btn.textContent = 'Save';
-  if (error) { toast('Error saving','error'); return; }
-  document.getElementById('nlpInput').value = '';
-  document.getElementById('nlpParsed').style.display = 'none';
-  document.getElementById('saveAvailBtn').style.display = 'none';
-  parsedAvailability = null;
-  toast('Availability saved!','success');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+
+  const { error } = await db.from('availability').insert({
+    person: currentUser, start_date: startDate, end_date: endDate, status: 'free', note
+  });
+
+  btn.disabled = false; btn.textContent = 'Add';
+  if (error) { toast('Error saving','error'); console.error(error); return; }
+
+  // Reset fields
+  fromEl.value = ''; if (toEl) toEl.value = ''; if (noteEl) noteEl.value = '';
+  toast('Added!','success');
   loadCalendarData();
+  loadAvailSynopsis();
   checkOverlapsAndNotify();
-  refreshSynopsisIfVisible();
 }
 
 // ── ICS DROP ──
@@ -1584,6 +1565,18 @@ function expandRRule(startDate, rrule, summary, timeNote) {
 
 // ── UNDO/REDO ──
 // ── CALENDAR ──
+function initAvailDates() {
+  const today = todayStr();
+  const fromEl = document.getElementById('availFrom');
+  const toEl = document.getElementById('availTo');
+  if (fromEl && !fromEl.value) fromEl.value = today;
+  if (toEl && !toEl.value) toEl.value = today;
+  // When from changes, sync to if to is before from
+  if (fromEl) fromEl.addEventListener('change', () => {
+    if (toEl && toEl.value < fromEl.value) toEl.value = fromEl.value;
+  });
+}
+
 function initCalendar() {
   calYear = new Date().getFullYear();
   calMonth = new Date().getMonth();
@@ -1833,103 +1826,123 @@ function shortenNote(note) {
   return note;
 }
 
-// ── AVAILABILITY SYNOPSIS (Claude) ──
+// ── AVAILABILITY OVERVIEW (no AI - clean display) ──
 async function loadAvailSynopsis() {
   const el = document.getElementById('availSynopsis');
   if (!el) return;
-  el.innerHTML = '<div class="empty-state" style="padding:12px 0"><span class="spinner"></span> Analyzing schedules...</div>';
 
-  try {
-    // Get all future availability for all siblings
-    const tStr = todayStr();
-    const { data } = await db.from('availability').select('*').gte('end_date', tStr).order('start_date', {ascending:true}).limit(200);
+  const tStr = todayStr();
+  // Get next 90 days of free availability for all siblings
+  const endDate = new Date(); endDate.setDate(endDate.getDate() + 90);
+  const endStr = endDate.toISOString().split('T')[0];
 
-    if (!data || !data.length) {
-      el.innerHTML = '<div style="font-size:13px;color:var(--muted);font-family:var(--font-mono);line-height:1.7">No availability data yet. Import your calendars or type when you are free in the Update section below.</div>';
+  const { data } = await db.from('availability').select('*')
+    .eq('status','free').gte('end_date', tStr).lte('start_date', endStr)
+    .order('start_date', {ascending:true});
+
+  if (!data || !data.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--muted);font-family:var(--font-mono);padding:4px 0">No free time added yet.</div>';
+    return;
+  }
+
+  // Group by person, show their upcoming free windows
+  const byPerson = {};
+  data.forEach(r => {
+    if (!byPerson[r.person]) byPerson[r.person] = [];
+    byPerson[r.person].push(r);
+  });
+
+  // Find overlaps: days where 2+ siblings are free
+  const freeMap = {};
+  data.forEach(row => {
+    let cur = new Date(row.start_date+'T12:00:00');
+    const end = new Date(row.end_date+'T12:00:00');
+    while (cur <= end) {
+      const k = cur.toISOString().split('T')[0];
+      if (!freeMap[k]) freeMap[k] = new Set();
+      freeMap[k].add(row.person);
+      cur.setDate(cur.getDate()+1);
+    }
+  });
+
+  const overlapDays = Object.entries(freeMap)
+    .filter(([d,p]) => p.size >= 2 && d >= tStr)
+    .sort((a,b) => a[0].localeCompare(b[0]));
+
+  let html = '';
+
+  // ── Best window ──
+  if (overlapDays.length) {
+    // Find the best consecutive run with the most people
+    let best = null;
+    overlapDays.forEach(([d,people]) => {
+      if (!best || people.size > best.people.size) best = {d, people};
+    });
+    const color = best.people.size >= 4 ? 'var(--accent)' : 'var(--overlap)';
+    html += '<div style="border-left:3px solid '+color+';padding:8px 14px;margin-bottom:16px;border-radius:0 var(--r-sm) var(--r-sm) 0;background:'+color+'08">';
+    html += '<div style="font-size:9px;font-family:var(--font-mono);color:'+color+';text-transform:uppercase;letter-spacing:2px;margin-bottom:3px">Best window</div>';
+    html += '<div style="font-size:16px;font-weight:700;color:var(--text)">' + fmtFull(best.d) + '</div>';
+    html += '<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:2px">' + [...best.people].join(', ') + ' free</div>';
+    html += '</div>';
+  } else {
+    html += '<div style="border-left:3px solid var(--muted);padding:8px 14px;margin-bottom:16px;border-radius:0 var(--r-sm) var(--r-sm) 0">';
+    html += '<div style="font-size:13px;color:var(--muted)">No overlapping free days yet.</div>';
+    html += '</div>';
+  }
+
+  // ── Per-sibling free windows (compact) ──
+  const siblings = ['Catherine','Ellie','JD','James'];
+  html += '<div style="display:flex;flex-direction:column;gap:8px">';
+  siblings.forEach(name => {
+    const rows = byPerson[name];
+    const color = SIBLING_COLORS[name] || 'var(--muted)';
+    if (!rows) {
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">';
+      html += '<div style="width:8px;height:8px;border-radius:50%;background:var(--muted2);flex-shrink:0"></div>';
+      html += '<div style="font-size:13px;color:var(--muted2)">' + name + '</div>';
+      html += '<div style="font-size:11px;color:var(--muted2);font-family:var(--font-mono);margin-left:auto">not added</div>';
+      html += '</div>';
       return;
     }
+    // Merge consecutive entries
+    const windows = mergeAvailWindows(rows);
+    const preview = windows.slice(0,3).map(w => {
+      const dates = w.start === w.end ? fmtShort(w.start) : fmtShort(w.start) + ' - ' + fmtShort(w.end);
+      return dates + (w.note ? ' <span style="color:var(--muted);font-size:10px">(' + esc(w.note) + ')</span>' : '');
+    }).join('<span style="color:var(--muted2);margin:0 4px">·</span>');
 
-    // Build a summary for Claude
-    const byPerson = {};
-    data.forEach(r => {
-      if (!byPerson[r.person]) byPerson[r.person] = [];
-      const dateStr = r.start_date === r.end_date ? r.start_date : r.start_date + ' to ' + r.end_date;
-      byPerson[r.person].push(r.status.toUpperCase() + ': ' + dateStr + (r.note ? ' (' + shortenNote(r.note) + ')' : ''));
-    });
+    html += '<div style="display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">';
+    html += '<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:3px"></div>';
+    html += '<div style="font-size:13px;font-weight:600;color:'+color+';flex-shrink:0;min-width:72px">' + name + '</div>';
+    html += '<div style="font-size:12px;color:var(--text);flex:1;line-height:1.5">' + preview + (windows.length > 3 ? ' <span style="color:var(--muted);font-size:10px">+' + (windows.length-3) + ' more</span>' : '') + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
 
-    const summaryText = Object.entries(byPerson).map(([name, entries]) =>
-      name + ':' + ' | ' + entries.slice(0,30).join(' | ')
-    ).join(' || ');
+  el.innerHTML = html;
+  const ageEl = document.getElementById('synopsisAge');
+  if (ageEl) ageEl.textContent = '';
+}
 
-    const prompt = 'You help 4 siblings find time to get together. Today is ' + tStr + '. Their FREE availability: ' + summaryText + '. Respond with EXACTLY this structure, no other text:\nWINDOW: [The single best date or date range when 2+ siblings are free. Be specific. If none, say "None yet"]\nWHO: [First name only, comma separated, of siblings who have added free time]\nSTATUS: [One plain sentence. Example: Ellie and JD overlap June 14-16.]';
-
-    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({text: prompt, today: tStr, mode: 'synopsis'})
-    });
-
-    if (!res.ok) throw new Error(res.status);
-    const d = await res.json();
-
-    // Edge function returns parsed array - for synopsis we use the raw text
-    // Re-call with a different flag
-    // The edge fn returns {parsed:[...]} for availability, but for synopsis
-    // we need raw text. Extract from parsed notes or use fallback.
-    const synopsis = d.synopsis || d.parsed?.[0]?.note || 'Add your availability and import calendars. Claude will find the best windows to meet.';
-
-    // Parse clean 3-line response
-    const sections = {};
-    synopsis.split('\n').forEach(line => {
-      const m = line.match(/^([A-Z]+):\s*(.+)/);
-      if (m) sections[m[1].trim()] = m[2].trim();
-    });
-
-    const window_ = sections['WINDOW'] || '';
-    const who = sections['WHO'] || '';
-    const status = sections['STATUS'] || '';
-    const noData = /none yet|none/i.test(window_) || !window_;
-
-    let html = '';
-
-    // Hero: best window
-    if (!noData) {
-      html += '<div style="border-left:3px solid var(--accent);padding:10px 14px;margin-bottom:16px;background:rgba(200,240,96,0.04);border-radius:0 var(--r-sm) var(--r-sm) 0">';
-      html += '<div style="font-size:10px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Best window</div>';
-      html += '<div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.3">' + esc(window_) + '</div>';
-      html += '</div>';
+function mergeAvailWindows(rows) {
+  // Sort and merge consecutive/overlapping free windows
+  const sorted = [...rows].sort((a,b) => a.start_date.localeCompare(b.start_date));
+  const merged = [];
+  sorted.forEach(r => {
+    const last = merged[merged.length-1];
+    if (last && r.start_date <= last.end && r.note === last.note) {
+      last.end = r.end_date > last.end ? r.end_date : last.end;
     } else {
-      html += '<div style="border-left:3px solid var(--muted);padding:10px 14px;margin-bottom:16px;border-radius:0 var(--r-sm) var(--r-sm) 0">';
-      html += '<div style="font-size:13px;color:var(--muted)">No overlapping free time yet.</div>';
-      html += '<div style="font-size:11px;color:var(--muted2);font-family:var(--font-mono);margin-top:2px">Add your availability below.</div>';
-      html += '</div>';
+      merged.push({start: r.start_date, end: r.end_date, note: r.note});
     }
+  });
+  return merged;
+}
 
-    // Who has added free time — sibling color pills, compact
-    if (who) {
-      const names = who.split(',').map(n => n.trim()).filter(Boolean);
-      html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
-      names.forEach(n => {
-        const matched = Object.keys(SIBLING_COLORS).find(s => n.includes(s));
-        const color = matched ? SIBLING_COLORS[matched] : 'var(--muted)';
-        html += '<span style="font-size:11px;font-family:var(--font-mono);color:'+color+';padding:2px 0">' + esc(n) + '</span>';
-      });
-      html += '</div>';
-    }
-
-    // One sentence status
-    if (status) {
-      html += '<div style="font-size:12px;color:var(--muted);line-height:1.6">' + esc(status) + '</div>';
-    }
-
-    el.innerHTML = html;
-    const ageEl = document.getElementById('synopsisAge');
-    if (ageEl) ageEl.textContent = 'Based on ' + data.length + ' entries';
-
-  } catch(err) {
-    console.error(err);
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono)">Could not load synopsis. Check your internet connection.</div>';
-  }
+function fmtShort(str) {
+  if (!str) return '';
+  const [y,m,d] = str.split('-');
+  return new Date(+y,+m-1,+d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
 }
 
 // ── LIKES & COMMENTS ──
@@ -2344,12 +2357,7 @@ async function loadProfileNextFree() {
 }
 
 // ── SYNOPSIS AUTO-REFRESH AFTER SAVE ──
-function refreshSynopsisIfVisible() {
-  const availTab = document.getElementById('tab-avail');
-  if (availTab && availTab.classList.contains('active')) {
-    setTimeout(loadAvailSynopsis, 1500);
-  }
-}
+function refreshSynopsisIfVisible() { loadAvailSynopsis(); }
 
 // ── PULL TO REFRESH ──
 function initPullToRefresh() {
