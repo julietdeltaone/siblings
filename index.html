@@ -1586,9 +1586,9 @@ async function submitData() {
         note: 'Clean up this personal note: "' + entryContent + '". Keep the meaning, improve clarity. Return JSON array with one item: {"note":"cleaned version"}. ONLY the array.',
       };
       const prompt = enrichPrompts[type] || enrichPrompts.note;
-      const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:prompt, today:todayStr()})});
-      if (res.ok) {
-        const data = await res.json();
+      const { data: fnRes } = await db.functions.invoke('parse-availability', {body: {text:prompt, today:todayStr()}});
+      if (fnRes) {
+        const data = fnRes;
         if (data.parsed && data.parsed.length && data.parsed[0].note) {
           entryContent = data.parsed[0].note;
         }
@@ -1627,14 +1627,11 @@ async function parseAvailability() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Parsing…'; }
 
   try {
-    const res = await fetch(CONFIG.EDGE_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','apikey':CONFIG.SUPABASE_ANON_KEY,'Authorization':'Bearer '+CONFIG.SUPABASE_ANON_KEY},
-      body: JSON.stringify({ text, today: todayStr() })
+    const { data: fnData, error: fnErr } = await db.functions.invoke('parse-availability', {
+      body: { text, today: todayStr() }
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const parsed = data.parsed || [];
+    if (fnErr) throw new Error(fnErr.message);
+    const parsed = fnData?.parsed || [];
 
     if (!parsed.length) { toast('No dates found — try being more specific', 'error'); return; }
 
@@ -1880,14 +1877,11 @@ async function parseIcsContent(icsText) {
     const eventText = capped.map(e => e.start + ' to ' + e.end + ': ' + (e.summary||'Event') + (e.timeNote ? ' (' + e.timeNote + ')' : '')).join('\n');
     const prompt = 'Here is a list of calendar events (start date, end date, title). Convert them into a JSON array where each item has: start_date (YYYY-MM-DD), end_date (YYYY-MM-DD), status ("busy"), note (event title, optional). Skip personal events like birthdays/holidays if you can tell. Return ONLY the JSON array.\n\n' + eventText;
 
-    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({text: prompt, today})
+    const { data: fnIcs, error: fnIcsErr } = await db.functions.invoke('parse-availability', {
+      body: {text: prompt, today}
     });
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    icsParsedEvents = data.parsed;
+    if (fnIcsErr) throw new Error(fnIcsErr.message);
+    icsParsedEvents = fnIcs?.parsed || [];
 
     if (!icsParsedEvents || !icsParsedEvents.length) {
       // Fall back: use local parse directly without Claude
@@ -2420,20 +2414,12 @@ async function loadAvailSynopsis() {
 
     const prompt = 'You help 4 siblings (Catherine=blue, Ellie=pink, JD=green, James=yellow) find time to get together. Today is ' + tStr + '. Their availability data: ' + summaryText + '. Respond with EXACTLY this format - no other text:\nOVERVIEW: [one sentence, direct]\nBEST WINDOW: [specific date range or dates when 2+ are free, or "None found yet"]\nWHO IS FREE: [comma list of names with free dates, or "No one has marked free time yet"]\nBLOCKERS: [key conflicts in 10 words max, or "None"]\nNEXT STEP: [one action item for the siblings]';
 
-    const res = await fetch(CONFIG.CLAUDE_EDGE_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({text: prompt, today: tStr, mode: 'synopsis'})
+    const { data: fnSyn, error: fnSynErr } = await db.functions.invoke('parse-availability', {
+      body: {text: prompt, today: tStr, mode: 'synopsis'}
     });
 
-    if (!res.ok) throw new Error(res.status);
-    const d = await res.json();
-
-    // Edge function returns parsed array - for synopsis we use the raw text
-    // Re-call with a different flag
-    // The edge fn returns {parsed:[...]} for availability, but for synopsis
-    // we need raw text. Extract from parsed notes or use fallback.
-    const synopsis = d.synopsis || d.parsed?.[0]?.note || 'Add your availability and import calendars. Claude will find the best windows to meet.';
+    if (fnSynErr) throw new Error(fnSynErr.message);
+    const synopsis = fnSyn?.synopsis || fnSyn?.parsed?.[0]?.note || 'Add your availability first'
 
     // Parse structured synopsis response
     const sections = {};
@@ -3111,14 +3097,11 @@ async function openSummaryPopup() {
     const summaryText = Object.entries(byPerson).map(([n,e]) => n + ': ' + e.join(', ')).join(' | ');
     const prompt = 'You help 4 siblings (Catherine, Ellie, JD, James) find time to meet. Today is ' + tStr + '. Availability: ' + summaryText + '. Reply in EXACTLY this format - no other text:\nOVERVIEW: [one direct sentence]\nBEST WINDOW: [specific dates when 2+ are free, or None yet]\nWHO IS FREE: [names with dates]\nBLOCKERS: [key conflicts brief, or None]\nNEXT STEP: [one action item]';
 
-    const resp = await fetch(CONFIG.CLAUDE_EDGE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'apikey':CONFIG.SUPABASE_ANON, 'Authorization':'Bearer '+CONFIG.SUPABASE_ANON },
-      body: JSON.stringify({ text: prompt, today: tStr, mode: 'synopsis' })
+    const { data: fnData, error: fnErr } = await db.functions.invoke('parse-availability', {
+      body: { text: prompt, today: tStr, mode: 'synopsis' }
     });
-    if (!resp.ok) throw new Error('Edge function error ' + resp.status);
-    const json = await resp.json();
-    const synopsis = json.synopsis || (json.parsed && json.parsed[0]?.note) || 'Could not parse response';
+    if (fnErr) throw new Error(fnErr.message);
+    const synopsis = fnData?.synopsis || (fnData?.parsed && fnData.parsed[0]?.note) || 'Could not parse response';
 
     // Parse sections
     const sections = {};
