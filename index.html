@@ -725,31 +725,43 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
           <div id="weekGrid"></div>
         </div>
 
+        <!-- HOW TO USE HINT -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:14px">
+          <div style="font-size:9px;font-family:var(--font-mono);color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px">How to use</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="font-size:14px;flex-shrink:0">👆</span>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap a day</strong> to see who is free</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="font-size:14px;flex-shrink:0">✦</span>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Tap +</strong> to enter edit mode and mark your availability</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="font-size:14px;flex-shrink:0">👈</span>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Swipe left / right</strong> or use ‹ › to change months</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;padding-top:6px;border-top:1px solid var(--border)">
+              <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
+                <div style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--accent2)"></div>
+              </div>
+              <span style="font-size:12px;color:var(--muted);line-height:1.4"><strong style="color:var(--text)">Solid dot</strong> = available · <strong style="color:var(--text)">Dashed</strong> = tentative</span>
+            </div>
+          </div>
+        </div>
+
         <!-- SUMMARIZE BUTTON -->
-        <button class="summarize-btn" onclick="openSummaryPopup()" style="margin-bottom:20px">
+        <button class="summarize-btn" onclick="openSummaryPopup()" style="margin-bottom:16px">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           Summarize availability
         </button>
 
-        <div class="divider" style="margin-bottom:16px"></div>
-
         <!-- OVERLAP LIST -->
         <div id="overlapList" style="margin-bottom:16px"></div>
 
-        <!-- NLP INPUT -->
-        <details style="margin-bottom:16px;border:1px solid var(--border);border-radius:var(--r);padding:0 12px">
-          <summary style="font-size:11px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;letter-spacing:1px;cursor:pointer;padding:12px 0;list-style:none;display:flex;align-items:center;justify-content:center;gap:6px">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Type availability with AI
-          </summary>
-          <div style="padding-bottom:12px">
-            <textarea id="availInput" placeholder='e.g. "Free this weekend and Tuesday afternoon"' style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;resize:none;min-height:64px;box-sizing:border-box;margin-bottom:8px"></textarea>
-            <button onclick="parseAvailability()" class="btn" style="width:100%">Parse with AI</button>
-          </div>
-        </details>
-
         <!-- MY SCHEDULE -->
-        <div id="myScheduleList" style="margin-bottom:20px"></div>
+        <div id="myScheduleList" style="margin-bottom:80px"></div>
 
       </div>
       <!-- MAP -->
@@ -1632,7 +1644,7 @@ async function parseAvailability() {
         type:       type,
         rating:     type === 'available' ? 5 : 3,
         source:     'nlp',
-        notes:      noteStr + ' · ' + type
+        note:       noteStr + ' · ' + type
       };
     });
 
@@ -3028,7 +3040,7 @@ async function saveEditMode() {
     type: editType,
     rating: editType === 'available' ? 5 : 3,
     source: 'manual',
-    notes: (allDay ? 'All day' : startTime + '–' + endTime) + ' · ' + editType
+    note: (allDay ? 'All day' : startTime + '–' + endTime) + ' · ' + editType
   };
   const { error } = await db.from('availability').insert(row);
   if (error) { showToast('Error: ' + error.message); return; }
