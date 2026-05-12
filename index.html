@@ -1676,7 +1676,13 @@ function switchTab(name, btn) {
   if (name === 'notif') loadNotifications();
   if (name === 'add') loadRecentEntries();
   if (name === 'map') initMap();
-  if (name === 'profiles') { loadProfilePreviews(); }
+  if (name === 'profiles') {
+    loadProfilePreviews();
+    // Only lock overflow for grid view, not detail view
+    const detail = document.getElementById('profileDetail');
+    const isDetailVisible = detail && detail.style.display !== 'none';
+    if (appContent && !isDetailVisible) appContent.style.overflowY = 'hidden';
+  }
   restoreScrollPos(name);
 }
 
@@ -1815,11 +1821,49 @@ async function viewProfile(name) {
       '<div style="font-size:12px;color:var(--muted);max-width:200px;line-height:1.5">Tap Add in the nav bar to share something</div>' +
       '</div>';
 
-    // Load reactions for all visible entries
-    document.querySelectorAll('.entry-item[id^="entry-"]').forEach(el => {
+    // Load reactions for all visible entries (new class: entry-card)
+    document.querySelectorAll('.entry-card[id^="entry-"]').forEach(el => {
       const entryId = el.id.replace('entry-', '');
       loadReactions(entryId, el);
     });
+
+    // Wire delegation for social interactions on this profile
+    const detailEl = document.getElementById('detailContent');
+    if (detailEl) {
+      detailEl._delegated = true;
+      detailEl.addEventListener('click', e => {
+        // Like
+        const lb = e.target.closest('.like-btn');
+        if (lb) {
+          const card = lb.closest('.entry-card');
+          if (card) toggleLike(lb.dataset.entry, lb.dataset.owner, card);
+          return;
+        }
+        // Comment toggle
+        const ct = e.target.closest('.comment-toggle-btn');
+        if (ct) {
+          const card = ct.closest('.entry-card');
+          if (card) toggleComments(card);
+          return;
+        }
+        // Comment send
+        const cs = e.target.closest('.comment-send');
+        if (cs) {
+          const card = cs.closest('.entry-card');
+          if (card) sendComment(cs.dataset.entry, cs.dataset.owner, card);
+          return;
+        }
+        // Edit entry
+        const eb = e.target.closest('[data-edit-id]');
+        if (eb) { openEdit(eb.dataset.editId, eb.dataset.editContent); return; }
+        // Delete entry
+        const db2 = e.target.closest('[data-del-id]');
+        if (db2) { delEntry(db2.dataset.delId); return; }
+        // Delete avail
+        const da = e.target.closest('[data-del-avail]');
+        if (da) { delAvail(da.dataset.delAvail); return; }
+      });
+    }
 
   } catch(err) {
     console.error(err);
@@ -1896,7 +1940,16 @@ function entryRow(r, canEdit, type) {
   out += '</div>';
 
   // Content
-  out += '<div class="entry-card-text">'+esc(r.content)+'</div>';
+  // For places, show name only (address is after ' -- ')
+  const displayContent = (type === 'place' && r.content.includes(' -- '))
+    ? r.content.split(' -- ')[0]
+    : r.content;
+  out += '<div class="entry-card-text">'+esc(displayContent)+'</div>';
+  // Show address separately for place entries
+  if (type === 'place' && r.content.includes(' -- ')) {
+    const addr = r.content.split(' -- ').slice(1).join(' -- ');
+    out += '<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:2px">'+esc(addr)+'</div>';
+  }
 
   // Links
   if (links) out += '<div class="entry-card-links">'+links+'</div>';
@@ -2874,7 +2927,7 @@ async function loadMapEntries() {
   for (const entry of data) {
     // Only entries that have an address embedded (after ' -- ')
     const parts = entry.content.split(' -- ');
-    if (parts.length < 2) continue;
+    if (parts.length < 2) continue; // No address — skip map pin but entry shows in profile
     const addr = parts[parts.length - 1];
     const placeName = parts[0];
     const color = SIBLING_COLORS[entry.person] || '#c8f060';
