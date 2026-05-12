@@ -629,6 +629,196 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 .switch-user-btn:active{transform:scale(0.95)}
 
 .app-nav .nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* ── GLOBAL POLISH ── */
+
+/* Smoother tap response everywhere */
+button, .q-card, .nav-btn, .entry-item, .notif-item, .ol-card {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Input focus glow */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(200,240,96,0.12);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+/* Save button success state */
+.btn.success-state {
+  background: #2a4a1a;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+/* Edit panel expand animation */
+#editExpanded {
+  overflow: hidden;
+  transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.2s;
+  max-height: 0;
+  opacity: 0;
+}
+#editExpanded.visible {
+  max-height: 600px;
+  opacity: 1;
+}
+
+/* Profile detail slide in */
+#profileDetail {
+  animation: slideInRight 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+@keyframes slideInRight {
+  from { opacity:0; transform:translateX(18px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+/* Back to profiles slide */
+#profileGrid {
+  animation: slideInLeft 0.2s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+@keyframes slideInLeft {
+  from { opacity:0; transform:translateX(-12px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+/* Skeleton loading shimmer */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+  height: 14px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Nav active indicator line */
+.nav-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.nav-btn { position: relative; }
+
+/* Cal day press feedback */
+.cal-day.in-month {
+  transition: transform 0.1s, background 0.1s;
+}
+.cal-day.in-month:active {
+  transform: scale(0.88);
+  background: var(--surface2);
+}
+
+/* Edit type buttons - clear active state */
+.edit-type-btn {
+  transition: all 0.15s cubic-bezier(0.4,0,0.2,1);
+}
+.edit-type-btn.active {
+  transform: scale(1.02);
+}
+
+/* Popup drag handle affordance */
+.day-popup-handle, .edit-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border2);
+  margin: 8px auto 4px;
+  flex-shrink: 0;
+}
+
+/* Entry row hover */
+.entry-item {
+  transition: background 0.1s;
+  border-radius: 6px;
+  padding: 8px 6px;
+  margin: 0 -6px;
+}
+@media (hover: hover) {
+  .entry-item:hover { background: var(--surface2); }
+}
+
+/* Overlap card - subtle hover */
+.ol-card {
+  transition: transform 0.15s, border-color 0.15s;
+}
+@media (hover: hover) {
+  .ol-card:hover { transform: translateY(-1px); }
+}
+
+/* Notification unread dot pulse */
+.notif-badge {
+  animation: badgePulse 2s ease-in-out infinite;
+}
+@keyframes badgePulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(240,96,96,0.4); }
+  50%      { box-shadow: 0 0 0 4px rgba(240,96,96,0); }
+}
+
+/* Save button loading state */
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+.btn.loading::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--bg);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Q-card active state */
+.q-card:active {
+  transform: scale(0.97);
+  background: var(--surface2);
+}
+
+/* Smooth scroll everywhere */
+.app-content, .day-popup-body, .summary-popup {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Type grid buttons in add tab */
+.type-btn {
+  transition: all 0.15s cubic-bezier(0.4,0,0.2,1);
+}
+.type-btn.sel {
+  transform: scale(1.05);
+}
+.type-btn:active {
+  transform: scale(0.93);
+}
+
+/* Avail badge transition */
+.avail-badge {
+  transition: opacity 0.2s;
+}
+
+/* Section header bottom border animation on load */
+.sec-head {
+  animation: secIn 0.2s ease both;
+}
+@keyframes secIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 </style>
 </head>
 <body>
@@ -1439,6 +1629,9 @@ function lockApp() { currentUser = null; sessionStorage.removeItem('siblings_ses
 
 // ── TABS ──
 function switchTab(name, btn) {
+  // Save scroll position of current tab
+  const currentActive = document.querySelector('.tab-pane.active');
+  if (currentActive) saveScrollPos(currentActive.id.replace('tab-', ''));
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
   const pane = document.getElementById('tab-' + name);
@@ -1453,9 +1646,9 @@ function switchTab(name, btn) {
   }
   if (name === 'notif') loadNotifications();
   if (name === 'add') loadRecentEntries();
-  if (name === 'cal') { loadAvailSynopsis(); loadCalendarData(); }
   if (name === 'map') initMap();
-  if (name === 'profiles') { backToProfiles(); loadProfilePreviews(); }
+  if (name === 'profiles') { loadProfilePreviews(); }
+  restoreScrollPos(name);
 }
 
 // ── PROFILE PREVIEWS ──
@@ -1491,7 +1684,16 @@ async function viewProfile(name) {
   const s = CONFIG.SIBLINGS[name];
   const age = Math.floor((new Date() - new Date(s.dob)) / 31557600000);
   document.getElementById('detailInfo').textContent = s.lastName + ' · ' + age + ' yrs · ' + (s.address.split(',')[1] || '').trim();
-  document.getElementById('detailContent').innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading</div>';
+  document.getElementById('detailContent').innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">' +
+    '<div class="skeleton" style="width:60%;height:12px"></div>' +
+    '<div class="skeleton" style="width:90%;height:12px"></div>' +
+    '<div class="skeleton" style="width:75%;height:12px"></div>' +
+    '<div class="skeleton" style="height:1px;background:var(--border);margin:4px 0"></div>' +
+    '<div class="skeleton" style="width:45%;height:12px"></div>' +
+    '<div class="skeleton" style="width:80%;height:12px"></div>' +
+    '<div class="skeleton" style="width:65%;height:12px"></div>' +
+    '</div>';
 
   try {
     const [entries, schedule] = await Promise.all([
@@ -1576,7 +1778,13 @@ async function viewProfile(name) {
 
     const finalHtml = statsHtml + entriesHtml + availHtml;
     document.getElementById('detailContent').innerHTML = finalHtml ||
-      '<div class="empty-state">Nothing added yet. Go to the Add tab!</div>';
+      '<div style="text-align:center;padding:32px 16px;display:flex;flex-direction:column;align-items:center;gap:12px">' +
+      '<div style="width:48px;height:48px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center">' +
+      '<svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>' +
+      '</div>' +
+      '<div style="font-size:14px;font-weight:600;color:var(--text)">Nothing here yet</div>' +
+      '<div style="font-size:12px;color:var(--muted);max-width:200px;line-height:1.5">Tap Add in the nav bar to share something</div>' +
+      '</div>';
 
     // Load reactions for all visible entries
     document.querySelectorAll('.entry-item[id^="entry-"]').forEach(el => {
@@ -3274,7 +3482,15 @@ function esc(str) { return(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').r
 function escAttr(str) { return(str||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
 function showToast(msg, type) { toast(msg, type); }
 
-function toast(msg,type='') { const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(type?' '+type:''); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000); }
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  const icons = { success:'✓', error:'✕', info:'i' };
+  const icon = icons[type] ? '<span style="margin-right:5px;font-weight:700">' + icons[type] + '</span>' : '';
+  el.innerHTML = icon + esc(msg);
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
 
 
 // ── EDIT MODE ──────────────────────────────────────────────────────────────
@@ -3297,7 +3513,9 @@ function enterEditMode(date) {
   const panel = document.getElementById('editPanel');
   panel.classList.add('open');
   panel.classList.remove('expanded');
-  document.getElementById('editExpanded').style.display = 'none';
+  const expEl2 = document.getElementById('editExpanded');
+  expEl2.classList.remove('visible');
+  setTimeout(() => { expEl2.style.display = 'none'; }, 280);
   // Pad cal tab so grid clears the strip (~80px)
   const calTab = document.getElementById('tab-cal');
   if (calTab) calTab.style.paddingBottom = '90px';
@@ -3313,7 +3531,9 @@ function cancelEditMode() {
   document.getElementById('calAddBtn').style.display = '';
   const panel = document.getElementById('editPanel');
   panel.classList.remove('open', 'expanded');
-  document.getElementById('editExpanded').style.display = 'none';
+  const expEl2 = document.getElementById('editExpanded');
+  expEl2.classList.remove('visible');
+  setTimeout(() => { expEl2.style.display = 'none'; }, 280);
   // Remove bottom padding
   const calTab = document.getElementById('tab-cal');
   if (calTab) calTab.style.paddingBottom = '';
@@ -3385,7 +3605,9 @@ async function tapEditDay(ds) {
   document.getElementById('editTimeRow').style.display = 'flex';
   const panel = document.getElementById('editPanel');
   panel.classList.add('expanded');
-  document.getElementById('editExpanded').style.display = 'block';
+  const expEl = document.getElementById('editExpanded');
+  expEl.style.display = 'block';
+  requestAnimationFrame(() => expEl.classList.add('visible'));
   const calTab = document.getElementById('tab-cal');
   if (calTab) calTab.style.paddingBottom = '260px';
   document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('edit-selected'));
@@ -3431,11 +3653,14 @@ async function saveEditMode() {
   };
   const { error } = await db.from('availability').insert(row);
   if (error) { showToast('Error: ' + error.message); return; }
+  haptic('success');
   showToast(editType === 'available' ? String.fromCharCode(10003) + ' Saved' : String.fromCharCode(10003) + ' Tentative saved');
   editCurrentDay = null;
   const panel = document.getElementById('editPanel');
   panel.classList.remove('expanded');
-  document.getElementById('editExpanded').style.display = 'none';
+  const expEl2 = document.getElementById('editExpanded');
+  expEl2.classList.remove('visible');
+  setTimeout(() => { expEl2.style.display = 'none'; }, 280);
   const calTab = document.getElementById('tab-cal');
   if (calTab) calTab.style.paddingBottom = '90px';
   document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('edit-selected'));
@@ -3733,7 +3958,9 @@ async function deleteFromEditMode() {
   editExistingId = null;
   const panel = document.getElementById('editPanel');
   panel.classList.remove('expanded');
-  document.getElementById('editExpanded').style.display = 'none';
+  const expEl2 = document.getElementById('editExpanded');
+  expEl2.classList.remove('visible');
+  setTimeout(() => { expEl2.style.display = 'none'; }, 280);
   document.getElementById('editDayLabel').textContent = '—';
   const calTab = document.getElementById('tab-cal');
   if (calTab) calTab.style.paddingBottom = '90px';
@@ -3784,6 +4011,47 @@ function initEditPanel() {
 
 
 
+
+// ── HAPTIC FEEDBACK (iOS) ──
+function haptic(style) {
+  // style: 'light' | 'medium' | 'heavy' | 'success' | 'error'
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    const patterns = { light:10, medium:20, heavy:40, success:[10,50,10], error:[30,50,30] };
+    navigator.vibrate(patterns[style] || 10);
+  }
+  // iOS Safari via AudioContext (silent, just for timing sync)
+}
+
+// ── SCROLL MEMORY ──
+const _scrollPos = {};
+function saveScrollPos(tabName) {
+  const ac = document.querySelector('.app-content');
+  if (ac && tabName !== 'profiles') _scrollPos[tabName] = ac.scrollTop;
+}
+function restoreScrollPos(tabName) {
+  const ac = document.querySelector('.app-content');
+  if (ac && _scrollPos[tabName] !== undefined) {
+    requestAnimationFrame(() => { ac.scrollTop = _scrollPos[tabName]; });
+  }
+}
+
+// ── PAGE VISIBILITY — refresh stale data when returning to app ──
+let _lastVisibleTime = Date.now();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const away = Date.now() - _lastVisibleTime;
+    if (away > 60000) { // Been away more than 1 minute
+      const activeTab = document.querySelector('.tab-pane.active');
+      if (!activeTab) return;
+      const tab = activeTab.id.replace('tab-', '');
+      if (tab === 'cal') loadCalendarData();
+      else if (tab === 'notif') loadNotifications();
+      else if (tab === 'profiles') loadProfilePreviews();
+    }
+  } else {
+    _lastVisibleTime = Date.now();
+  }
+});
 </script>
 </body>
 </html>
